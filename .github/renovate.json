@@ -21,17 +21,17 @@
   },
   "packageRules": [
     {
-      "description": "CI tooling bumps use the chore type to match this repo's commit history.",
+      "description": "Commit CI tooling bumps with the chore type to match this repo's commit history.",
       "matchManagers": ["github-actions", "custom.regex"],
       "semanticCommitType": "chore"
     },
     {
-      "description": "Collapse GitHub Action bumps into a single PR.",
+      "description": "Group GitHub Action updates into a single pull request.",
       "matchManagers": ["github-actions"],
       "groupName": "GitHub Actions"
     },
     {
-      "description": "Surface major bumps for a deliberate review.",
+      "description": "Label major updates so they get a deliberate review.",
       "matchUpdateTypes": ["major"],
       "addLabels": ["Breaking"]
     }
@@ -39,7 +39,7 @@
   "customManagers": [
     {
       "customType": "regex",
-      "description": "Track the @devcontainers/cli version pinned inside the test workflow's run step.",
+      "description": "Track the @devcontainers/cli version pinned in the test workflow's run step.",
       "managerFilePatterns": ["/^\\.github/workflows/[^/]+\\.ya?ml$/"],
       "matchStrings": ["@devcontainers/cli@(?<currentValue>\\d+\\.\\d+\\.\\d+)"],
       "datasourceTemplate": "npm",
