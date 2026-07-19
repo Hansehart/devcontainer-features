@@ -2,7 +2,7 @@
   "id": "claude-code",
   "version": "1.0.0",
   "name": "Claude Code CLI",
-  "description": "Installs the Claude Code CLI for the remote user on a selectable release channel, and puts ~/.local/bin on PATH.",
+  "description": "Installs the Claude Code CLI for the remote user on a selectable release channel, puts ~/.local/bin on PATH, and sets the Claude config dir and non-essential-traffic defaults.",
   "documentationURL": "https://github.com/hansehart/devcontainer-features/tree/main/src/claude-code",
   "options": {
     "version": {
@@ -11,5 +11,9 @@
       "default": "latest",
       "description": "Channel (latest|stable) or an exact version (major.minor.patch)"
     }
+  },
+  "containerEnv": {
+    "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC": "1",
+    "CLAUDE_CONFIG_DIR": "/home/ubuntu/config/claude"
   }
 }
