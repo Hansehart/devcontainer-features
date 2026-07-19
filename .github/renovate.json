@@ -1,0 +1,49 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    "abandonments:recommended",
+    ":configMigration",
+    "helpers:pinGitHubActionDigests"
+  ],
+  "timezone": "Europe/Berlin",
+  "labels": ["Renovate"],
+  "semanticCommits": "enabled",
+  "semanticCommitScope": "deps",
+  "pinDigests": true,
+  "minimumReleaseAge": "3 days",
+  "prBodyColumns": ["Package", "Type", "Update", "Change", "Age"],
+  "prBodyDefinitions": {
+    "Age": "{{#if newVersion}}{{{newVersionAgeInDays}}} days{{/if}}"
+  },
+  "vulnerabilityAlerts": {
+    "addLabels": ["Security"]
+  },
+  "packageRules": [
+    {
+      "description": "CI tooling bumps use the chore type to match this repo's commit history.",
+      "matchManagers": ["github-actions", "custom.regex"],
+      "semanticCommitType": "chore"
+    },
+    {
+      "description": "Collapse GitHub Action bumps into a single PR.",
+      "matchManagers": ["github-actions"],
+      "groupName": "GitHub Actions"
+    },
+    {
+      "description": "Surface major bumps for a deliberate review.",
+      "matchUpdateTypes": ["major"],
+      "addLabels": ["Breaking"]
+    }
+  ],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "Track the @devcontainers/cli version pinned inside the test workflow's run step.",
+      "managerFilePatterns": ["/^\\.github/workflows/[^/]+\\.ya?ml$/"],
+      "matchStrings": ["@devcontainers/cli@(?<currentValue>\\d+\\.\\d+\\.\\d+)"],
+      "datasourceTemplate": "npm",
+      "depNameTemplate": "@devcontainers/cli"
+    }
+  ]
+}
