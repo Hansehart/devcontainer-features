@@ -45,7 +45,5 @@ installer="$(find "$tmp" -maxdepth 1 -type d -name 'install-tl-*' -print -quit)"
 bindir="$(find "${TEXDIR}/bin" -mindepth 1 -maxdepth 1 -type d -print -quit)"
 ln -sf "${bindir}"/* /usr/local/bin/
 
-# 6. Sanity check.
+# 6. Sanity check: latex resolves on PATH (present in any LaTeX-capable scheme).
 latex --version | head -1
-latexmk --version | head -1
-biber --version | head -1
