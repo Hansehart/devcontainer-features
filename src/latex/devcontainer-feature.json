@@ -14,7 +14,7 @@
     "scheme": {
       "type": "string",
       "proposals": ["scheme-basic", "scheme-small", "scheme-medium", "scheme-full"],
-      "default": "scheme-full",
+      "default": "scheme-basic",
       "description": "TeX Live scheme to install, from scheme-basic (minimal) to scheme-full (complete distribution)."
     }
   }

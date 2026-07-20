@@ -5,8 +5,7 @@ set -e
 source dev-container-features-test-lib
 
 check "latex" latex --version
-check "latexmk" latexmk --version
-check "biber" biber --version
+check "pdflatex" pdflatex --version
 
 # Report result
 reportResults
