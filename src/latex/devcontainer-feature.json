@@ -2,7 +2,7 @@
   "id": "latex",
   "version": "1.0.0",
   "name": "LaTeX (TeX Live)",
-  "description": "Installs TeX Live from a pinned tlnet-final snapshot (scheme-basic plus selectable collections) and puts the binaries on PATH.",
+  "description": "Installs TeX Live from a pinned tlnet-final snapshot (selectable scheme) and puts the binaries on PATH.",
   "documentationURL": "https://github.com/hansehart/devcontainer-features/tree/main/src/latex",
   "options": {
     "version": {
@@ -11,10 +11,11 @@
       "default": "2025",
       "description": "TeX Live release year to install, from that year's tlnet-final snapshot via install-tl."
     },
-    "collections": {
+    "scheme": {
       "type": "string",
-      "default": "collection-latexrecommended,collection-latexextra,collection-fontsrecommended,collection-bibtexextra,collection-binextra",
-      "description": "Comma-separated TeX Live collections installed on top of scheme-basic. latexmk is in collection-binextra, biber in collection-bibtexextra."
+      "proposals": ["scheme-basic", "scheme-small", "scheme-medium", "scheme-full"],
+      "default": "scheme-full",
+      "description": "TeX Live scheme to install, from scheme-basic (minimal) to scheme-full (complete distribution)."
     }
   }
 }

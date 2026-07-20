@@ -23,14 +23,13 @@ wget -q -O "$tmp/install-tl-unx.tar.gz" "${REPO}/install-tl-unx.tar.gz"
 tar -xzf "$tmp/install-tl-unx.tar.gz" -C "$tmp"
 installer="$(find "$tmp" -maxdepth 1 -type d -name 'install-tl-*' -print -quit)"
 
-# 3. Non-interactive profile: scheme-basic plus the requested collections
+# 3. Non-interactive profile installing the selected scheme without docs or sources.
 {
-  echo "selected_scheme scheme-basic"
+  echo "selected_scheme ${SCHEME}"
   echo "TEXDIR ${TEXDIR}"
   echo "TEXMFLOCAL ${TEXDIR}/texmf-local"
   echo "TEXMFSYSVAR ${TEXDIR}/texmf-var"
   echo "TEXMFSYSCONFIG ${TEXDIR}/texmf-config"
-  for c in $(echo "${COLLECTIONS}" | tr ',' ' '); do echo "${c} 1"; done
   echo "tlpdbopt_install_docfiles 0"
   echo "tlpdbopt_install_srcfiles 0"
   echo "tlpdbopt_autobackup 0"
