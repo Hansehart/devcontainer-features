@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-# Optional: Import test library
+# Import the test library
 source dev-container-features-test-lib
 
 check "latex" latex --version

@@ -2,8 +2,8 @@
 set -euo pipefail
 
 # Options (uppercased by the CLI): VERSION, CONFIGDIR, DISABLENONESSENTIALTRAFFIC.
-CONFIG_DIR="${CONFIGDIR:-}"
-DISABLE_NONESSENTIAL_TRAFFIC="${DISABLENONESSENTIALTRAFFIC:-false}"
+CONFIG_DIR="$CONFIGDIR"
+DISABLE_NONESSENTIAL_TRAFFIC="$DISABLENONESSENTIALTRAFFIC"
 
 # Install as the dev user (_REMOTE_USER) so claude lands in their home (~/.local/bin).
 su - "$_REMOTE_USER" -c "curl -fsSL https://claude.ai/install.sh | bash -s -- '$VERSION'"

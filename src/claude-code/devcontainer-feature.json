@@ -1,6 +1,6 @@
 {
   "id": "claude-code",
-  "version": "1.1.0",
+  "version": "1.0.0",
   "name": "Claude Code CLI",
   "description": "Installs the Claude Code CLI on a selectable channel.",
   "documentationURL": "https://github.com/hansehart/devcontainer-features/tree/main/src/claude-code",
