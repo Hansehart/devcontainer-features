@@ -1,0 +1,10 @@
+{
+  "scheme_basic": {
+    "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
+    "features": {
+      "latex": {
+        "scheme": "scheme-basic"
+      }
+    }
+  }
+}
