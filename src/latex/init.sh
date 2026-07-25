@@ -15,11 +15,11 @@ if [ -f "${TEXDIR}/tlpkg/texlive.profile" ]; then
   exit 0
 fi
 
-# 1. Install: one-time install onto the volume (clear any partial tree first; install-tl won't reuse it).
+# Install: one-time install onto the volume (clear any partial tree first; install-tl won't reuse it).
 echo "latex: installing TeX Live ${VERSION} (${SCHEME}) into ${TEXDIR} - one-time, reused on later rebuilds"
 rm -rf "${TEXDIR}"
 mkdir -p "${TEXDIR}"
 install_texlive "${TEXDIR}"
 
-# 2. Verify: the freshly installed tree resolves.
+# Verify: the freshly installed tree resolves.
 "${TEXDIR}/bin/${PLAT}/latex" --version
