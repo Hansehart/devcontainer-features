@@ -9,9 +9,9 @@
       "type": "string",
       "proposals": ["latest", "stable"],
       "default": "latest",
-      "description": "Channel (latest|stable) or an exact version (major.minor.patch)"
+      "description": "Channel (latest|stable) or an exact version (major.minor.patch)."
     },
-    "configDir": {
+    "stateDir": {
       "type": "string",
       "default": "",
       "description": "If set, exports CLAUDE_CONFIG_DIR to this path (persist it by mounting a volume there). Empty leaves Claude's ~/.claude default."
