@@ -7,14 +7,14 @@ STATE_DIR="$STATEDIR"
 
 export DEBIAN_FRONTEND=noninteractive
 
-# 1. Dependencies: download tooling, installed defensively for minimal bases.
+# Dependencies: download tooling, installed defensively for minimal bases.
 apt-get update
 apt-get install -y --no-install-recommends \
   ca-certificates \
   curl
 rm -rf /var/lib/apt/lists/*
 
-# 2. Resolve: map the CPU arch to uv's gnu release target triple.
+# Resolve: map the CPU arch to uv's gnu release target triple.
 arch="$(uname -m)"
 case "$arch" in
   x86_64 | amd64)  target="x86_64-unknown-linux-gnu" ;;
@@ -22,7 +22,7 @@ case "$arch" in
   *) echo "uv: unsupported architecture '$arch'" >&2; exit 1 ;;
 esac
 
-# 3. Resolve: build the GitHub Releases URL for the channel or version.
+# Resolve: build the GitHub Releases URL for the channel or version.
 base="https://github.com/astral-sh/uv/releases"
 case "$VERSION" in
   latest | stable) url_dir="$base/latest/download" ;;
@@ -30,18 +30,18 @@ case "$VERSION" in
 esac
 asset="uv-$target.tar.gz"
 
-# 4. Fetch: download the tarball and verify its published sha256.
+# Fetch: download the tarball and verify its published sha256.
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 curl -fsSL "$url_dir/$asset" -o "$tmp/$asset"
 curl -fsSL "$url_dir/$asset.sha256" -o "$tmp/$asset.sha256"
 ( cd "$tmp" && sha256sum -c "$asset.sha256" )
 
-# 5. Install: extract and place uv + uvx on PATH.
+# Install: extract and place uv + uvx on PATH.
 tar -xzf "$tmp/$asset" -C "$tmp" --strip-components=1
 install -m 0755 "$tmp/uv" "$tmp/uvx" /usr/local/bin/
 
-# 6. Configure: login-shell profile — PATH, tool bin dir, optional state redirect.
+# Configure: login-shell profile — PATH, tool bin dir, optional state redirect.
 {
   echo 'export PATH="$HOME/.local/bin:$PATH"'
   echo 'export UV_TOOL_BIN_DIR="/usr/local/bin"'
@@ -54,11 +54,11 @@ install -m 0755 "$tmp/uv" "$tmp/uvx" /usr/local/bin/
 } > /etc/profile.d/uv.sh
 chmod 0644 /etc/profile.d/uv.sh
 
-# 7. Configure: optionally bake a default Python so python3 exists at open.
+# Configure: optionally bake a default Python so python3 exists at open.
 if [ -n "$PYTHON_VERSION" ]; then
   su - "$_REMOTE_USER" -c \
     "env -u UV_PYTHON_INSTALL_DIR uv python install --default --preview-features python-install-default '$PYTHON_VERSION'"
 fi
 
-# 8. Verify: uv resolves on PATH.
+# Verify: uv resolves on PATH.
 uv --version
