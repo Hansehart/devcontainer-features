@@ -16,6 +16,12 @@
       "proposals": ["scheme-basic", "scheme-small", "scheme-medium", "scheme-full"],
       "default": "scheme-basic",
       "description": "TeX Live scheme to install, from scheme-basic (minimal) to scheme-full (complete distribution)."
+    },
+    "stateDir": {
+      "type": "string",
+      "default": "",
+      "description": "Installs TeX Live here at container create and reuses it across rebuilds (mount a volume to persist it). Empty installs into the image at build time."
     }
-  }
+  },
+  "postCreateCommand": "/usr/local/share/latex/latex.sh hook"
 }
