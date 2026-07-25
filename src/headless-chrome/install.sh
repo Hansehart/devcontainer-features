@@ -8,7 +8,7 @@ INSTALL_DIR="/opt/chrome-headless-shell"
 
 export DEBIAN_FRONTEND=noninteractive
 
-# 1. Runtime shared libraries chrome-headless-shell dlopen()s at startup.
+# 1. Dependencies: runtime shared libraries chrome-headless-shell dlopen()s at startup.
 apt-get update
 apt-get install -y --no-install-recommends \
   ca-certificates \
@@ -36,7 +36,7 @@ apt-get install -y --no-install-recommends \
   libxkbcommon0 \
   libxrandr2
 
-# 2. Resolve the channel keyword to a concrete version (exact versions pass through).
+# 2. Resolve: the channel keyword to a concrete version (exact versions pass through).
 case "$VERSION" in
   latest | stable) key="Stable" ;;
   beta)            key="Beta" ;;
@@ -56,12 +56,13 @@ fi
 url="$BUCKET/$resolved/linux64/chrome-headless-shell-linux64.zip"
 echo "chrome: installing chrome-headless-shell $resolved ($VERSION)"
 
-# 3. Download, unpack, and expose the binary on PATH.
+# 3. Fetch: download and unpack the build.
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 curl -fsSL "$url" -o "$tmp/chs.zip"
 unzip -q "$tmp/chs.zip" -d "$tmp"
 
+# 4. Install: place the binary and expose it on PATH.
 rm -rf "$INSTALL_DIR"
 mkdir -p "$INSTALL_DIR"
 mv "$tmp/chrome-headless-shell-linux64/"* "$INSTALL_DIR/"
@@ -69,5 +70,5 @@ ln -sf "$INSTALL_DIR/chrome-headless-shell" /usr/local/bin/chrome-headless-shell
 
 rm -rf /var/lib/apt/lists/*
 
-# 4. Sanity check.
-/usr/local/bin/chrome-headless-shell --version
+# 5. Verify: chrome-headless-shell resolves on PATH.
+chrome-headless-shell --version
