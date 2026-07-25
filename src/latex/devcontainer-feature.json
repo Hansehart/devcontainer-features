@@ -23,5 +23,5 @@
       "description": "Installs TeX Live here at container create and reuses it across rebuilds (mount a volume to persist it). Empty installs into the image at build time."
     }
   },
-  "postCreateCommand": "/usr/local/share/latex/latex.sh hook"
+  "postCreateCommand": "/usr/local/share/latex/init.sh"
 }
