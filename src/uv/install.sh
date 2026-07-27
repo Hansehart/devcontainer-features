@@ -44,12 +44,13 @@ install -m 0755 "$tmp/uv" "$tmp/uvx" /usr/local/bin/
 # Configure: login-shell profile — PATH, tool bin dir, optional state redirect.
 {
   echo 'export PATH="$HOME/.local/bin:$PATH"'
-  echo 'export UV_TOOL_BIN_DIR="/usr/local/bin"'
   if [ -n "$STATE_DIR" ]; then
     echo "export UV_CACHE_DIR=\"$STATE_DIR/cache\""
     echo "export UV_TOOL_DIR=\"$STATE_DIR/tools\""
+    echo "export UV_TOOL_BIN_DIR=\"$STATE_DIR/bin\""
     echo "export UV_PYTHON_INSTALL_DIR=\"$STATE_DIR/python\""
     echo 'export UV_LINK_MODE=copy'
+    echo "export PATH=\"$STATE_DIR/bin:\$PATH\""
   fi
 } > /etc/profile.d/uv.sh
 chmod 0644 /etc/profile.d/uv.sh

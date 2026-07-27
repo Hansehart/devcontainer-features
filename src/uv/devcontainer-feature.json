@@ -1,6 +1,6 @@
 {
   "id": "uv",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "name": "uv (Python)",
   "description": "Installs the uv Python package and interpreter manager as a single static binary.",
   "documentationURL": "https://github.com/hansehart/devcontainer-features/tree/main/src/uv",
