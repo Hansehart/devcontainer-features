@@ -1,6 +1,6 @@
 {
   "id": "latex",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "name": "LaTeX (TeX Live)",
   "description": "Installs TeX Live from a pinned tlnet-final snapshot (selectable scheme) and puts the binaries on PATH.",
   "documentationURL": "https://github.com/hansehart/devcontainer-features/tree/main/src/latex",
@@ -21,6 +21,13 @@
       "type": "string",
       "default": "",
       "description": "Installs TeX Live here at container create and reuses it across rebuilds (mount a volume to persist it). Empty installs into the image at build time."
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "james-yu.latex-workshop"
+      ]
     }
   },
   "postCreateCommand": "/usr/local/share/latex/init.sh"
