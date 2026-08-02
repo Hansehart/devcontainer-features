@@ -24,8 +24,8 @@ esac
 # Resolve: asset names embed the version, so read the latest tag from the GitHub API (explicit versions pass through).
 base="https://github.com/getsops/sops/releases"
 case "${VERSION:-latest}" in
-  latest | stable)
-    tag="$(curl -fsSL "https://api.github.com/repos/getsops/sops/releases/latest" | grep -m1 '"tag_name":' | sed -E 's/.*"tag_name":[[:space:]]*"([^"]+)".*/\1/')"
+  latest)
+    tag="$(curl -fsSL "https://api.github.com/repos/getsops/sops/releases/latest" | grep -oP '"tag_name":\s*"\K[^"]+')"
     [ -n "$tag" ] || { echo "sops: could not resolve the latest version" >&2; exit 1; } ;;
   v*) tag="$VERSION" ;;
   *)  tag="v$VERSION" ;;
