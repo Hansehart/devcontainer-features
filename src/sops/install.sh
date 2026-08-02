@@ -21,12 +21,14 @@ case "$arch" in
   *) echo "sops: unsupported architecture '$arch'" >&2; exit 1 ;;
 esac
 
-# Resolve: sops embeds the version in each asset name, so resolve a channel to a concrete tag via the releases/latest redirect.
+# Resolve: asset names embed the version, so read the latest tag from the GitHub API (explicit versions pass through).
 base="https://github.com/getsops/sops/releases"
 case "${VERSION:-latest}" in
-  latest | stable) tag="$(curl -fsSLI -o /dev/null -w '%{url_effective}' "$base/latest" | sed 's#.*/tag/##')" ;;
-  v*)              tag="$VERSION" ;;
-  *)               tag="v$VERSION" ;;
+  latest | stable)
+    tag="$(curl -fsSL "https://api.github.com/repos/getsops/sops/releases/latest" | grep -m1 '"tag_name":' | sed -E 's/.*"tag_name":[[:space:]]*"([^"]+)".*/\1/')"
+    [ -n "$tag" ] || { echo "sops: could not resolve the latest version" >&2; exit 1; } ;;
+  v*) tag="$VERSION" ;;
+  *)  tag="v$VERSION" ;;
 esac
 asset="sops-$tag.linux.$goarch"
 
