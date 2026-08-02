@@ -31,7 +31,7 @@ case "${VERSION:-latest}" in
 esac
 asset="age-$tag-linux-$goarch.tar.gz"
 
-# Fetch: download the tarball over HTTPS; age ships no sha256 checksums (only Sigsum `.proof`), so integrity rests on TLS.
+# Fetch: download the tarball over HTTPS, trusting the TLS-authenticated GitHub origin for integrity.
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 curl -fsSL "$base/download/$tag/$asset" -o "$tmp/$asset"
