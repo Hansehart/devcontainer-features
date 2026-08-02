@@ -1,0 +1,15 @@
+{
+  "id": "age",
+  "version": "1.0.0",
+  "name": "age",
+  "description": "Installs the age file-encryption tool and age-keygen as static binaries.",
+  "documentationURL": "https://github.com/hansehart/devcontainer-features/tree/main/src/age",
+  "options": {
+    "version": {
+      "type": "string",
+      "proposals": ["latest"],
+      "default": "latest",
+      "description": "Channel (latest) or an exact age version (major.minor.patch)."
+    }
+  }
+}
