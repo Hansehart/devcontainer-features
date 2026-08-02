@@ -48,5 +48,5 @@ if [ -n "$STATE_DIR" ]; then
   chmod 0644 /etc/profile.d/sops.sh
 fi
 
-# Verify: sops resolves on PATH (skip the network update check).
+# Verify: sops resolves on PATH and reports its version locally.
 sops --version --disable-version-check
