@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Option (uppercased by the CLI): VERSION.
+
 # Define constants
 API="https://googlechromelabs.github.io/chrome-for-testing"
 BUCKET="https://storage.googleapis.com/chrome-for-testing-public"
