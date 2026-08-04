@@ -45,6 +45,7 @@ install -m 0755 "$tmp/uv" "$tmp/uvx" /usr/local/bin/
 {
   echo 'export PATH="$HOME/.local/bin:$PATH"'
   if [ -n "$STATE_DIR" ]; then
+    echo "mkdir -p \"$STATE_DIR\" 2>/dev/null || true"
     echo "export UV_CACHE_DIR=\"$STATE_DIR/cache\""
     echo "export UV_TOOL_DIR=\"$STATE_DIR/tools\""
     echo "export UV_TOOL_BIN_DIR=\"$STATE_DIR/bin\""
