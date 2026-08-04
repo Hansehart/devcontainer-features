@@ -55,6 +55,10 @@ install -m 0755 "$tmp/uv" "$tmp/uvx" /usr/local/bin/
 } > /etc/profile.d/uv.sh
 chmod 0644 /etc/profile.d/uv.sh
 
+# Hook: install the create-state-dir hook to run once at container create.
+install -d /usr/local/share/uv
+install -m 0755 "$(dirname "$0")/init.sh" /usr/local/share/uv/init.sh
+
 # Configure: optionally bake a default Python so python3 exists at open.
 if [ -n "$PYTHON_VERSION" ]; then
   su - "$_REMOTE_USER" -c \
