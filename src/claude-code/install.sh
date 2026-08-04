@@ -12,6 +12,7 @@ su - "$_REMOTE_USER" -c "curl -fsSL https://claude.ai/install.sh | bash -s -- '$
 {
   echo 'export PATH="$HOME/.local/bin:$PATH"'
   if [ -n "$STATE_DIR" ]; then
+    echo "mkdir -p \"$STATE_DIR\" 2>/dev/null || true"
     echo "export CLAUDE_CONFIG_DIR=\"$STATE_DIR\""
   fi
   if [ "$DISABLE_NONESSENTIAL_TRAFFIC" = "true" ]; then
