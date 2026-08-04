@@ -48,5 +48,9 @@ if [ -n "$STATE_DIR" ]; then
   chmod 0644 /etc/profile.d/sops.sh
 fi
 
+# Hook: install the create-state-dir hook to run once at container create.
+install -d /usr/local/share/sops
+install -m 0755 "$(dirname "$0")/init.sh" /usr/local/share/sops/init.sh
+
 # Verify: sops resolves on PATH and reports its version locally.
 sops --version --disable-version-check
