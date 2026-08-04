@@ -54,7 +54,10 @@ if [ -z "${STATE_DIR}" ]; then
   install_texlive "${TEXDIR}"
   ln -sf "${TEXDIR}/bin/${PLAT}"/* /usr/local/bin/
 else
-  echo "export PATH=\"${STATE_DIR}/texlive/${VERSION}/bin/${PLAT}:\$PATH\"" > /etc/profile.d/latex.sh
+  {
+    echo "mkdir -p \"${STATE_DIR}\" 2>/dev/null || true"
+    echo "export PATH=\"${STATE_DIR}/texlive/${VERSION}/bin/${PLAT}:\$PATH\""
+  } > /etc/profile.d/latex.sh
   chmod 0644 /etc/profile.d/latex.sh
 fi
 
