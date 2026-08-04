@@ -20,5 +20,9 @@ su - "$_REMOTE_USER" -c "curl -fsSL https://claude.ai/install.sh | bash -s -- '$
 } > /etc/profile.d/claude-code.sh
 chmod 0644 /etc/profile.d/claude-code.sh
 
+# Hook: install the create-state-dir hook to run once at container create.
+install -d /usr/local/share/claude-code
+install -m 0755 "$(dirname "$0")/init.sh" /usr/local/share/claude-code/init.sh
+
 # Verify: claude resolves on PATH (as the dev user).
 su - "$_REMOTE_USER" -c "claude --version"
