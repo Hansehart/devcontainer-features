@@ -42,10 +42,10 @@ apt-mark hold docker-ce docker-ce-cli containerd.io
 
 rm -rf /var/lib/apt/lists/*
 
-# Configure: let the non-root remote user run docker without sudo.
+# Configure: add the non-root remote user to the docker group so it can run docker directly.
 groupadd -f docker
-if [ -n "${_REMOTE_USER:-}" ] && [ "${_REMOTE_USER}" != "root" ]; then
-  usermod -aG docker "${_REMOTE_USER}" || true
+if [ -n "$_REMOTE_USER" ] && [ "$_REMOTE_USER" != "root" ]; then
+  usermod -aG docker "$_REMOTE_USER" || true
 fi
 
 # Configure: merge the requested daemon settings into daemon.json (empty leaves it untouched).

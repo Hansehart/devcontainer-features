@@ -24,9 +24,9 @@ fi
 mountpoint -q /tmp || mount -t tmpfs none /tmp || true
 
 # Delegate cgroup v2 controllers to a leaf so nested cgroups work.
-# Retry the process move, which races with EBUSY on a cold boot.
 if [ -f /sys/fs/cgroup/cgroup.controllers ]; then
   mkdir -p /sys/fs/cgroup/init
+  # Retry the process move, which races with EBUSY on a cold boot.
   cg_tries=0
   until xargs -rn1 < /sys/fs/cgroup/cgroup.procs > /sys/fs/cgroup/init/cgroup.procs 2>/dev/null \
         || [ "$cg_tries" -ge 5 ]; do
