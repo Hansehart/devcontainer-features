@@ -8,15 +8,15 @@ SHARE_DIR="/usr/local/share/latex"
 # shellcheck disable=SC1091
 . "${SHARE_DIR}/config.env"
 
-# Reuse guards: skip when there's no stateDir (already in the image) or a completed-install marker.
+# Run only for a stateDir that has no completed-install marker yet.
 [ -n "${STATE_DIR:-}" ] || exit 0
 TEXDIR="${STATE_DIR}/texlive/${VERSION}"
 if [ -f "${TEXDIR}/tlpkg/texlive.profile" ]; then
   exit 0
 fi
 
-# Install: one-time install onto the volume (clear any partial tree first; install-tl won't reuse it).
-echo "latex: installing TeX Live ${VERSION} (${SCHEME}) into ${TEXDIR} - one-time, reused on later rebuilds"
+# Install onto the volume once, clearing any partial tree so install-tl starts fresh.
+echo "latex: installing TeX Live ${VERSION} (${SCHEME}) into ${TEXDIR} once, reused on later rebuilds"
 rm -rf "${TEXDIR}"
 mkdir -p "${TEXDIR}"
 install_texlive "${TEXDIR}"

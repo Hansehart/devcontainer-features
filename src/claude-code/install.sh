@@ -5,10 +5,19 @@ set -euo pipefail
 STATE_DIR="$STATEDIR"
 DISABLE_NONESSENTIAL_TRAFFIC="$DISABLENONESSENTIALTRAFFIC"
 
+export DEBIAN_FRONTEND=noninteractive
+
+# Dependencies: packages this feature needs to install and run.
+apt-get update
+apt-get install -y --no-install-recommends \
+  ca-certificates \
+  curl
+rm -rf /var/lib/apt/lists/*
+
 # Install: run the upstream installer as the dev user so claude lands in ~/.local/bin.
 su - "$_REMOTE_USER" -c "curl -fsSL https://claude.ai/install.sh | bash -s -- '$VERSION'"
 
-# Configure: login-shell profile — PATH plus opted-in Claude env.
+# Configure: login-shell profile with PATH plus opted-in Claude env.
 {
   echo 'export PATH="$HOME/.local/bin:$PATH"'
   if [ -n "$STATE_DIR" ]; then

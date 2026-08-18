@@ -7,7 +7,7 @@ STATE_DIR="$STATEDIR"
 
 export DEBIAN_FRONTEND=noninteractive
 
-# Dependencies: download tooling, installed defensively for minimal bases.
+# Dependencies: packages this feature needs to install and run.
 apt-get update
 apt-get install -y --no-install-recommends \
   ca-certificates \
@@ -41,7 +41,7 @@ curl -fsSL "$url_dir/$asset.sha256" -o "$tmp/$asset.sha256"
 tar -xzf "$tmp/$asset" -C "$tmp" --strip-components=1
 install -m 0755 "$tmp/uv" "$tmp/uvx" /usr/local/bin/
 
-# Configure: login-shell profile — PATH, tool bin dir, optional state redirect.
+# Configure: login-shell profile with PATH, tool bin dir, and optional state redirect.
 {
   echo 'export PATH="$HOME/.local/bin:$PATH"'
   if [ -n "$STATE_DIR" ]; then

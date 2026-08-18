@@ -4,18 +4,17 @@ set -euo pipefail
 # Options (uppercased by the CLI): VERSION, SCHEME, STATEDIR.
 STATE_DIR="$STATEDIR"
 
-# Define constants
 SHARE_DIR="/usr/local/share/latex"
 INSTALLER_DIR="${SHARE_DIR}/installer"
 REPO="https://texlive.info/historic/systems/texlive/${VERSION}/tlnet-final"
 
-# Shared install_texlive() — also installed to SHARE_DIR for the hook to source at runtime.
+# Shared install_texlive(), also placed in SHARE_DIR for the hook to source at runtime.
 # shellcheck source=lib.sh
 . "$(dirname "$0")/lib.sh"
 
 export DEBIAN_FRONTEND=noninteractive
 
-# Dependencies: install-tl's runtime deps — perl, wget, ca-certs, fontconfig.
+# Dependencies: packages this feature needs to install and run.
 apt-get update
 apt-get install -y --no-install-recommends \
   ca-certificates \
@@ -48,7 +47,7 @@ PLAT="$("${INSTALLER_DIR}/install-tl" -print-platform)"
 install -m 0644 "$(dirname "$0")/lib.sh" "${SHARE_DIR}/lib.sh"
 install -m 0755 "$(dirname "$0")/init.sh" "${SHARE_DIR}/init.sh"
 
-# Install: no stateDir installs into the image now; a stateDir defers to the hook and just sets PATH.
+# Install into the image directly, or set PATH and defer to the hook when a stateDir is set.
 if [ -z "${STATE_DIR}" ]; then
   TEXDIR="/usr/local/texlive/${VERSION}"
   install_texlive "${TEXDIR}"
@@ -58,5 +57,5 @@ else
   chmod 0644 /etc/profile.d/latex.sh
 fi
 
-# Verify: build-time install resolves on PATH; stateDir mode is verified by the hook.
+# Verify: build-time install resolves on PATH, and the hook verifies stateDir mode.
 [ -n "${STATE_DIR}" ] || latex --version
