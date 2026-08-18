@@ -5,7 +5,7 @@ set -euo pipefail
 
 export DEBIAN_FRONTEND=noninteractive
 
-# Dependencies: download tooling, installed defensively for minimal bases.
+# Dependencies: packages this feature needs to install and run.
 apt-get update
 apt-get install -y --no-install-recommends \
   ca-certificates \

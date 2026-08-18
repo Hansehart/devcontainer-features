@@ -3,17 +3,17 @@ set -euo pipefail
 
 # Option (uppercased by the CLI): VERSION.
 
-# Define constants
 API="https://googlechromelabs.github.io/chrome-for-testing"
 BUCKET="https://storage.googleapis.com/chrome-for-testing-public"
 INSTALL_DIR="/opt/chrome-headless-shell"
 
 export DEBIAN_FRONTEND=noninteractive
 
-# Dependencies: runtime shared libraries chrome-headless-shell dlopen()s at startup.
+# Dependencies: packages this feature needs to install and run.
 apt-get update
 apt-get install -y --no-install-recommends \
   ca-certificates \
+  curl \
   unzip \
   fonts-liberation \
   libasound2t64 \
@@ -37,6 +37,7 @@ apt-get install -y --no-install-recommends \
   libxfixes3 \
   libxkbcommon0 \
   libxrandr2
+rm -rf /var/lib/apt/lists/*
 
 # Resolve: the channel keyword to a concrete version (exact versions pass through).
 case "$VERSION" in
@@ -69,8 +70,6 @@ rm -rf "$INSTALL_DIR"
 mkdir -p "$INSTALL_DIR"
 mv "$tmp/chrome-headless-shell-linux64/"* "$INSTALL_DIR/"
 ln -sf "$INSTALL_DIR/chrome-headless-shell" /usr/local/bin/chrome-headless-shell
-
-rm -rf /var/lib/apt/lists/*
 
 # Verify: chrome-headless-shell resolves on PATH.
 chrome-headless-shell --version

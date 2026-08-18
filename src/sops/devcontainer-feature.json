@@ -9,7 +9,7 @@
       "type": "string",
       "proposals": ["latest"],
       "default": "latest",
-      "description": "Channel (latest) or an exact sops version (major.minor.patch)."
+      "description": "Channel (latest) or an exact version (major.minor.patch)."
     },
     "stateDir": {
       "type": "string",
