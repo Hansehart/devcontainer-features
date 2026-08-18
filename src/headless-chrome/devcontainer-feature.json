@@ -9,7 +9,7 @@
       "type": "string",
       "proposals": ["beta", "canary", "dev", "latest", "stable"],
       "default": "stable",
-      "description": "Chrome for Testing channel (beta|canary|dev|latest|stable) or an exact version like major.minor.build.patch."
+      "description": "Channel (beta|canary|dev|latest|stable) or an exact version (major.minor.build.patch)."
     }
   }
 }
