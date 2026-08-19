@@ -1,0 +1,10 @@
+{
+  "pinned_version": {
+    "image": "ubuntu:24.04",
+    "features": {
+      "sops": {
+        "version": "3.13.0"
+      }
+    }
+  }
+}
