@@ -6,5 +6,13 @@
         "settingsJson": "{\\\"env\\\":{\\\"IS_DEMO\\\":\\\"1\\\"}}"
       }
     }
+  },
+  "channel_stable": {
+    "image": "ubuntu:24.04",
+    "features": {
+      "claude-code": {
+        "version": "stable"
+      }
+    }
   }
 }

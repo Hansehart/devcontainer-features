@@ -18,9 +18,9 @@ export DEBIAN_FRONTEND=noninteractive
 apt-get update
 apt-get install -y --no-install-recommends \
   ca-certificates \
-  wget \
+  fontconfig \
   perl \
-  fontconfig
+  wget
 rm -rf /var/lib/apt/lists/*
 
 # Fetch: the year-matched installer bootstrap, persisted so the hook can reuse it at runtime.
