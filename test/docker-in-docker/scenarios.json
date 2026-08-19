@@ -1,0 +1,18 @@
+{
+  "daemon_json": {
+    "image": "ubuntu:24.04",
+    "features": {
+      "docker-in-docker": {
+        "daemonJson": "{\"dns\":[\"10.10.0.2\"]}"
+      }
+    }
+  },
+  "pinned_version": {
+    "image": "ubuntu:24.04",
+    "features": {
+      "docker-in-docker": {
+        "version": "28"
+      }
+    }
+  }
+}
