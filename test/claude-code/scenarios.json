@@ -3,7 +3,7 @@
     "image": "ubuntu:24.04",
     "features": {
       "claude-code": {
-        "settingsJson": "{\\\"includeCoAuthoredBy\\\":false}"
+        "settingsJson": "{\\\"env\\\":{\\\"IS_DEMO\\\":\\\"1\\\"}}"
       }
     }
   }

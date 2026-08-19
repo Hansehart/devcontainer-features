@@ -7,6 +7,6 @@ source dev-container-features-test-lib
 /usr/local/share/claude-code/init.sh
 
 target="${CLAUDE_CONFIG_DIR:-$HOME/.claude}/settings.json"
-check "settings merged" bash -lc "jq -e '.includeCoAuthoredBy == false' '$target'"
+check "settings merged" jq -e '.env.IS_DEMO == "1"' "$target"
 
 reportResults
