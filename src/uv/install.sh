@@ -25,8 +25,8 @@ esac
 # Resolve: build the GitHub Releases URL for the channel or version.
 base="https://github.com/astral-sh/uv/releases"
 case "$VERSION" in
-  latest | stable) url_dir="$base/latest/download" ;;
-  *)               url_dir="$base/download/$VERSION" ;;
+  latest) url_dir="$base/latest/download" ;;
+  *)      url_dir="$base/download/$VERSION" ;;
 esac
 asset="uv-$target.tar.gz"
 
