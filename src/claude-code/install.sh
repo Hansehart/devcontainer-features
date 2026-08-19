@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Options (uppercased by the CLI): VERSION, STATEDIR, DISABLENONESSENTIALTRAFFIC.
+# Options (uppercased by the CLI): VERSION, STATEDIR, DISABLENONESSENTIALTRAFFIC, SETTINGSJSON.
 STATE_DIR="$STATEDIR"
 DISABLE_NONESSENTIAL_TRAFFIC="$DISABLENONESSENTIALTRAFFIC"
+SETTINGS_JSON="$SETTINGSJSON"
 
 export DEBIAN_FRONTEND=noninteractive
 
@@ -11,7 +12,8 @@ export DEBIAN_FRONTEND=noninteractive
 apt-get update
 apt-get install -y --no-install-recommends \
   ca-certificates \
-  curl
+  curl \
+  jq
 rm -rf /var/lib/apt/lists/*
 
 # Install: run the upstream installer as the dev user so claude lands in ~/.local/bin.
@@ -29,9 +31,10 @@ su - "$_REMOTE_USER" -c "curl -fsSL https://claude.ai/install.sh | bash -s -- '$
 } > /etc/profile.d/claude-code.sh
 chmod 0644 /etc/profile.d/claude-code.sh
 
-# Hook: install the create-state-dir hook to run once at container create.
+# Hook: install the run-once hook and save the requested settings for it to merge.
 install -d /usr/local/share/claude-code
 install -m 0755 "$(dirname "$0")/init.sh" /usr/local/share/claude-code/init.sh
+printf '%s' "$SETTINGS_JSON" > /usr/local/share/claude-code/requested-settings.json
 
 # Verify: claude resolves on PATH (as the dev user).
 su - "$_REMOTE_USER" -c "claude --version"

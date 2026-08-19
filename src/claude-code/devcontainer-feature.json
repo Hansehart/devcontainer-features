@@ -1,6 +1,6 @@
 {
   "id": "claude-code",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "name": "Claude Code CLI",
   "description": "Installs the Claude Code CLI on a selectable channel.",
   "documentationURL": "https://github.com/hansehart/devcontainer-features/tree/main/src/claude-code",
@@ -20,6 +20,11 @@
       "type": "boolean",
       "default": true,
       "description": "Set CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1 to suppress telemetry and other non-essential network calls."
+    },
+    "settingsJson": {
+      "type": "string",
+      "default": "",
+      "description": "Claude settings as a JSON object, merged into settings.json."
     }
   },
   "postCreateCommand": "/usr/local/share/claude-code/init.sh"
