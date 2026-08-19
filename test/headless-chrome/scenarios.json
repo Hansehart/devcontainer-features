@@ -1,0 +1,10 @@
+{
+  "pinned_version": {
+    "image": "ubuntu:24.04",
+    "features": {
+      "headless-chrome": {
+        "version": "152.0.7977.42"
+      }
+    }
+  }
+}

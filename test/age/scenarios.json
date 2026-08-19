@@ -1,0 +1,10 @@
+{
+  "pinned_version": {
+    "image": "ubuntu:24.04",
+    "features": {
+      "age": {
+        "version": "1.2.1"
+      }
+    }
+  }
+}
