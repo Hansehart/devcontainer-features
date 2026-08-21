@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# postCreate hook: prepare Claude's config once its volume is mounted.
 if [ -r /etc/profile.d/claude-code.sh ]; then . /etc/profile.d/claude-code.sh; fi
 
 # Create the state dir once its volume is mounted.
