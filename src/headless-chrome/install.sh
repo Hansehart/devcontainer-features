@@ -14,7 +14,6 @@ apt-get update
 apt-get install -y --no-install-recommends \
   ca-certificates \
   curl \
-  unzip \
   fonts-liberation \
   libasound2t64 \
   libatk-bridge2.0-0t64 \
@@ -36,7 +35,8 @@ apt-get install -y --no-install-recommends \
   libxext6 \
   libxfixes3 \
   libxkbcommon0 \
-  libxrandr2
+  libxrandr2 \
+  unzip
 rm -rf /var/lib/apt/lists/*
 
 # Resolve: the channel keyword to a concrete version (exact versions pass through).
