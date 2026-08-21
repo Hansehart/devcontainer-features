@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# postCreate hook: installs TeX Live into the persisted stateDir on first create, reuses it after.
+# postCreate hook: install TeX Live into the persisted stateDir and reuse it on later creates.
 SHARE_DIR="/usr/local/share/latex"
 # shellcheck source=lib.sh
 . "${SHARE_DIR}/lib.sh"
