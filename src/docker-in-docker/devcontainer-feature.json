@@ -1,6 +1,6 @@
 {
   "id": "docker-in-docker",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "name": "Docker in Docker",
   "description": "Installs a Docker engine for building and running containers inside the dev container.",
   "documentationURL": "https://github.com/hansehart/devcontainer-features/tree/main/src/docker-in-docker",
@@ -17,7 +17,7 @@
       "description": "Daemon settings as a JSON object with backslash-escaped quotes, merged into daemon.json."
     }
   },
-  "entrypoint": "/usr/local/share/docker-init.sh",
+  "entrypoint": "/usr/local/share/docker-in-docker/docker-init.sh",
   "privileged": true,
   "containerEnv": {
     "DOCKER_BUILDKIT": "1"
