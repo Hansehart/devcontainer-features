@@ -17,7 +17,7 @@
       "description": "Daemon settings as a JSON object with backslash-escaped quotes, merged into daemon.json."
     }
   },
-  "entrypoint": "/usr/local/share/docker-init.sh",
+  "entrypoint": "/usr/local/share/docker-in-docker/docker-init.sh",
   "privileged": true,
   "containerEnv": {
     "DOCKER_BUILDKIT": "1"

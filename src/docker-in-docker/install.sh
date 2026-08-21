@@ -57,7 +57,8 @@ if [ -n "$DAEMON_JSON" ]; then
 fi
 
 # Install: the entrypoint that starts dockerd at container start, then execs the container command.
-install -m 0755 "$(dirname "$0")/docker-init.sh" /usr/local/share/docker-init.sh
+install -d /usr/local/share/docker-in-docker
+install -m 0755 "$(dirname "$0")/docker-init.sh" /usr/local/share/docker-in-docker/docker-init.sh
 
 # Verify: the CLI resolves on PATH.
 docker --version
