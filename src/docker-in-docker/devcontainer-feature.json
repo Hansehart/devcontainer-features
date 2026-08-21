@@ -1,6 +1,6 @@
 {
   "id": "docker-in-docker",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "name": "Docker in Docker",
   "description": "Installs a Docker engine for building and running containers inside the dev container.",
   "documentationURL": "https://github.com/hansehart/devcontainer-features/tree/main/src/docker-in-docker",
