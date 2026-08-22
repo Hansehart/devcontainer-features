@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# postCreate hook: install TeX Live into the persisted stateDir and reuse it on later creates.
+# Install TeX Live into the persisted stateDir and reuse it on later creates.
 SHARE_DIR="/usr/local/share/latex"
 # shellcheck source=lib.sh
 . "${SHARE_DIR}/lib.sh"
@@ -21,5 +21,5 @@ rm -rf "${TEXDIR}"
 mkdir -p "${TEXDIR}"
 install_texlive "${TEXDIR}"
 
-# Verify: the freshly installed tree resolves.
+# Check that the freshly installed tree resolves.
 "${TEXDIR}/bin/${PLAT}/latex" --version

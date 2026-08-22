@@ -1,6 +1,6 @@
 {
   "id": "headless-chrome",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "name": "Headless Chrome",
   "description": "Installs chrome-headless-shell (Chrome for Testing) on a selectable channel, with the runtime shared libraries it needs.",
   "documentationURL": "https://github.com/hansehart/devcontainer-features/tree/main/src/headless-chrome",
@@ -8,7 +8,7 @@
     "version": {
       "type": "string",
       "proposals": ["beta", "canary", "dev", "latest", "stable"],
-      "default": "stable",
+      "default": "latest",
       "description": "Channel (beta|canary|dev|latest|stable) or an exact version (major.minor.build.patch)."
     }
   }

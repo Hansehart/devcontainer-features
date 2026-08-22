@@ -48,6 +48,15 @@ if [ -n "$STATE_DIR" ]; then
   chmod 0644 /etc/profile.d/sops.sh
 fi
 
+# Configure: own the state dir by a dedicated group so it stays writable after a UID remap.
+if [ -n "$STATE_DIR" ]; then
+  groupadd -r -f sops
+  usermod -aG sops "$_REMOTE_USER" || true
+  install -d -m 0770 "$STATE_DIR"
+  chown "$_REMOTE_USER:sops" "$STATE_DIR"
+  chmod g+s "$STATE_DIR"
+fi
+
 # Hook: install the create-state-dir hook to run once at container create.
 install -d /usr/local/share/sops
 install -m 0755 "$(dirname "$0")/init.sh" /usr/local/share/sops/init.sh

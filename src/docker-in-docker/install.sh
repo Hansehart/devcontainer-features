@@ -13,7 +13,6 @@ apt-get install -y --no-install-recommends \
   curl \
   erofs-utils \
   iptables \
-  jq \
   pigz
 
 # Repo: add Docker's official apt repository and signing key.
@@ -48,12 +47,10 @@ if [ -n "$_REMOTE_USER" ] && [ "$_REMOTE_USER" != "root" ]; then
   usermod -aG docker "$_REMOTE_USER" || true
 fi
 
-# Configure: merge the requested daemon settings into daemon.json (empty leaves it untouched).
+# Configure: write the requested daemon settings to daemon.json (empty leaves the file untouched).
 if [ -n "$DAEMON_JSON" ]; then
   mkdir -p /etc/docker
-  prev='{}'
-  if [ -f /etc/docker/daemon.json ]; then prev="$(cat /etc/docker/daemon.json)"; fi
-  printf '%s' "$prev" | jq --argjson add "$DAEMON_JSON" '. + $add' > /etc/docker/daemon.json
+  printf '%s\n' "$DAEMON_JSON" > /etc/docker/daemon.json
 fi
 
 # Install: the entrypoint that starts dockerd at container start, then execs the container command.

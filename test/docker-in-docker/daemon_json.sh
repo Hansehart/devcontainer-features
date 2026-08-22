@@ -4,7 +4,7 @@ set -e
 # Import the test library
 source dev-container-features-test-lib
 
-check "daemon.json dns merged" jq -e '.dns[0] == "10.10.0.2"' /etc/docker/daemon.json
+check "daemon.json no-new-privileges written" grep -qF '"no-new-privileges":true' /etc/docker/daemon.json
 
 # Report result
 reportResults

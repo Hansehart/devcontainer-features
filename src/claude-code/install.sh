@@ -12,8 +12,7 @@ export DEBIAN_FRONTEND=noninteractive
 apt-get update
 apt-get install -y --no-install-recommends \
   ca-certificates \
-  curl \
-  jq
+  curl
 rm -rf /var/lib/apt/lists/*
 
 # Install: run the upstream installer as the dev user so claude lands in ~/.local/bin.
@@ -31,7 +30,16 @@ su - "$_REMOTE_USER" -c "curl -fsSL https://claude.ai/install.sh | bash -s -- '$
 } > /etc/profile.d/claude-code.sh
 chmod 0644 /etc/profile.d/claude-code.sh
 
-# Hook: install the run-once hook and save the requested settings for it to merge.
+# Configure: own the state dir by a dedicated group so it stays writable after a UID remap.
+if [ -n "$STATE_DIR" ]; then
+  groupadd -r -f claude-code
+  usermod -aG claude-code "$_REMOTE_USER" || true
+  install -d -m 0770 "$STATE_DIR"
+  chown "$_REMOTE_USER:claude-code" "$STATE_DIR"
+  chmod g+s "$STATE_DIR"
+fi
+
+# Hook: install the run-once hook and save the requested settings for it to write.
 install -d /usr/local/share/claude-code
 install -m 0755 "$(dirname "$0")/init.sh" /usr/local/share/claude-code/init.sh
 printf '%s' "$SETTINGS_JSON" > /usr/local/share/claude-code/requested-settings.json

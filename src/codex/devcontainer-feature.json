@@ -1,0 +1,26 @@
+{
+  "id": "codex",
+  "version": "1.0.0",
+  "name": "Codex CLI",
+  "description": "Installs the OpenAI Codex CLI on a selectable channel.",
+  "documentationURL": "https://github.com/hansehart/devcontainer-features/tree/main/src/codex",
+  "options": {
+    "version": {
+      "type": "string",
+      "proposals": ["latest"],
+      "default": "latest",
+      "description": "Channel (latest) or an exact version (major.minor.patch)."
+    },
+    "stateDir": {
+      "type": "string",
+      "default": "",
+      "description": "If set, exports CODEX_HOME to this path (persist it by mounting a volume there). Empty leaves Codex's ~/.codex default."
+    },
+    "configToml": {
+      "type": "string",
+      "default": "",
+      "description": "Codex config as TOML with backslash-escaped quotes and \\n line breaks, written to config.toml."
+    }
+  },
+  "postCreateCommand": "/usr/local/share/codex/init.sh"
+}

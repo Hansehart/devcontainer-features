@@ -1,6 +1,6 @@
 {
   "id": "claude-code",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "name": "Claude Code CLI",
   "description": "Installs the Claude Code CLI on a selectable channel.",
   "documentationURL": "https://github.com/hansehart/devcontainer-features/tree/main/src/claude-code",
@@ -24,7 +24,7 @@
     "settingsJson": {
       "type": "string",
       "default": "",
-      "description": "Claude settings as a JSON object with backslash-escaped quotes, merged into settings.json."
+      "description": "Claude settings as JSON with backslash-escaped quotes, written to settings.json."
     }
   },
   "postCreateCommand": "/usr/local/share/claude-code/init.sh"
