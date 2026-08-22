@@ -7,5 +7,14 @@
         "scheme": "scheme-basic"
       }
     }
+  },
+  "state_dir": {
+    "image": "ubuntu:24.04",
+    "remoteUser": "ubuntu",
+    "features": {
+      "latex": {
+        "stateDir": "/var/latex"
+      }
+    }
   }
 }

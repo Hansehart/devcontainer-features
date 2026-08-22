@@ -48,6 +48,12 @@ if [ -n "$STATE_DIR" ]; then
   chmod 0644 /etc/profile.d/sops.sh
 fi
 
+# Configure: pre-create the state dir owned by the dev user so a volume mounted there inherits it.
+if [ -n "$STATE_DIR" ]; then
+  install -d -m 0700 "$STATE_DIR"
+  chown "$_REMOTE_USER:" "$STATE_DIR"
+fi
+
 # Hook: install the create-state-dir hook to run once at container create.
 install -d /usr/local/share/sops
 install -m 0755 "$(dirname "$0")/init.sh" /usr/local/share/sops/init.sh

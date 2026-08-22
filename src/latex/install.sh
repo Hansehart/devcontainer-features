@@ -55,6 +55,9 @@ if [ -z "${STATE_DIR}" ]; then
 else
   echo "export PATH=\"${STATE_DIR}/texlive/${VERSION}/bin/${PLAT}:\$PATH\"" > /etc/profile.d/latex.sh
   chmod 0644 /etc/profile.d/latex.sh
+  # Pre-create the state dir owned by the dev user so a volume mounted there inherits it.
+  install -d -m 0700 "${STATE_DIR}"
+  chown "$_REMOTE_USER:" "${STATE_DIR}"
 fi
 
 # Verify: build-time install resolves on PATH, and the hook verifies stateDir mode.

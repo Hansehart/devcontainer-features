@@ -55,6 +55,12 @@ install -m 0755 "$tmp/uv" "$tmp/uvx" /usr/local/bin/
 } > /etc/profile.d/uv.sh
 chmod 0644 /etc/profile.d/uv.sh
 
+# Configure: pre-create the state dir owned by the dev user so a volume mounted there inherits it.
+if [ -n "$STATE_DIR" ]; then
+  install -d -m 0700 "$STATE_DIR"
+  chown "$_REMOTE_USER:" "$STATE_DIR"
+fi
+
 # Hook: install the create-state-dir hook to run once at container create.
 install -d /usr/local/share/uv
 install -m 0755 "$(dirname "$0")/init.sh" /usr/local/share/uv/init.sh
