@@ -4,9 +4,7 @@ set -e
 # Import the test library
 source dev-container-features-test-lib
 
-# The pinned channel picks the current release, so assert claude installs and runs.
-check "claude on PATH" bash -lc "command -v claude"
-check "claude version" bash -lc "claude --version"
+check "pinned to 2.1.231" bash -lc "claude --version | grep -qF '2.1.231'"
 
 # Report result
 reportResults

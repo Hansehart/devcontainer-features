@@ -1,17 +1,26 @@
 {
-  "settings_json": {
-    "image": "ubuntu:24.04",
-    "features": {
-      "claude-code": {
-        "settingsJson": "{\\\"env\\\":{\\\"IS_DEMO\\\":\\\"1\\\"}}"
-      }
-    }
-  },
   "pinned_version": {
     "image": "ubuntu:24.04",
     "features": {
       "claude-code": {
-        "version": "stable"
+        "version": "2.1.231"
+      }
+    }
+  },
+  "settings_json": {
+    "image": "ubuntu:24.04",
+    "features": {
+      "claude-code": {
+        "settingsJson": "{\\\"permissions\\\":{\\\"defaultMode\\\":\\\"plan\\\"}}"
+      }
+    }
+  },
+  "state_dir": {
+    "image": "ubuntu:24.04",
+    "remoteUser": "ubuntu",
+    "features": {
+      "claude-code": {
+        "stateDir": "/var/claude-code"
       }
     }
   }
