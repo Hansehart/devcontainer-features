@@ -56,7 +56,7 @@ else
   echo "export PATH=\"${STATE_DIR}/texlive/${VERSION}/bin/${PLAT}:\$PATH\"" > /etc/profile.d/latex.sh
   chmod 0644 /etc/profile.d/latex.sh
   # Own the state dir by a dedicated group so it stays writable after a UID remap.
-  groupadd -f latex
+  groupadd -r -f latex
   usermod -aG latex "$_REMOTE_USER" || true
   install -d -m 0770 "${STATE_DIR}"
   chown "$_REMOTE_USER:latex" "${STATE_DIR}"

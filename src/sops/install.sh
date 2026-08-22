@@ -50,7 +50,7 @@ fi
 
 # Configure: own the state dir by a dedicated group so it stays writable after a UID remap.
 if [ -n "$STATE_DIR" ]; then
-  groupadd -f sops
+  groupadd -r -f sops
   usermod -aG sops "$_REMOTE_USER" || true
   install -d -m 0770 "$STATE_DIR"
   chown "$_REMOTE_USER:sops" "$STATE_DIR"

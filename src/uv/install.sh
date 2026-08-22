@@ -57,7 +57,7 @@ chmod 0644 /etc/profile.d/uv.sh
 
 # Configure: own the state dir by a dedicated group so it stays writable after a UID remap.
 if [ -n "$STATE_DIR" ]; then
-  groupadd -f uv
+  groupadd -r -f uv
   usermod -aG uv "$_REMOTE_USER" || true
   install -d -m 0770 "$STATE_DIR"
   chown "$_REMOTE_USER:uv" "$STATE_DIR"
