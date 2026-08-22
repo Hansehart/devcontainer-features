@@ -4,9 +4,9 @@ set -e
 # Import the test library
 source dev-container-features-test-lib
 
-# Runs as a non-root remoteUser with UID remapping off so the build-time ownership holds.
+# Runs as a non-root remoteUser, which the CLI may remap to a different UID at build time.
 check "state dir pre-created" test -d /var/codex
-check "state dir owned by the dev user" bash -c '[ "$(stat -c %U /var/codex)" = "$(id -un)" ]'
+check "dev user in the state dir group" bash -c 'id -nG | grep -qw codex'
 check "state dir writable by the dev user" bash -c 'touch /var/codex/.probe && rm /var/codex/.probe'
 
 # The test harness does not run the hook, so invoke it here.

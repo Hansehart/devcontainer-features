@@ -29,10 +29,13 @@ su - "$_REMOTE_USER" -c "curl -fsSL https://chatgpt.com/codex/install.sh | $code
 } > /etc/profile.d/codex.sh
 chmod 0644 /etc/profile.d/codex.sh
 
-# Configure: pre-create the state dir owned by the dev user so a volume mounted there inherits it.
+# Configure: own the state dir by a dedicated group so it stays writable after a UID remap.
 if [ -n "$STATE_DIR" ]; then
-  install -d -m 0700 "$STATE_DIR"
-  chown "$_REMOTE_USER:" "$STATE_DIR"
+  groupadd -f codex
+  usermod -aG codex "$_REMOTE_USER" || true
+  install -d -m 0770 "$STATE_DIR"
+  chown "$_REMOTE_USER:codex" "$STATE_DIR"
+  chmod g+s "$STATE_DIR"
 fi
 
 # Hook: install the run-once hook and save the requested config for it to write.

@@ -48,10 +48,13 @@ if [ -n "$STATE_DIR" ]; then
   chmod 0644 /etc/profile.d/sops.sh
 fi
 
-# Configure: pre-create the state dir owned by the dev user so a volume mounted there inherits it.
+# Configure: own the state dir by a dedicated group so it stays writable after a UID remap.
 if [ -n "$STATE_DIR" ]; then
-  install -d -m 0700 "$STATE_DIR"
-  chown "$_REMOTE_USER:" "$STATE_DIR"
+  groupadd -f sops
+  usermod -aG sops "$_REMOTE_USER" || true
+  install -d -m 0770 "$STATE_DIR"
+  chown "$_REMOTE_USER:sops" "$STATE_DIR"
+  chmod g+s "$STATE_DIR"
 fi
 
 # Hook: install the create-state-dir hook to run once at container create.

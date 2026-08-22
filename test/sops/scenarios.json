@@ -10,7 +10,6 @@
   "state_dir": {
     "image": "ubuntu:24.04",
     "remoteUser": "ubuntu",
-    "updateRemoteUserUID": false,
     "features": {
       "sops": {
         "stateDir": "/var/sops"

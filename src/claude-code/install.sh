@@ -30,10 +30,13 @@ su - "$_REMOTE_USER" -c "curl -fsSL https://claude.ai/install.sh | bash -s -- '$
 } > /etc/profile.d/claude-code.sh
 chmod 0644 /etc/profile.d/claude-code.sh
 
-# Configure: pre-create the state dir owned by the dev user so a volume mounted there inherits it.
+# Configure: own the state dir by a dedicated group so it stays writable after a UID remap.
 if [ -n "$STATE_DIR" ]; then
-  install -d -m 0700 "$STATE_DIR"
-  chown "$_REMOTE_USER:" "$STATE_DIR"
+  groupadd -f claude-code
+  usermod -aG claude-code "$_REMOTE_USER" || true
+  install -d -m 0770 "$STATE_DIR"
+  chown "$_REMOTE_USER:claude-code" "$STATE_DIR"
+  chmod g+s "$STATE_DIR"
 fi
 
 # Hook: install the run-once hook and save the requested settings for it to write.

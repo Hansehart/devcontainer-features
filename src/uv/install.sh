@@ -55,10 +55,13 @@ install -m 0755 "$tmp/uv" "$tmp/uvx" /usr/local/bin/
 } > /etc/profile.d/uv.sh
 chmod 0644 /etc/profile.d/uv.sh
 
-# Configure: pre-create the state dir owned by the dev user so a volume mounted there inherits it.
+# Configure: own the state dir by a dedicated group so it stays writable after a UID remap.
 if [ -n "$STATE_DIR" ]; then
-  install -d -m 0700 "$STATE_DIR"
-  chown "$_REMOTE_USER:" "$STATE_DIR"
+  groupadd -f uv
+  usermod -aG uv "$_REMOTE_USER" || true
+  install -d -m 0770 "$STATE_DIR"
+  chown "$_REMOTE_USER:uv" "$STATE_DIR"
+  chmod g+s "$STATE_DIR"
 fi
 
 # Hook: install the create-state-dir hook to run once at container create.
