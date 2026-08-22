@@ -11,6 +11,7 @@
   "state_dir": {
     "image": "ubuntu:24.04",
     "remoteUser": "ubuntu",
+    "updateRemoteUserUID": false,
     "features": {
       "latex": {
         "stateDir": "/var/latex"

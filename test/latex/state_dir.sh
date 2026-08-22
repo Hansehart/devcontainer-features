@@ -4,7 +4,7 @@ set -e
 # Import the test library
 source dev-container-features-test-lib
 
-# Checks run as a non-root remoteUser because root would pass them regardless of ownership.
+# Runs as a non-root remoteUser with UID remapping off so the build-time ownership holds.
 check "state dir pre-created" test -d /var/latex
 check "state dir owned by the dev user" bash -c '[ "$(stat -c %U /var/latex)" = "$(id -un)" ]'
 check "state dir writable by the dev user" bash -c 'touch /var/latex/.probe && rm /var/latex/.probe'
