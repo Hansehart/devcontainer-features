@@ -59,7 +59,7 @@ fi
 url="$BUCKET/$resolved/linux64/chrome-headless-shell-linux64.zip"
 echo "chrome: installing chrome-headless-shell $resolved ($VERSION)"
 
-# Fetch: download and unpack the build.
+# Fetch: download and unpack the build over HTTPS, trusting the TLS-authenticated Google origin.
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 curl -fsSL "$url" -o "$tmp/chs.zip"
