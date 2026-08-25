@@ -21,15 +21,19 @@ case "$arch" in
   *) echo "node: unsupported architecture '$arch'" >&2; exit 1 ;;
 esac
 
-# Resolve: asset names embed the version, so read the newest tag from the release index (explicit versions pass through).
+# Resolve: asset names embed the version, so map the channel or line to a tag from the release index (explicit versions pass through).
 base="https://nodejs.org/dist"
-case "${VERSION:-latest}" in
-  latest)
-    tag="$(curl -fsSL "$base/index.json" | grep -oP '"version":"\Kv[^"]+' | head -n 1)"
-    [ -n "$tag" ] || { echo "node: could not resolve the latest version" >&2; exit 1; } ;;
-  v*) tag="$VERSION" ;;
-  *)  tag="v$VERSION" ;;
+index="$(curl -fsSL "$base/index.json")"
+case "${VERSION:-lts}" in
+  v[0-9]*.[0-9]*.[0-9]*) tag="$VERSION" ;;
+  [0-9]*.[0-9]*.[0-9]*)  tag="v$VERSION" ;;
+  # grep -m1 reads a here-string, not a pipe: stopping early on a pipe leaves the writer on a
+  # closed pipe, and pipefail turns that SIGPIPE into a failed install.
+  latest) tag="$(grep -m1 -oP '"version":"\Kv[^"]+' <<< "$index" || true)" ;;
+  lts)    tag="$(grep -m1 '"lts":"' <<< "$index" | grep -oP '"version":"\Kv[^"]+' || true)" ;;
+  *)      tag="$(grep -m1 -F "\"version\":\"v${VERSION#v}." <<< "$index" | grep -oP '"version":"\Kv[^"]+' || true)" ;;
 esac
+[ -n "$tag" ] || { echo "node: could not resolve version '$VERSION'" >&2; exit 1; }
 asset="node-$tag-linux-$nodearch.tar.gz"
 
 # Fetch: download the tarball and verify it against Node's published checksums.

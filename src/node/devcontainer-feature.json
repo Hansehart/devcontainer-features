@@ -7,9 +7,9 @@
   "options": {
     "version": {
       "type": "string",
-      "proposals": ["latest"],
-      "default": "latest",
-      "description": "Channel (latest) or an exact version (major.minor.patch)."
+      "proposals": ["lts", "latest", "24", "22"],
+      "default": "lts",
+      "description": "Channel (lts|latest), a major line (24 or 24.19), or an exact version (major.minor.patch)."
     },
     "stateDir": {
       "type": "string",
