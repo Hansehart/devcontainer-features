@@ -1,6 +1,7 @@
 {
   "daemon_json": {
     "image": "ubuntu:24.04",
+    "remoteUser": "ubuntu",
     "features": {
       "docker-in-docker": {
         "daemonJson": "{\\\"no-new-privileges\\\":true}"
@@ -9,6 +10,7 @@
   },
   "pinned_version": {
     "image": "ubuntu:24.04",
+    "remoteUser": "ubuntu",
     "features": {
       "docker-in-docker": {
         "version": "28"
