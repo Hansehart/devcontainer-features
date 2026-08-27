@@ -23,7 +23,8 @@ esac
 
 # Resolve: asset names embed the version, so map the channel or line to a tag from the release index (explicit versions pass through).
 base="https://nodejs.org/dist"
-index="$(curl -fsSL "$base/index.json")"
+# tr puts one release per line, so the greps below hold whether or not the index stays pretty-printed.
+index="$(curl -fsSL "$base/index.json" | tr '}' '\n')"
 case "${VERSION:-lts}" in
   v[0-9]*.[0-9]*.[0-9]*) tag="$VERSION" ;;
   [0-9]*.[0-9]*.[0-9]*)  tag="v$VERSION" ;;

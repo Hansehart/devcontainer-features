@@ -2,7 +2,7 @@
   "id": "node",
   "version": "1.0.0",
   "name": "Node.js",
-  "description": "Installs the Node.js runtime with npm and npx on a selectable channel.",
+  "description": "Installs the Node.js runtime with npm and npx on a selectable channel or release line.",
   "documentationURL": "https://github.com/hansehart/devcontainer-features/tree/main/src/node",
   "options": {
     "version": {

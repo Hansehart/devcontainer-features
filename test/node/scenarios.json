@@ -1,4 +1,12 @@
 {
+  "latest_channel": {
+    "image": "ubuntu:24.04",
+    "features": {
+      "node": {
+        "version": "latest"
+      }
+    }
+  },
   "lts_channel": {
     "image": "ubuntu:24.04",
     "features": {
