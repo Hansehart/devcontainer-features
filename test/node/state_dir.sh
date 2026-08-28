@@ -15,6 +15,7 @@ check "state dir writable by the dev user" bash -c 'touch /var/node/.probe && rm
 check "NPM_CONFIG_CACHE exported" bash -lc '[ "$NPM_CONFIG_CACHE" = /var/node/cache ]'
 check "NPM_CONFIG_USERCONFIG exported" bash -lc '[ "$NPM_CONFIG_USERCONFIG" = /var/node/npmrc ]'
 check "global prefix in the state dir" bash -lc '[ "$(npm prefix -g)" = /var/node/global ]'
+check "global prefix created" test -d /var/node/global
 
 # Report result
 reportResults
