@@ -1,19 +1,18 @@
 {
   "id": "uv",
-  "version": "1.1.4",
+  "version": "1.1.5",
   "name": "uv (Python)",
   "description": "Installs the uv Python package and interpreter manager as a single static binary.",
   "documentationURL": "https://github.com/hansehart/devcontainer-features/tree/main/src/uv",
   "options": {
     "version": {
       "type": "string",
-      "proposals": ["latest"],
       "default": "latest",
       "description": "Channel (latest) or an exact version (major.minor.patch)."
     },
     "python": {
       "type": "string",
-      "proposals": ["", "latest", "3.10", "3.11", "3.12", "3.13", "3.14"],
+      "proposals": ["", "latest"],
       "default": "",
       "description": "Installs this CPython at build as the default (adds python/python3 to PATH). Empty installs no interpreter, leaving uv to use an available Python or download one on demand."
     },

@@ -1,13 +1,12 @@
 {
   "id": "sops",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "name": "sops",
   "description": "Installs the sops secret editor as a single static binary.",
   "documentationURL": "https://github.com/hansehart/devcontainer-features/tree/main/src/sops",
   "options": {
     "version": {
       "type": "string",
-      "proposals": ["latest"],
       "default": "latest",
       "description": "Channel (latest) or an exact version (major.minor.patch)."
     },

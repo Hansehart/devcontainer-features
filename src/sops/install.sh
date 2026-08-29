@@ -31,6 +31,7 @@ case "${VERSION:-latest}" in
   *)  tag="v$VERSION" ;;
 esac
 asset="sops-$tag.linux.$goarch"
+echo "sops: installing $tag ($VERSION)"
 
 # Fetch: download the binary and verify it against sops's published checksums.
 tmp="$(mktemp -d)"
