@@ -24,7 +24,7 @@
       "--security-opt",
       "apparmor=unconfined",
       "--security-opt",
-      "seccomp=${localWorkspaceFolder}/seccomp.json"
+      "seccomp=${localEnv:PWD}/test/docker-in-docker/seccomp.json"
     ],
     "features": {
       "docker-in-docker": {}

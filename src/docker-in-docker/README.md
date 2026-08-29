@@ -19,7 +19,8 @@ RootlessKit creates. The consumer has to provide all of the following.
 `test/docker-in-docker/seccomp.json` is the reference profile: Docker's default with those
 syscalls opened and nothing else, so `kexec_load`, `init_module` and `swapon` stay denied.
 It is a copy of the profile the consuming project ships, and the two have to be kept in
-step by hand.
+step by hand. The `rootless_daemon` scenario reaches it through `${localEnv:PWD}`, so run
+`devcontainer features test` from the repository root.
 
 Without these the entrypoint still hands off to the container command, so the dev
 container comes up with the CLI on PATH and no daemon behind it.
