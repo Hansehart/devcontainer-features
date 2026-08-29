@@ -107,8 +107,13 @@ start_dockerd() {
 {
   if ! start_dockerd; then
     echo "docker-in-docker: rootless dockerd exited, retrying once" >&2
+    # Carry the reason into the container log, which is all a CI run gets to read.
+    cat /tmp/dockerd.log >&2 || true
     sleep 2
-    start_dockerd || echo "docker-in-docker: rootless dockerd failed to start, see /tmp/dockerd.log" >&2
+    if ! start_dockerd; then
+      echo "docker-in-docker: rootless dockerd failed to start" >&2
+      cat /tmp/dockerd.log >&2 || true
+    fi
   fi
 } &
 

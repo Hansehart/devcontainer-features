@@ -16,5 +16,18 @@
         "version": "28"
       }
     }
+  },
+  "rootless_daemon": {
+    "image": "ubuntu:24.04",
+    "remoteUser": "ubuntu",
+    "runArgs": [
+      "--security-opt",
+      "apparmor=unconfined",
+      "--security-opt",
+      "seccomp=${localWorkspaceFolder}/seccomp.json"
+    ],
+    "features": {
+      "docker-in-docker": {}
+    }
   }
 }
