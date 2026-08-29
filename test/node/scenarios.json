@@ -7,14 +7,6 @@
       }
     }
   },
-  "lts_channel": {
-    "image": "ubuntu:24.04",
-    "features": {
-      "node": {
-        "version": "lts"
-      }
-    }
-  },
   "major_line": {
     "image": "ubuntu:24.04",
     "features": {
