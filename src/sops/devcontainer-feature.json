@@ -2,7 +2,7 @@
   "id": "sops",
   "version": "1.0.2",
   "name": "sops",
-  "description": "Installs the sops secret editor as a single static binary, verified against its published checksums.",
+  "description": "Installs the sops secret editor as a single static binary.",
   "documentationURL": "https://github.com/hansehart/devcontainer-features/tree/main/src/sops",
   "options": {
     "version": {
@@ -14,7 +14,7 @@
     "stateDir": {
       "type": "string",
       "default": "",
-      "description": "Points SOPS_AGE_KEY_FILE at <stateDir>/keys.txt (mount a volume to persist the age key across rebuilds). Empty leaves SOPS_AGE_KEY_FILE unset."
+      "description": "If set, exports SOPS_AGE_KEY_FILE to <stateDir>/keys.txt (persist it by mounting a volume there). Empty leaves SOPS_AGE_KEY_FILE unset."
     }
   },
   "dependsOn": {

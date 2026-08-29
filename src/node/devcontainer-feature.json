@@ -1,0 +1,26 @@
+{
+  "id": "node",
+  "version": "1.0.0",
+  "name": "Node.js",
+  "description": "Installs the Node.js runtime with npm and npx on a selectable channel or release line.",
+  "documentationURL": "https://github.com/hansehart/devcontainer-features/tree/main/src/node",
+  "options": {
+    "version": {
+      "type": "string",
+      "proposals": ["latest", "lts", "22", "24"],
+      "default": "lts",
+      "description": "Channel (lts|latest), a major line (24 or 24.19), or an exact version (major.minor.patch)."
+    },
+    "stateDir": {
+      "type": "string",
+      "default": "",
+      "description": "If set, exports npm's cache, global prefix, and user config to this path (persist them by mounting a volume there). Empty puts the global prefix in the dev user's ~/.local."
+    },
+    "npmrc": {
+      "type": "string",
+      "default": "",
+      "description": "npm config as INI with backslash-escaped line breaks, written to .npmrc."
+    }
+  },
+  "postCreateCommand": "/usr/local/share/node/init.sh"
+}
