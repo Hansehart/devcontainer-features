@@ -7,7 +7,6 @@
   "options": {
     "version": {
       "type": "string",
-      "proposals": ["latest"],
       "default": "latest",
       "description": "Channel (latest) or an exact version (major.minor.patch)."
     },

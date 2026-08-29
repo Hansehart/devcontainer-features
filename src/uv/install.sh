@@ -74,5 +74,6 @@ fi
 install -d /usr/local/share/uv
 install -m 0755 "$(dirname "$0")/init.sh" /usr/local/share/uv/init.sh
 
-# Verify: uv resolves on PATH.
+# Verify: both tools resolve on PATH.
 uv --version
+command -v uvx >/dev/null

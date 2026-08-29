@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Create the state dir once the volume is mounted.
+# Prepare sops's state once the volume is mounted.
 if [ -r /etc/profile.d/sops.sh ]; then . /etc/profile.d/sops.sh; fi
-[ -n "${SOPS_AGE_KEY_FILE:-}" ] || exit 0
-mkdir -p "${SOPS_AGE_KEY_FILE%/*}"
+
+# Create the state dir once the volume is mounted (the age key file names it).
+if [ -n "${SOPS_AGE_KEY_FILE:-}" ]; then mkdir -p "${SOPS_AGE_KEY_FILE%/*}"; fi

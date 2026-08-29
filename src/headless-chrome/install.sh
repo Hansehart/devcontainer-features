@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Option (uppercased by the CLI): VERSION.
+# Options (uppercased by the CLI): VERSION.
 
 API="https://googlechromelabs.github.io/chrome-for-testing"
 BUCKET="https://storage.googleapis.com/chrome-for-testing-public"
@@ -66,7 +66,6 @@ curl -fsSL "$url" -o "$tmp/chs.zip"
 unzip -q "$tmp/chs.zip" -d "$tmp"
 
 # Install: place the binary and expose it on PATH.
-rm -rf "$INSTALL_DIR"
 mkdir -p "$INSTALL_DIR"
 mv "$tmp/chrome-headless-shell-linux64/"* "$INSTALL_DIR/"
 ln -sf "$INSTALL_DIR/chrome-headless-shell" /usr/local/bin/chrome-headless-shell
