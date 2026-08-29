@@ -19,7 +19,7 @@
     "configToml": {
       "type": "string",
       "default": "",
-      "description": "Codex config as TOML with backslash-escaped quotes and \\n line breaks, written to config.toml."
+      "description": "Codex config as TOML with backslash-escaped quotes and line breaks, written to config.toml."
     }
   },
   "postCreateCommand": "/usr/local/share/codex/init.sh"

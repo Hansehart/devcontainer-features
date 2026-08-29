@@ -19,7 +19,7 @@
     "npmrc": {
       "type": "string",
       "default": "",
-      "description": "npm config as INI with \\n line breaks, written to npm's user config file."
+      "description": "npm config as INI with backslash-escaped line breaks, written to .npmrc."
     }
   },
   "postCreateCommand": "/usr/local/share/node/init.sh"
