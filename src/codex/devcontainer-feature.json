@@ -1,13 +1,12 @@
 {
   "id": "codex",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "name": "Codex CLI",
   "description": "Installs the OpenAI Codex CLI on a selectable channel.",
   "documentationURL": "https://github.com/hansehart/devcontainer-features/tree/main/src/codex",
   "options": {
     "version": {
       "type": "string",
-      "proposals": ["latest"],
       "default": "latest",
       "description": "Channel (latest) or an exact version (major.minor.patch)."
     },

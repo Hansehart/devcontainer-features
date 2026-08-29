@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Option (uppercased by the CLI): VERSION.
+# Options (uppercased by the CLI): VERSION.
 
 export DEBIAN_FRONTEND=noninteractive
 

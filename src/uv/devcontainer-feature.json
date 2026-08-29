@@ -7,13 +7,12 @@
   "options": {
     "version": {
       "type": "string",
-      "proposals": ["latest"],
       "default": "latest",
       "description": "Channel (latest) or an exact version (major.minor.patch)."
     },
     "python": {
       "type": "string",
-      "proposals": ["", "latest", "3.10", "3.11", "3.12", "3.13", "3.14"],
+      "proposals": ["", "latest"],
       "default": "",
       "description": "Installs this CPython at build as the default (adds python/python3 to PATH). Empty installs no interpreter, leaving uv to use an available Python or download one on demand."
     },
