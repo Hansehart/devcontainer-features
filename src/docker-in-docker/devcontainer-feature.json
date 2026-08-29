@@ -20,7 +20,7 @@
   "privileged": false,
   "containerEnv": {
     "DOCKER_BUILDKIT": "1",
-    "DOCKER_HOST": "unix:///run/user/1000/docker.sock"
+    "DOCKER_HOST": "unix:///run/docker-rootless.sock"
   },
   "customizations": {
     "vscode": {

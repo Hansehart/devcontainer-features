@@ -26,6 +26,13 @@
       "--security-opt",
       "seccomp=${localEnv:PWD}/test/docker-in-docker/seccomp.json"
     ],
+    "mounts": [
+      {
+        "source": "dind-rootless-data",
+        "target": "/home/ubuntu/.local/share/docker",
+        "type": "volume"
+      }
+    ],
     "features": {
       "docker-in-docker": {}
     }

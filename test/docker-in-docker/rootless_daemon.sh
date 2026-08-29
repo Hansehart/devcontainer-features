@@ -20,7 +20,10 @@ check "daemon runs rootless" bash -c "docker info --format '{{.SecurityOptions}}
 # rather than this shell, whose capabilities are empty simply because it is not root.
 check "container is unprivileged" bash -c 'bnd=$(awk "/^CapBnd:/ {print \$2}" /proc/1/status); [ $((0x$bnd >> 21 & 1)) -eq 0 ]'
 check "overlay2 storage driver" bash -c "docker info --format '{{.Driver}}' | grep -qx overlay2"
-check "socket is the remote user's" bash -c 'test -S "${DOCKER_HOST#unix://}" && [ "$DOCKER_HOST" = "unix:///run/user/$(id -u)/docker.sock" ]'
+# The published name has to reach a live socket.
+check "socket is live at the fixed path" bash -c 'test -S /run/docker-rootless.sock && [ "$DOCKER_HOST" = "unix:///run/docker-rootless.sock" ]'
+# And to lead to this shell's own runtime directory, which a path fixed at build time misses.
+check "socket link resolves to the remote user" bash -c '[ "$(readlink /run/docker-rootless.sock)" = "/run/user/$(id -u)/docker.sock" ]'
 check "nested container runs" docker run --rm hello-world
 
 # Report result
