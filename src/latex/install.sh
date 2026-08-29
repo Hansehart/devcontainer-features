@@ -18,16 +18,20 @@ export DEBIAN_FRONTEND=noninteractive
 apt-get update
 apt-get install -y --no-install-recommends \
   ca-certificates \
+  curl \
   fontconfig \
   perl \
   wget
 rm -rf /var/lib/apt/lists/*
 
-# Fetch: the year-matched installer bootstrap, persisted so the hook can reuse it at runtime.
+# Fetch: the year-matched installer bootstrap, verified against its published sha512 and
+# persisted so the hook can reuse it at runtime.
 mkdir -p "${INSTALLER_DIR}"
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
-wget -q -O "${tmp}/install-tl-unx.tar.gz" "${REPO}/install-tl-unx.tar.gz"
+curl -fsSL "${REPO}/install-tl-unx.tar.gz" -o "${tmp}/install-tl-unx.tar.gz"
+curl -fsSL "${REPO}/install-tl-unx.tar.gz.sha512" -o "${tmp}/install-tl-unx.tar.gz.sha512"
+( cd "${tmp}" && sha512sum -c install-tl-unx.tar.gz.sha512 )
 tar -xzf "${tmp}/install-tl-unx.tar.gz" -C "${tmp}"
 boot="$(find "${tmp}" -maxdepth 1 -type d -name 'install-tl-*' -print -quit)"
 cp -a "${boot}"/. "${INSTALLER_DIR}"/
