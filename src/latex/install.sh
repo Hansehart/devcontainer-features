@@ -35,7 +35,23 @@ cp -a "${boot}"/. "${INSTALLER_DIR}"/
 # Resolve: the TeX Live platform id names the binary dir (needs the fetched installer).
 PLAT="$("${INSTALLER_DIR}/install-tl" -print-platform)"
 
-# Configure: bake the hook's config and install the shared lib + hook script.
+# Install: TeX Live into the image directly, or set PATH and defer to the hook when a stateDir is set.
+if [ -z "${STATE_DIR}" ]; then
+  TEXDIR="/usr/local/texlive/${VERSION}"
+  install_texlive "${TEXDIR}"
+  ln -sf "${TEXDIR}/bin/${PLAT}"/* /usr/local/bin/
+else
+  echo "export PATH=\"${STATE_DIR}/texlive/${VERSION}/bin/${PLAT}:\$PATH\"" > /etc/profile.d/latex.sh
+  chmod 0644 /etc/profile.d/latex.sh
+  # Configure: own the state dir by a dedicated group so it stays writable after a UID remap.
+  groupadd -r -f latex
+  usermod -aG latex "$_REMOTE_USER" || true
+  install -d -m 0770 "${STATE_DIR}"
+  chown "$_REMOTE_USER:latex" "${STATE_DIR}"
+  chmod g+s "${STATE_DIR}"
+fi
+
+# Hook: bake the hook's config and install the shared lib + hook script.
 {
   echo "STATE_DIR=\"${STATE_DIR}\""
   echo "VERSION=\"${VERSION}\""
@@ -46,22 +62,6 @@ PLAT="$("${INSTALLER_DIR}/install-tl" -print-platform)"
 } > "${SHARE_DIR}/config.env"
 install -m 0644 "$(dirname "$0")/lib.sh" "${SHARE_DIR}/lib.sh"
 install -m 0755 "$(dirname "$0")/init.sh" "${SHARE_DIR}/init.sh"
-
-# Install into the image directly, or set PATH and defer to the hook when a stateDir is set.
-if [ -z "${STATE_DIR}" ]; then
-  TEXDIR="/usr/local/texlive/${VERSION}"
-  install_texlive "${TEXDIR}"
-  ln -sf "${TEXDIR}/bin/${PLAT}"/* /usr/local/bin/
-else
-  echo "export PATH=\"${STATE_DIR}/texlive/${VERSION}/bin/${PLAT}:\$PATH\"" > /etc/profile.d/latex.sh
-  chmod 0644 /etc/profile.d/latex.sh
-  # Own the state dir by a dedicated group so it stays writable after a UID remap.
-  groupadd -r -f latex
-  usermod -aG latex "$_REMOTE_USER" || true
-  install -d -m 0770 "${STATE_DIR}"
-  chown "$_REMOTE_USER:latex" "${STATE_DIR}"
-  chmod g+s "${STATE_DIR}"
-fi
 
 # Verify: build-time install resolves on PATH, and the hook verifies stateDir mode.
 [ -n "${STATE_DIR}" ] || latex --version

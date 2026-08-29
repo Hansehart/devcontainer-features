@@ -1,6 +1,6 @@
 {
   "id": "latex",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "name": "LaTeX (TeX Live)",
   "description": "Installs TeX Live from a pinned tlnet-final snapshot (selectable scheme) and puts the binaries on PATH.",
   "documentationURL": "https://github.com/hansehart/devcontainer-features/tree/main/src/latex",
@@ -20,7 +20,7 @@
     "stateDir": {
       "type": "string",
       "default": "",
-      "description": "Installs TeX Live here at container create and reuses it across rebuilds (mount a volume to persist it). Empty installs into the image at build time."
+      "description": "If set, installs TeX Live to this path at container create and reuses it on rebuilds (persist it by mounting a volume there). Empty installs into the image at build time."
     }
   },
   "customizations": {

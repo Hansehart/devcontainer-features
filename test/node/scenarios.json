@@ -1,0 +1,43 @@
+{
+  "latest_channel": {
+    "image": "ubuntu:24.04",
+    "features": {
+      "node": {
+        "version": "latest"
+      }
+    }
+  },
+  "major_line": {
+    "image": "ubuntu:24.04",
+    "features": {
+      "node": {
+        "version": "24"
+      }
+    }
+  },
+  "npmrc": {
+    "image": "ubuntu:24.04",
+    "features": {
+      "node": {
+        "npmrc": "ignore-scripts=true\\naudit-level=low"
+      }
+    }
+  },
+  "pinned_version": {
+    "image": "ubuntu:24.04",
+    "features": {
+      "node": {
+        "version": "22.11.0"
+      }
+    }
+  },
+  "state_dir": {
+    "image": "ubuntu:24.04",
+    "remoteUser": "ubuntu",
+    "features": {
+      "node": {
+        "stateDir": "/var/node"
+      }
+    }
+  }
+}

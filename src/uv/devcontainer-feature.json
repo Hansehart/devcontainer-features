@@ -1,6 +1,6 @@
 {
   "id": "uv",
-  "version": "1.1.3",
+  "version": "1.1.4",
   "name": "uv (Python)",
   "description": "Installs the uv Python package and interpreter manager as a single static binary.",
   "documentationURL": "https://github.com/hansehart/devcontainer-features/tree/main/src/uv",
@@ -20,7 +20,7 @@
     "stateDir": {
       "type": "string",
       "default": "",
-      "description": "Points uv's cache, tools, and managed-Python dirs here (mount a volume to persist them across rebuilds) and sets UV_LINK_MODE=copy. Empty leaves uv's ~/.local defaults."
+      "description": "If set, exports uv's cache, tools, and managed-Python dirs to this path (persist them by mounting a volume there) and sets UV_LINK_MODE=copy. Empty leaves uv's ~/.local defaults."
     }
   },
   "customizations": {

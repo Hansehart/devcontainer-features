@@ -15,7 +15,7 @@ apt-get install -y --no-install-recommends \
   iptables \
   pigz
 
-# Repo: add Docker's official apt repository and signing key.
+# Dependencies: add Docker's official apt repository and signing key.
 install -m 0755 -d /etc/apt/keyrings
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
 chmod a+r /etc/apt/keyrings/docker.asc
@@ -63,7 +63,7 @@ if [ -n "$_REMOTE_USER" ] && [ "$_REMOTE_USER" != "root" ]; then
   fi
 fi
 
-# Install: the entrypoint that starts dockerd at container start, then execs the container command.
+# Hook: install the entrypoint that starts dockerd at container start, then execs the container command.
 install -d /usr/local/share/docker-in-docker
 install -m 0755 "$(dirname "$0")/docker-init.sh" /usr/local/share/docker-in-docker/docker-init.sh
 

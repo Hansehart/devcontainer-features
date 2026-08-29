@@ -64,15 +64,15 @@ if [ -n "$STATE_DIR" ]; then
   chmod g+s "$STATE_DIR"
 fi
 
-# Hook: install the create-state-dir hook to run once at container create.
-install -d /usr/local/share/uv
-install -m 0755 "$(dirname "$0")/init.sh" /usr/local/share/uv/init.sh
-
 # Configure: optionally bake a default Python so python3 exists at open.
 if [ -n "$PYTHON_VERSION" ]; then
   su - "$_REMOTE_USER" -c \
     "env -u UV_PYTHON_INSTALL_DIR uv python install --default --preview-features python-install-default '$PYTHON_VERSION'"
 fi
+
+# Hook: install the create-state-dir hook to run once at container create.
+install -d /usr/local/share/uv
+install -m 0755 "$(dirname "$0")/init.sh" /usr/local/share/uv/init.sh
 
 # Verify: uv resolves on PATH.
 uv --version
