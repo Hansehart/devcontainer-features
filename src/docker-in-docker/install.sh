@@ -37,14 +37,14 @@ fi
 # shellcheck disable=SC2086
 apt-get install -y --no-install-recommends $ce containerd.io docker-buildx-plugin docker-compose-plugin
 
-# Rootless: the helpers and userspace networking an unprivileged daemon needs.
+# Install: the helpers and userspace networking an unprivileged daemon needs.
 apt-get install -y --no-install-recommends \
   fuse-overlayfs \
   libcap2-bin \
   slirp4netns \
   uidmap
 
-# Pin the engine so a later apt upgrade keeps it in sync with the persisted data volume.
+# Configure: pin the engine so a later apt upgrade keeps it in sync with the persisted data volume.
 apt-mark hold docker-ce docker-ce-cli docker-ce-rootless-extras containerd.io
 
 rm -rf /var/lib/apt/lists/*
@@ -67,10 +67,10 @@ fi
 install -d /usr/local/share/docker-in-docker
 install -m 0755 "$(dirname "$0")/docker-init.sh" /usr/local/share/docker-in-docker/docker-init.sh
 
-# Persist which user runs the rootless daemon (the entrypoint has no _REMOTE_USER at runtime).
+# Hook: persist which user runs the rootless daemon (the entrypoint has no _REMOTE_USER at runtime).
 printf '%s\n' "${_REMOTE_USER:-root}" > /usr/local/share/docker-in-docker/rootless-user
 
-# Configure: keep the requested daemon settings for the entrypoint to place (empty writes nothing).
+# Hook: keep the requested daemon settings for the entrypoint to place (empty writes nothing).
 if [ -n "$DAEMON_JSON" ]; then
   printf '%s\n' "$DAEMON_JSON" > /usr/local/share/docker-in-docker/daemon.json
 fi
