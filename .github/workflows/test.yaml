@@ -1,17 +1,59 @@
 name: "Test features"
 on:
-  push:
-    branches:
-      - main
   pull_request:
 
 jobs:
+  # Narrows the test matrix down to the features a pull request touches.
+  detect:
+    runs-on: ubuntu-latest
+    outputs:
+      features: ${{ steps.select.outputs.features }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          # The base commit has to be present locally to diff against it.
+          fetch-depth: 0
+      - name: "Select the features to test"
+        id: select
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          set -euo pipefail
+
+          # Every directory under the sources is detected as a feature.
+          all=$(ls src | jq -Rsc 'split("\n") | map(select(length > 0))')
+
+          changed=$(git diff --name-only "$BASE_SHA" HEAD)
+          echo "Changed files:"
+          echo "$changed"
+
+          # A changed harness belongs to no feature, so it runs the full matrix.
+          if echo "$changed" | grep -qE '^\.github/'; then
+            echo "features=$all" >> "$GITHUB_OUTPUT"
+            echo "CI configuration changed, testing every feature: $all"
+            exit 0
+          fi
+
+          # A feature is affected only by its own sources and its own tests.
+          selected=$(
+            for feature in $(ls src); do
+              if echo "$changed" | grep -qE "^(src|test)/${feature}/"; then
+                echo "$feature"
+              fi
+            done | jq -Rsc 'split("\n") | map(select(length > 0))'
+          )
+          echo "features=$selected" >> "$GITHUB_OUTPUT"
+          echo "Testing affected features: $selected"
+
   test:
+    needs: detect
+    # An empty matrix is a workflow error, so skip the job instead.
+    if: ${{ needs.detect.outputs.features != '[]' }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        feature: [age, claude-code, codex, docker-in-docker, headless-chrome, latex, sops, uv]
+        feature: ${{ fromJSON(needs.detect.outputs.features) }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - name: Install the dev container CLI
