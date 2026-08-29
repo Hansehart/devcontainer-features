@@ -30,6 +30,7 @@ case "${VERSION:-latest}" in
   *)  tag="v$VERSION" ;;
 esac
 asset="age-$tag-linux-$goarch.tar.gz"
+echo "age: installing $tag ($VERSION)"
 
 # Fetch: download the tarball over HTTPS, trusting the TLS-authenticated GitHub origin for integrity.
 tmp="$(mktemp -d)"

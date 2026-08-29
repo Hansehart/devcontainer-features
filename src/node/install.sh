@@ -37,6 +37,7 @@ case "${VERSION:-lts}" in
 esac
 [ -n "$tag" ] || { echo "node: could not resolve version '$VERSION'" >&2; exit 1; }
 asset="node-$tag-linux-$nodearch.tar.gz"
+echo "node: installing $tag ($VERSION)"
 
 # Fetch: download the tarball and verify it against Node's published checksums.
 tmp="$(mktemp -d)"
