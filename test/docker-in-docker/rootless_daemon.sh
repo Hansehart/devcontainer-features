@@ -24,7 +24,16 @@ check "overlay2 storage driver" bash -c "docker info --format '{{.Driver}}' | gr
 check "socket is live at the fixed path" bash -c 'test -S /run/docker-rootless.sock && [ "$DOCKER_HOST" = "unix:///run/docker-rootless.sock" ]'
 # And to lead to this shell's own runtime directory, which a path fixed at build time misses.
 check "socket link resolves to the remote user" bash -c '[ "$(readlink /run/docker-rootless.sock)" = "/run/user/$(id -u)/docker.sock" ]'
-check "nested container runs" docker run --rm hello-world
+# The daemon's log holds the warnings its setup emits, and the entrypoint only surfaces that
+# log when the daemon itself failed to start, which says nothing about a run that fails after.
+run_nested() {
+  docker run --rm hello-world && return 0
+  echo "--- dockerd.log ---" >&2
+  cat /tmp/dockerd.log >&2 || true
+  return 1
+}
+
+check "nested container runs" bash -c "$(declare -f run_nested); run_nested"
 
 # Report result
 reportResults
