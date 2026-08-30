@@ -69,3 +69,8 @@ jobs:
           done
       - name: "Test ${{ matrix.feature }}"
         run: devcontainer features test -f ${{ matrix.feature }} -i mcr.microsoft.com/devcontainers/base:ubuntu-24.04 .
+      - name: "Report the AppArmor denials"
+        # A denial is audited to the kernel's ring buffer on the host, which is the one
+        # place a container cannot read and so the one place a scenario cannot report from.
+        if: failure()
+        run: sudo dmesg | grep -i apparmor | grep -i denied | tail -40 || echo "no denials audited"
