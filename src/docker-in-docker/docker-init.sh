@@ -101,7 +101,7 @@ start_dockerd() {
   find /run /var/run -iname 'docker*.pid' -delete 2>/dev/null || true
   find /run /var/run -iname 'container*.pid' -delete 2>/dev/null || true
 
-  # Run as the remote user, with userspace networking and a private pid namespace.
+  # Run as the remote user, with userspace networking.
   # Exits unless the container's apparmor and seccomp profiles admit those namespaces.
   # overlay2 needs the store on a real filesystem, which the volume above provides.
   runuser -u "$RUSER" -- env \
@@ -112,7 +112,6 @@ start_dockerd() {
     DOCKERD_ROOTLESS_ROOTLESSKIT_NET=slirp4netns \
     DOCKERD_ROOTLESS_ROOTLESSKIT_MTU=65520 \
     DOCKERD_ROOTLESS_ROOTLESSKIT_DETACH_NETNS=false \
-    DOCKERD_ROOTLESS_ROOTLESSKIT_FLAGS="--pidns" \
     DOCKERD_ROOTLESS_ROOTLESSKIT_SLIRP4NETNS_SANDBOX=auto \
     DOCKERD_ROOTLESS_ROOTLESSKIT_SLIRP4NETNS_SECCOMP=auto \
     dockerd-rootless.sh --storage-driver=overlay2 > /tmp/dockerd.log 2>&1
