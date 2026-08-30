@@ -57,6 +57,7 @@ if [ -f /sys/fs/cgroup/cgroup.controllers ] && mkdir -p /sys/fs/cgroup/init 2>/d
 fi
 
 # Provide the device the userspace network stack builds its tap on.
+# A container given the device already keeps this branch closed, and needs no CAP_MKNOD.
 if [ ! -c /dev/net/tun ]; then
   mkdir -p /dev/net
   mknod /dev/net/tun c 10 200 2>/dev/null || true

@@ -26,7 +26,15 @@
       "--security-opt",
       "seccomp=${localEnv:PWD}/test/docker-in-docker/seccomp.json",
       "--security-opt",
-      "systempaths=unconfined"
+      "systempaths=unconfined",
+      "--cap-drop",
+      "MKNOD",
+      "--cap-drop",
+      "NET_RAW",
+      "--cap-drop",
+      "AUDIT_WRITE",
+      "--device",
+      "/dev/net/tun"
     ],
     "mounts": [
       {
