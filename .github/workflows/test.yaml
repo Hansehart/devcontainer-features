@@ -73,7 +73,9 @@ jobs:
         # A denial is audited on the host, which is the one place a container cannot read
         # and so the one place a scenario cannot report from. Where it lands depends on
         # whether an audit daemon is collecting, so read every source.
-        if: failure()
+        # Runs either way: a profile in complain mode audits what it would have refused,
+        # which is only readable from a run that passed.
+        if: always()
         run: |
           echo "--- dmesg ---"
           sudo dmesg | grep -i apparmor || echo "(none)"
