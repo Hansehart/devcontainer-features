@@ -1,6 +1,25 @@
 #!/bin/sh
 set -e
 
+# The unprivileged user that owns the daemon (persisted by install.sh).
+RUSER="$(cat /usr/local/share/docker-in-docker/rootless-user 2>/dev/null || true)"
+
+# The daemon runs as the remote user, so root and a name with no passwd entry both stop here.
+if [ "$RUSER" = "root" ] || ! RUSER_ENT="$(getent passwd "$RUSER")"; then
+  echo "docker-in-docker: needs a non-root remoteUser, the daemon stays down" >&2
+  # Hand off to the container command, or stop when there is none to hand off to.
+  exec "$@"
+  exit 0
+fi
+
+# Id and home come from that entry, the runtime directory from the id.
+RUID="$(echo "$RUSER_ENT" | cut -d: -f3)"
+RHOME="$(echo "$RUSER_ENT" | cut -d: -f6)"
+RUNTIME_DIR="/run/user/${RUID}"
+# The store carries a name of its own rather than one under the home, so the volume holding
+# it can be declared without knowing which account the container runs as.
+DATA_ROOT=/var/lib/docker-rootless
+
 # Match the iptables backend to the host kernel we share.
 if type iptables-legacy > /dev/null 2>&1 \
    && { grep -qE '^ip_tables\b' /proc/modules || [ -d /sys/module/ip_tables ]; } \
@@ -23,44 +42,91 @@ if [ -d /sys/kernel/security ] && ! mountpoint -q /sys/kernel/security; then
 fi
 mountpoint -q /tmp || mount -t tmpfs none /tmp || true
 
-# Delegate cgroup v2 controllers to a leaf so nested cgroups work.
-if [ -f /sys/fs/cgroup/cgroup.controllers ]; then
-  mkdir -p /sys/fs/cgroup/init
-  # Retry the process move, which races with EBUSY on a cold boot.
+# Nest the cgroup controllers where the host delegates them, and pass over where it does not.
+if [ -f /sys/fs/cgroup/cgroup.controllers ] && mkdir -p /sys/fs/cgroup/init 2>/dev/null; then
+  # Move the existing processes into a leaf, retrying while they settle.
   cg_tries=0
   until xargs -rn1 < /sys/fs/cgroup/cgroup.procs > /sys/fs/cgroup/init/cgroup.procs 2>/dev/null \
         || [ "$cg_tries" -ge 5 ]; do
     sleep 1
     cg_tries=$((cg_tries + 1))
   done
+  # Hand the controllers down to that leaf.
   sed -e 's/ / +/g' -e 's/^/+/' < /sys/fs/cgroup/cgroup.controllers \
     > /sys/fs/cgroup/cgroup.subtree_control 2>/dev/null || true
 fi
 
-# Start the daemon and wait for it to accept commands.
-dockerd_pid=""
+# The userspace network stack builds its tap on this device. Creating one needs a capability
+# the container may not hold, so this is a best effort for a container not given the device.
+if [ ! -c /dev/net/tun ]; then
+  mkdir -p /dev/net
+  mknod /dev/net/tun c 10 200 2>/dev/null || true
+  # Open to the remote user, which runs the network stack.
+  chmod 0666 /dev/net/tun 2>/dev/null || true
+fi
+
+# Prepare the runtime and data directories owned by the remote user.
+# The store expects a volume here, since it cannot sit on the container's own overlayfs.
+mkdir -p "$RUNTIME_DIR" "$DATA_ROOT"
+# The runtime directory carries the daemon socket, so it stays shut to other accounts.
+chmod 0700 "$RUNTIME_DIR"
+chown "$RUSER":"$RUSER" "$RUNTIME_DIR" "$DATA_ROOT" || true
+
+# Write the requested daemon settings, which the home directory may not carry yet.
+req=/usr/local/share/docker-in-docker/requested-daemon.json
+if [ -s "$req" ] && [ ! -f "${RHOME}/.config/docker/daemon.json" ]; then
+  mkdir -p "${RHOME}/.config/docker"
+  cp "$req" "${RHOME}/.config/docker/daemon.json"
+  chown -R "$RUSER":"$RUSER" "${RHOME}/.config/docker" || true
+fi
+
+# Restore the id-mapping helpers' capabilities, which the image unpack drops. Dropping setuid
+# keeps the caller's identity, and no-new-privileges must stay unset or the kernel ignores both.
+for b in /usr/bin/newuidmap /usr/bin/newgidmap; do
+  chmod u-s "$b" 2>/dev/null || true
+  setcap cap_setuid,cap_setgid+ep "$b" 2>/dev/null || true
+done
+
+# Publish the socket under a fixed name, since the daemon's own path carries a user id that
+# is only known once the container runs.
+ln -sfn "${RUNTIME_DIR}/docker.sock" /run/docker-rootless.sock
+
 start_dockerd() {
-  # Clear stale pid files left by an unclean stop.
+  # Clear pid files left by an unclean stop, which otherwise block the next start.
   find /run /var/run -iname 'docker*.pid' -delete 2>/dev/null || true
   find /run /var/run -iname 'container*.pid' -delete 2>/dev/null || true
-  dockerd > /tmp/dockerd.log 2>&1 &
-  dockerd_pid=$!
-  tries=0
-  until docker info > /dev/null 2>&1 || [ "$tries" -ge 30 ]; do
-    sleep 1
-    tries=$((tries + 1))
-  done
-  docker info > /dev/null 2>&1
+
+  # Run as the remote user with userspace networking and a private pid namespace, which needs
+  # an unmasked procfs and confinement profiles that admit those namespaces.
+  # Pinning the network driver also fixes the MTU and port driver that derive from it.
+  runuser -u "$RUSER" -- env \
+    HOME="$RHOME" \
+    XDG_RUNTIME_DIR="$RUNTIME_DIR" \
+    DOCKER_HOST="unix://${RUNTIME_DIR}/docker.sock" \
+    PATH="/usr/bin:/usr/local/bin:/sbin:/usr/sbin:/bin" \
+    DOCKERD_ROOTLESS_ROOTLESSKIT_NET=slirp4netns \
+    DOCKERD_ROOTLESS_ROOTLESSKIT_DETACH_NETNS=false \
+    DOCKERD_ROOTLESS_ROOTLESSKIT_FLAGS="--pidns" \
+    dockerd-rootless.sh --data-root "$DATA_ROOT" --storage-driver=overlay2 > /tmp/dockerd.log 2>&1
 }
 
-# Retry once when a stale lock in the persisted data volume kills the first start.
-if ! start_dockerd; then
-  echo "docker-in-docker: dockerd did not come up, restarting once" >&2
-  cat /tmp/dockerd.log >&2 || true
-  kill "$dockerd_pid" 2>/dev/null || true
-  sleep 1
-  start_dockerd || { echo "docker-in-docker: dockerd failed to start" >&2; cat /tmp/dockerd.log >&2 || true; }
-fi
+# Supervise in the background, so the container command starts without waiting.
+{
+  # Trust a mounted CA, so registries behind a TLS proxy resolve. Only the daemon reads the
+  # bundle, so rebuilding it stays off the handoff path.
+  update-ca-certificates >/dev/null 2>&1 || true
+
+  if ! start_dockerd; then
+    echo "docker-in-docker: rootless dockerd exited, retrying once" >&2
+    # Carry the reason into the container log, which is all a CI run gets to read.
+    cat /tmp/dockerd.log >&2 || true
+    sleep 2
+    if ! start_dockerd; then
+      echo "docker-in-docker: rootless dockerd failed to start" >&2
+      cat /tmp/dockerd.log >&2 || true
+    fi
+  fi
+} &
 
 # Hand off to the container's original entrypoint/command.
 exec "$@"
