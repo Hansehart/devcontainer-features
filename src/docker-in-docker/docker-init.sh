@@ -102,7 +102,8 @@ start_dockerd() {
   find /run /var/run -iname 'container*.pid' -delete 2>/dev/null || true
 
   # Run as the remote user, with userspace networking and a private pid namespace.
-  # The namespace carries its own procfs, which the container's own is too masked to serve.
+  # That namespace mounts a procfs of its own, which the kernel permits only where the
+  # container's own procfs is left unmasked.
   # Exits unless the container's apparmor and seccomp profiles admit those namespaces.
   # overlay2 needs the store on a real filesystem, which the volume above provides.
   runuser -u "$RUSER" -- env \

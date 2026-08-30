@@ -24,7 +24,9 @@
       "--security-opt",
       "apparmor=unconfined",
       "--security-opt",
-      "seccomp=${localEnv:PWD}/test/docker-in-docker/seccomp.json"
+      "seccomp=${localEnv:PWD}/test/docker-in-docker/seccomp.json",
+      "--security-opt",
+      "systempaths=unconfined"
     ],
     "mounts": [
       {
