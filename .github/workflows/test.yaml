@@ -58,5 +58,14 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - name: Install the dev container CLI
         run: npm install -g @devcontainers/cli@0.88.0
+      - name: "Register the reference AppArmor profiles"
+        # A profile lives in the host's kernel, so a scenario can only name one that was
+        # loaded out here first.
+        run: |
+          set -euo pipefail
+          for profile in test/*/apparmor.conf; do
+            [ -e "$profile" ] || continue
+            sudo apparmor_parser -r "$profile"
+          done
       - name: "Test ${{ matrix.feature }}"
         run: devcontainer features test -f ${{ matrix.feature }} -i mcr.microsoft.com/devcontainers/base:ubuntu-24.04 .

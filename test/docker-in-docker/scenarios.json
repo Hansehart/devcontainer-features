@@ -46,5 +46,35 @@
     "features": {
       "docker-in-docker": {}
     }
+  },
+  "rootless_daemon_apparmor": {
+    "image": "ubuntu:24.04",
+    "remoteUser": "ubuntu",
+    "runArgs": [
+      "--security-opt",
+      "apparmor=dind-rootless",
+      "--security-opt",
+      "seccomp=${localEnv:PWD}/test/docker-in-docker/seccomp.json",
+      "--security-opt",
+      "systempaths=unconfined",
+      "--cap-drop",
+      "MKNOD",
+      "--cap-drop",
+      "NET_RAW",
+      "--cap-drop",
+      "AUDIT_WRITE",
+      "--device",
+      "/dev/net/tun"
+    ],
+    "mounts": [
+      {
+        "source": "dind-rootless-apparmor-data",
+        "target": "/home/ubuntu/.local/share/docker",
+        "type": "volume"
+      }
+    ],
+    "features": {
+      "docker-in-docker": {}
+    }
   }
 }

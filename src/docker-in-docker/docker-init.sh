@@ -105,6 +105,8 @@ start_dockerd() {
   # Run as the remote user, with userspace networking and a private pid namespace.
   # That namespace mounts a procfs of its own, which the kernel permits only where the
   # container's own procfs is left unmasked.
+  # A container carrying a profile that admits these mounts needs no unconfined one;
+  # test/docker-in-docker/apparmor.conf is the reference.
   # Exits unless the container's apparmor and seccomp profiles admit those namespaces.
   # overlay2 needs the store on a real filesystem, which the volume above provides.
   runuser -u "$RUSER" -- env \
