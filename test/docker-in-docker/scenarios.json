@@ -24,7 +24,7 @@
       "--security-opt",
       "apparmor=unconfined",
       "--security-opt",
-      "seccomp=${localEnv:PWD}/test/docker-in-docker/seccomp.json",
+      "seccomp=${localEnv:PWD}/src/docker-in-docker/seccomp.json",
       "--security-opt",
       "systempaths=unconfined",
       "--cap-drop",
@@ -35,13 +35,6 @@
       "AUDIT_WRITE",
       "--device",
       "/dev/net/tun"
-    ],
-    "mounts": [
-      {
-        "source": "dind-rootless-data",
-        "target": "/home/ubuntu/.local/share/docker",
-        "type": "volume"
-      }
     ],
     "features": {
       "docker-in-docker": {}
