@@ -70,7 +70,16 @@ jobs:
       - name: "Test ${{ matrix.feature }}"
         run: devcontainer features test -f ${{ matrix.feature }} -i mcr.microsoft.com/devcontainers/base:ubuntu-24.04 .
       - name: "Report the AppArmor denials"
-        # A denial is audited to the kernel's ring buffer on the host, which is the one
-        # place a container cannot read and so the one place a scenario cannot report from.
+        # A denial is audited on the host, which is the one place a container cannot read
+        # and so the one place a scenario cannot report from. Where it lands depends on
+        # whether an audit daemon is collecting, so read every source.
         if: failure()
-        run: sudo dmesg | grep -i apparmor | grep -i denied | tail -40 || echo "no denials audited"
+        run: |
+          echo "--- dmesg ---"
+          sudo dmesg | grep -i apparmor || echo "(none)"
+          echo "--- journal ---"
+          sudo journalctl -k --no-pager 2>/dev/null | grep -i apparmor || echo "(none)"
+          echo "--- audit log ---"
+          sudo grep -i apparmor /var/log/audit/audit.log 2>/dev/null || echo "(none)"
+          echo "--- profiles loaded ---"
+          sudo aa-status 2>/dev/null | head -30 || echo "(aa-status unavailable)"
