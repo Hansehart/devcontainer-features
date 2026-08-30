@@ -2,10 +2,9 @@
 set -e
 
 # The unprivileged user that owns the daemon (persisted by install.sh).
-RUSER="$(cat /usr/local/share/docker-in-docker/rootless-user 2>/dev/null || echo root)"
+RUSER="$(cat /usr/local/share/docker-in-docker/rootless-user 2>/dev/null || true)"
 
-# The daemon runs as the remote user, and cannot start as root.
-# Resolving the account here lets a name with no passwd entry take this branch too.
+# The daemon runs as the remote user, so root and a name with no passwd entry both stop here.
 if [ "$RUSER" = "root" ] || ! RUSER_ENT="$(getent passwd "$RUSER")"; then
   echo "docker-in-docker: needs a non-root remoteUser, the daemon stays down" >&2
   # Hand off to the container command, or stop when there is none to hand off to.
