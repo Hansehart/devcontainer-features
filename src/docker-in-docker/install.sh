@@ -53,7 +53,7 @@ rm -rf /var/lib/apt/lists/*
 
 # Configure: keep the docker group tooling expects, though the user owns its socket outright.
 groupadd -f docker
-# A root remote user has nothing to configure here, and leaves the daemon down at start.
+# A non-root remote user is the one the daemon runs as, so the grants below are its own.
 if [ -n "$_REMOTE_USER" ] && [ "$_REMOTE_USER" != "root" ]; then
   usermod -aG docker "$_REMOTE_USER" || true
 
@@ -73,8 +73,7 @@ printf '%s\n' "${_REMOTE_USER:-root}" > /usr/local/share/docker-in-docker/rootle
 # Hook: save the requested daemon settings for the entrypoint to install (empty writes nothing).
 printf '%s' "$DAEMON_JSON" > /usr/local/share/docker-in-docker/requested-daemon.json
 
-# Hook: carry the seccomp profile the daemon needs. A profile is read on the host before the
-# container exists, so this cannot apply it, only put it somewhere a consumer can take it from.
+# Hook: carry the seccomp profile the daemon needs, where a consumer can take it from.
 install -m 0644 "$(dirname "$0")/seccomp.json" /usr/local/share/docker-in-docker/seccomp.json
 
 # Configure: point login shells that inherit no container environment at the published socket.

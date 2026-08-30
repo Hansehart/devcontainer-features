@@ -16,8 +16,7 @@ fi
 RUID="$(echo "$RUSER_ENT" | cut -d: -f3)"
 RHOME="$(echo "$RUSER_ENT" | cut -d: -f6)"
 RUNTIME_DIR="/run/user/${RUID}"
-# The store carries a name of its own rather than one under the home, so the volume holding
-# it can be declared without knowing which account the container runs as.
+# A fixed store, so the volume holding it is declarable without knowing the account.
 DATA_ROOT=/var/lib/docker-rootless
 
 # Match the iptables backend to the host kernel we share.
@@ -56,17 +55,18 @@ if [ -f /sys/fs/cgroup/cgroup.controllers ] && mkdir -p /sys/fs/cgroup/init 2>/d
     > /sys/fs/cgroup/cgroup.subtree_control 2>/dev/null || true
 fi
 
-# The userspace network stack builds its tap on this device. Creating one needs a capability
-# the container may not hold, so this is a best effort for a container not given the device.
+# The userspace network stack builds its tap on this device, given or created here.
 if [ ! -c /dev/net/tun ]; then
   mkdir -p /dev/net
   mknod /dev/net/tun c 10 200 2>/dev/null || true
   # Open to the remote user, which runs the network stack.
   chmod 0666 /dev/net/tun 2>/dev/null || true
 fi
+# Say so here, where the reason is known, since the daemon reports it as a network failure.
+[ -c /dev/net/tun ] \
+  || echo "docker-in-docker: no /dev/net/tun, the daemon comes up without networking" >&2
 
-# Prepare the runtime and data directories owned by the remote user.
-# The store expects a volume here, since it cannot sit on the container's own overlayfs.
+# The runtime and store directories, owned by the remote user and the store on a volume.
 mkdir -p "$RUNTIME_DIR" "$DATA_ROOT"
 # The runtime directory carries the daemon socket, so it stays shut to other accounts.
 chmod 0700 "$RUNTIME_DIR"
@@ -80,15 +80,13 @@ if [ -s "$req" ] && [ ! -f "${RHOME}/.config/docker/daemon.json" ]; then
   chown -R "$RUSER":"$RUSER" "${RHOME}/.config/docker" || true
 fi
 
-# Restore the id-mapping helpers' capabilities, which the image unpack drops. Dropping setuid
-# keeps the caller's identity, and no-new-privileges must stay unset or the kernel ignores both.
+# Restore the id-mapping helpers' capabilities, which the image unpack drops.
 for b in /usr/bin/newuidmap /usr/bin/newgidmap; do
   chmod u-s "$b" 2>/dev/null || true
   setcap cap_setuid,cap_setgid+ep "$b" 2>/dev/null || true
 done
 
-# Publish the socket under a fixed name, since the daemon's own path carries a user id that
-# is only known once the container runs.
+# Publish the socket under a fixed name, since the daemon's own path carries a user id.
 ln -sfn "${RUNTIME_DIR}/docker.sock" /run/docker-rootless.sock
 
 start_dockerd() {
@@ -96,9 +94,8 @@ start_dockerd() {
   find /run /var/run -iname 'docker*.pid' -delete 2>/dev/null || true
   find /run /var/run -iname 'container*.pid' -delete 2>/dev/null || true
 
-  # Run as the remote user with userspace networking and a private pid namespace, which needs
-  # an unmasked procfs and confinement profiles that admit those namespaces.
-  # Pinning the network driver also fixes the MTU and port driver that derive from it.
+  # Run as the remote user with userspace networking and a private pid namespace, which
+  # an unmasked procfs and permissive confinement profiles admit.
   runuser -u "$RUSER" -- env \
     HOME="$RHOME" \
     XDG_RUNTIME_DIR="$RUNTIME_DIR" \
@@ -112,8 +109,7 @@ start_dockerd() {
 
 # Supervise in the background, so the container command starts without waiting.
 {
-  # Trust a mounted CA, so registries behind a TLS proxy resolve. Only the daemon reads the
-  # bundle, so rebuilding it stays off the handoff path.
+  # Trust a mounted CA, so registries behind a TLS proxy resolve for the daemon.
   update-ca-certificates >/dev/null 2>&1 || true
 
   if ! start_dockerd; then
