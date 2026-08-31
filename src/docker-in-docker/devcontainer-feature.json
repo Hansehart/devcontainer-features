@@ -1,6 +1,6 @@
 {
   "id": "docker-in-docker",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "name": "Docker in Docker",
   "description": "Installs a rootless Docker engine for building and running containers inside the dev container.",
   "documentationURL": "https://github.com/hansehart/devcontainer-features/tree/main/src/docker-in-docker",

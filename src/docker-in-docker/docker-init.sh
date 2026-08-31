@@ -89,6 +89,21 @@ done
 # Publish the socket under a fixed name, since the daemon's own path carries a user id.
 ln -sfn "${RUNTIME_DIR}/docker.sock" /run/docker-rootless.sock
 
+# A directory mounted here carries a second socket, for reaching the daemon from outside the
+# container. Naming one listener replaces the default, so both are named, and settings that
+# already carry hosts would collide with the flag.
+SHARED_DIR=/run/docker-host
+HOSTS=""
+if [ -d "$SHARED_DIR" ]; then
+  if grep -q '"hosts"' "$req" 2>/dev/null; then
+    echo "docker-in-docker: daemonJson already names hosts, so ${SHARED_DIR} is left out" >&2
+  else
+    # The daemon creates the socket as the remote user, whose id the mount carries back out.
+    chown "$RUSER":"$RUSER" "$SHARED_DIR" || true
+    HOSTS="-H unix://${RUNTIME_DIR}/docker.sock -H unix://${SHARED_DIR}/docker.sock"
+  fi
+fi
+
 start_dockerd() {
   # Clear pid files left by an unclean stop, which otherwise block the next start.
   find /run /var/run -iname 'docker*.pid' -delete 2>/dev/null || true
@@ -96,6 +111,7 @@ start_dockerd() {
 
   # Run as the remote user with userspace networking and a private pid namespace, which
   # an unmasked procfs and permissive confinement profiles admit.
+  # shellcheck disable=SC2086  # HOSTS carries separate flags
   runuser -u "$RUSER" -- env \
     HOME="$RHOME" \
     XDG_RUNTIME_DIR="$RUNTIME_DIR" \
@@ -104,7 +120,7 @@ start_dockerd() {
     DOCKERD_ROOTLESS_ROOTLESSKIT_NET=slirp4netns \
     DOCKERD_ROOTLESS_ROOTLESSKIT_DETACH_NETNS=false \
     DOCKERD_ROOTLESS_ROOTLESSKIT_FLAGS="--pidns" \
-    dockerd-rootless.sh --data-root "$DATA_ROOT" --storage-driver=overlay2 > /tmp/dockerd.log 2>&1
+    dockerd-rootless.sh $HOSTS --data-root "$DATA_ROOT" --storage-driver=overlay2 > /tmp/dockerd.log 2>&1
 }
 
 # Supervise in the background, so the container command starts without waiting.
