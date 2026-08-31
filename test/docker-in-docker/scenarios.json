@@ -39,5 +39,35 @@
     "features": {
       "docker-in-docker": {}
     }
+  },
+  "shared_socket": {
+    "image": "ubuntu:24.04",
+    "remoteUser": "ubuntu",
+    "runArgs": [
+      "--security-opt",
+      "apparmor=unconfined",
+      "--security-opt",
+      "seccomp=${localEnv:PWD}/src/docker-in-docker/seccomp.json",
+      "--security-opt",
+      "systempaths=unconfined",
+      "--cap-drop",
+      "MKNOD",
+      "--cap-drop",
+      "NET_RAW",
+      "--cap-drop",
+      "AUDIT_WRITE",
+      "--device",
+      "/dev/net/tun"
+    ],
+    "features": {
+      "docker-in-docker": {}
+    },
+    "mounts": [
+      {
+        "source": "dind-shared-socket",
+        "target": "/run/docker-host",
+        "type": "volume"
+      }
+    ]
   }
 }
