@@ -67,6 +67,11 @@
         "source": "dind-shared-socket",
         "target": "/run/docker-host",
         "type": "volume"
+      },
+      {
+        "source": "dind-shared-socket-data",
+        "target": "/var/lib/docker-rootless",
+        "type": "volume"
       }
     ]
   }
