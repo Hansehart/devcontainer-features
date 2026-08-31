@@ -16,6 +16,8 @@ check "shared socket answers" bash -c '
   [ -n "$own" ] && [ "$own" = "$shared" ]'
 # The mount arrives owned by root, and the remote user's id is what carries back out of it.
 check "shared socket belongs to the remote user" bash -c '[ -O /run/docker-host/docker.sock ]'
+# The socket answers to whoever opens it, so the directory around it stays shut to that id.
+check "shared directory is closed to other accounts" bash -c '[ "$(stat -c %a /run/docker-host)" = "700" ]'
 # The daemon's log holds the warnings its setup emits, which a failure here should carry.
 check "nested container runs" bash -c 'docker run --rm hello-world || { echo "--- dockerd.log ---" >&2; cat /tmp/dockerd.log >&2; exit 1; }'
 
