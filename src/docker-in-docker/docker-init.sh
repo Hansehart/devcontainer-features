@@ -98,8 +98,10 @@ if [ -d "$SHARED_DIR" ]; then
   if grep -q '"hosts"' "$req" 2>/dev/null; then
     echo "docker-in-docker: daemonJson already names hosts, so ${SHARED_DIR} is left out" >&2
   else
-    # The daemon creates the socket as the remote user, whose id the mount carries back out.
+    # The daemon creates the socket as the remote user, whose id the mount carries back out,
+    # and the socket answers to whoever opens it, so the directory stays shut to that id alone.
     chown "$RUSER":"$RUSER" "$SHARED_DIR" || true
+    chmod 0700 "$SHARED_DIR" || true
     HOSTS="-H unix://${RUNTIME_DIR}/docker.sock -H unix://${SHARED_DIR}/docker.sock"
   fi
 fi
