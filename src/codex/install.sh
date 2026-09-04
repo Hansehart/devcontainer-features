@@ -11,7 +11,8 @@ export DEBIAN_FRONTEND=noninteractive
 apt-get update
 apt-get install -y --no-install-recommends \
   ca-certificates \
-  curl
+  curl \
+  ripgrep
 rm -rf /var/lib/apt/lists/*
 
 # Resolve: install-time env, single-quoted so $HOME expands in the dev user's shell.
