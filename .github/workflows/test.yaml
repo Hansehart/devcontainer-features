@@ -57,6 +57,6 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - name: Install the dev container CLI
-        run: npm install -g @devcontainers/cli@0.88.0
+        run: npm install -g @devcontainers/cli@0.89.0
       - name: "Test ${{ matrix.feature }}"
         run: devcontainer features test -f ${{ matrix.feature }} -i mcr.microsoft.com/devcontainers/base:ubuntu-24.04 .
