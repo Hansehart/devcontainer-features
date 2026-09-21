@@ -13,7 +13,7 @@
     "stateDir": {
       "type": "string",
       "default": "",
-      "description": "If set, exports SOPS_AGE_KEY_FILE to <stateDir>/keys.txt (persist it by mounting a volume there). Empty leaves SOPS_AGE_KEY_FILE unset."
+      "description": "If set, puts this feature's data at this path. Mount a volume there to persist it across rebuilds."
     }
   },
   "dependsOn": {

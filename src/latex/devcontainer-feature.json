@@ -20,7 +20,7 @@
     "stateDir": {
       "type": "string",
       "default": "",
-      "description": "If set, installs TeX Live to this path at container create and reuses it on rebuilds (persist it by mounting a volume there). Empty installs into the image at build time."
+      "description": "If set, puts this feature's data at this path. Mount a volume there to persist it across rebuilds."
     }
   },
   "customizations": {

@@ -14,7 +14,7 @@
     "stateDir": {
       "type": "string",
       "default": "",
-      "description": "If set, exports CLAUDE_CONFIG_DIR to this path (persist it by mounting a volume there). Empty leaves Claude's ~/.claude default."
+      "description": "If set, puts this feature's data at this path. Mount a volume there to persist it across rebuilds."
     },
     "disableNonessentialTraffic": {
       "type": "boolean",
