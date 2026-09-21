@@ -5,7 +5,6 @@ set -euo pipefail
 SHARE_DIR="/usr/local/share/latex"
 # shellcheck source=lib.sh
 . "${SHARE_DIR}/lib.sh"
-# shellcheck disable=SC1091
 . "${SHARE_DIR}/config.env"
 
 # Run only for a stateDir that has no completed-install marker yet.

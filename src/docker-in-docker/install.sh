@@ -25,18 +25,17 @@ apt-get update
 
 # Resolve: take the current CE packages, or pin them to an apt version matching VERSION.
 if [ "$VERSION" = "latest" ]; then
-  ce="docker-ce docker-ce-cli docker-ce-rootless-extras"
+  ce=(docker-ce docker-ce-cli docker-ce-rootless-extras)
 else
   pin="$(apt-cache madison docker-ce | awk -v v="$VERSION" '$3 ~ v {print $3; exit}')"
   [ -n "$pin" ] || { echo "docker-in-docker: Docker CE version '$VERSION' not found in apt" >&2; exit 1; }
   # The rootless extras depend on the exact engine version, so they carry the same pin.
-  ce="docker-ce=$pin docker-ce-cli=$pin docker-ce-rootless-extras=$pin"
+  ce=("docker-ce=$pin" "docker-ce-cli=$pin" "docker-ce-rootless-extras=$pin")
 fi
 
 # Install: engine, CLI, containerd and the buildx/compose plugins (Docker's official set),
 # plus the userspace networking, id-mapping and capability helpers an unprivileged daemon needs.
-# shellcheck disable=SC2086
-apt-get install -y --no-install-recommends $ce \
+apt-get install -y --no-install-recommends "${ce[@]}" \
   containerd.io \
   docker-buildx-plugin \
   docker-compose-plugin \
