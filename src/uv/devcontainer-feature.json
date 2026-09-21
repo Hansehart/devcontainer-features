@@ -19,7 +19,7 @@
     "stateDir": {
       "type": "string",
       "default": "",
-      "description": "If set, exports uv's cache, tools, and managed-Python dirs to this path (persist them by mounting a volume there) and sets UV_LINK_MODE=copy. Empty leaves uv's ~/.local defaults."
+      "description": "If set, puts this feature's data at this path. Mount a volume there to persist it across rebuilds."
     }
   },
   "customizations": {
