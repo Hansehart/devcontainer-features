@@ -14,5 +14,9 @@ check "state dir writable by the dev user" bash -c 'touch /var/claude-code/.prob
 
 check "CLAUDE_CONFIG_DIR exported" bash -lc '[ "$CLAUDE_CONFIG_DIR" = /var/claude-code ]'
 
+# The scenario mounts no volume, so the hook reports where the state dir really is.
+check "the hook reports the unmounted state dir" \
+  bash -c '/usr/local/share/claude-code/init.sh 2>&1 >/dev/null | grep -q "on the container filesystem"'
+
 # Report result
 reportResults

@@ -17,5 +17,9 @@ check "NPM_CONFIG_USERCONFIG exported" bash -lc '[ "$NPM_CONFIG_USERCONFIG" = /v
 check "global prefix in the state dir" bash -lc '[ "$(npm prefix -g)" = /var/node/global ]'
 check "global prefix created" test -d /var/node/global
 
+# The scenario mounts no volume, so the hook reports where the state dir really is.
+check "the hook reports the unmounted state dir" \
+  bash -c '/usr/local/share/node/init.sh 2>&1 >/dev/null | grep -q "on the container filesystem"'
+
 # Report result
 reportResults
