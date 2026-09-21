@@ -1,0 +1,20 @@
+{
+  "id": "tea",
+  "version": "1.0.0",
+  "name": "tea (Gitea CLI)",
+  "description": "Installs the official Gitea CLI as a single static binary.",
+  "documentationURL": "https://github.com/hansehart/devcontainer-features/tree/main/src/tea",
+  "options": {
+    "version": {
+      "type": "string",
+      "default": "latest",
+      "description": "Channel (latest) or an exact version (major.minor.patch)."
+    },
+    "stateDir": {
+      "type": "string",
+      "default": "",
+      "description": "If set, puts this feature's data at this path. Mount a volume there to persist it across rebuilds."
+    }
+  },
+  "postCreateCommand": "/usr/local/share/tea/init.sh"
+}

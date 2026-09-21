@@ -1,0 +1,27 @@
+{
+  "pinned_version": {
+    "image": "ubuntu:24.04",
+    "features": {
+      "tea": {
+        "version": "0.15.1"
+      }
+    }
+  },
+  "state_dir": {
+    "image": "ubuntu:24.04",
+    "remoteUser": "ubuntu",
+    "features": {
+      "tea": {
+        "stateDir": "/var/tea"
+      }
+    }
+  },
+  "state_dir_root": {
+    "image": "ubuntu:24.04",
+    "features": {
+      "tea": {
+        "stateDir": "/var/tea"
+      }
+    }
+  }
+}
