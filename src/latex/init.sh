@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Create for the dev user alone, matching the state dir the hook writes into.
+umask 0077
+
 # Install TeX Live into the persisted stateDir and reuse it on later creates.
 SHARE_DIR="/usr/local/share/latex"
 # shellcheck source=lib.sh
