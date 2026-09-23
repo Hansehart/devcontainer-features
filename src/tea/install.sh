@@ -7,7 +7,8 @@ _REMOTE_USER="${_REMOTE_USER:-root}"
 # Options (uppercased by the CLI): VERSION, STATEDIR.
 STATE_DIR="$STATEDIR"
 
-# Resolve: check the state dir before any work is done.
+# Resolve: take the state dir before any work is done, so a path this feature cannot
+# own leaves the image untouched.
 if [ -n "$STATE_DIR" ]; then
   "$(dirname "$0")/state-dir.sh" tea "$STATE_DIR"
 fi
@@ -51,12 +52,6 @@ curl -fsSL "$base/download/$tag/checksums.txt" -o "$tmp/checksums.txt"
 
 # Install: place tea on PATH.
 install -m 0755 "$tmp/$asset" /usr/local/bin/tea
-
-# Configure: give the state dir to the dev user, at a mode only they can read.
-if [ -n "$STATE_DIR" ]; then
-  install -d -m 0700 "$STATE_DIR"
-  chown "$_REMOTE_USER:" "$STATE_DIR"
-fi
 
 # Hook: install the link-state-dir hook and the state dir it links to, since tea
 # resolves its config dir from XDG alone.
