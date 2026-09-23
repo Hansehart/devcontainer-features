@@ -23,6 +23,10 @@ fi
 link="${XDG_CONFIG_HOME:-$HOME/.config}/tea"
 mkdir -p "$(dirname "$link")"
 
+# tea already reads where the state dir is, so the directory stands as its own config.
+if [ "$STATE_DIR" -ef "$link" ]; then
+  exit 0
+fi
 
 # Test -L first: -e follows the link, and so reports false for a dangling one.
 if [ -L "$link" ]; then

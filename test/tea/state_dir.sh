@@ -57,5 +57,13 @@ check "tea runs against the state dir" bash -lc "tea --version"
 check "the hook reports the unmounted state dir" \
   bash -c '/usr/local/share/tea/init.sh 2>&1 >/dev/null | grep -q "on the container filesystem"'
 
+# The state dir standing as tea's own config dir leaves nothing to link. Moving
+# XDG_CONFIG_HOME onto its parent is what makes the two paths meet, and an empty state dir
+# is what reaches the branch that would otherwise replace it with a link to itself.
+find /home/ubuntu/tea -mindepth 1 -delete
+check "a state dir that is already the config dir is left alone" \
+  bash -c 'XDG_CONFIG_HOME="$HOME" /usr/local/share/tea/init.sh \
+           && [ -d /home/ubuntu/tea ] && [ ! -L /home/ubuntu/tea ]'
+
 # Report result
 reportResults
