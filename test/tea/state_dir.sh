@@ -65,5 +65,17 @@ check "a state dir that is already the config dir is left alone" \
   bash -c 'XDG_CONFIG_HOME="$HOME" /usr/local/share/tea/init.sh \
            && [ -d /home/ubuntu/tea ] && [ ! -L /home/ubuntu/tea ]'
 
+# tea reads the older path until the config dir holds a config, so the hook names it.
+rm -f "$HOME/.config/tea/config.yml"
+mkdir -p "$HOME/.tea" && touch "$HOME/.tea/tea.yml"
+check "the hook reports the legacy config path" \
+  bash -c '/usr/local/share/tea/init.sh 2>&1 >/dev/null | grep -q "is the config tea will read"'
+
+# A config in the config dir is what tea reads, so the older path goes unmentioned.
+touch "$HOME/.config/tea/config.yml"
+check "the hook stays quiet once the config dir holds a config" \
+  bash -c '[ -z "$(/usr/local/share/tea/init.sh 2>&1 >/dev/null | grep "is the config tea will read")" ]'
+rm -rf "$HOME/.tea"
+
 # Report result
 reportResults

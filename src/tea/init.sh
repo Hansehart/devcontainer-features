@@ -23,6 +23,12 @@ fi
 link="${XDG_CONFIG_HOME:-$HOME/.config}/tea"
 mkdir -p "$(dirname "$link")"
 
+# tea reads an older ~/.tea/tea.yml ahead of this path until this path holds a config. A
+# build answers this as truthfully as a create does, so it runs there too.
+if [ -f "$HOME/.tea/tea.yml" ] && [ ! -f "$link/config.yml" ]; then
+  echo "tea: $HOME/.tea/tea.yml is the config tea will read; move it to $link/config.yml to keep it across rebuilds" >&2
+fi
+
 # tea already reads where the state dir is, so the directory stands as its own config.
 if [ "$STATE_DIR" -ef "$link" ]; then
   exit 0
