@@ -12,15 +12,7 @@
     "remoteUser": "ubuntu",
     "features": {
       "tea": {
-        "stateDir": "/var/tea"
-      }
-    }
-  },
-  "state_dir_root": {
-    "image": "ubuntu:24.04",
-    "features": {
-      "tea": {
-        "stateDir": "/var/tea"
+        "stateDir": "/home/ubuntu/tea"
       }
     }
   }

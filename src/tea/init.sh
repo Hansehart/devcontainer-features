@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Create group-writable so the contents stay reachable after a UID remap.
+# Create with a set mask, so the hook's output carries the same modes on any daemon.
 umask 0002
 
 # Prepare tea's config once the volume is mounted.
@@ -22,6 +22,7 @@ fi
 
 link="${XDG_CONFIG_HOME:-$HOME/.config}/tea"
 mkdir -p "$(dirname "$link")"
+
 
 # Test -L first: -e follows the link, and so reports false for a dangling one.
 if [ -L "$link" ]; then

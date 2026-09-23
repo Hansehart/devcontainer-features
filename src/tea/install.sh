@@ -7,6 +7,16 @@ _REMOTE_USER="${_REMOTE_USER:-root}"
 # Options (uppercased by the CLI): VERSION, STATEDIR.
 STATE_DIR="$STATEDIR"
 
+# Resolve: keep the state dir inside the dev user's home, the one place the CLI's UID remap
+# chowns, so it stays theirs when the user is renumbered. Check it before any work is done.
+if [ -n "$STATE_DIR" ]; then
+  _REMOTE_USER_HOME="${_REMOTE_USER_HOME:-$(getent passwd "$_REMOTE_USER" | cut -d: -f6)}"
+  case "$STATE_DIR" in
+    "$_REMOTE_USER_HOME"/*) ;;
+    *) echo "tea: stateDir must be inside $_REMOTE_USER_HOME (got $STATE_DIR)" >&2; exit 1 ;;
+  esac
+fi
+
 export DEBIAN_FRONTEND=noninteractive
 
 # Dependencies: packages this feature needs to install and run.
@@ -47,13 +57,10 @@ curl -fsSL "$base/download/$tag/checksums.txt" -o "$tmp/checksums.txt"
 # Install: place tea on PATH.
 install -m 0755 "$tmp/$asset" /usr/local/bin/tea
 
-# Configure: own the state dir by a dedicated group so it stays writable after a UID remap.
+# Configure: give the state dir to the dev user, at a mode only they can read.
 if [ -n "$STATE_DIR" ]; then
-  groupadd -r -f tea
-  usermod -aG tea "$_REMOTE_USER" || true
-  install -d -m 0770 "$STATE_DIR"
-  chown "$_REMOTE_USER:tea" "$STATE_DIR"
-  chmod g+s "$STATE_DIR"
+  install -d -m 0700 "$STATE_DIR"
+  chown "$_REMOTE_USER" "$STATE_DIR"
 fi
 
 # Hook: install the link-state-dir hook and the state dir it links to, since tea
