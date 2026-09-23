@@ -23,7 +23,8 @@ jobs:
           # Every directory under the sources is detected as a feature.
           all=$(ls src | jq -Rsc 'split("\n") | map(select(length > 0))')
 
-          changed=$(git diff --name-only "$BASE_SHA" HEAD)
+          # Diff from where the branch left main, so the list holds this branch's own changes.
+          changed=$(git diff --name-only "$BASE_SHA"...HEAD)
           echo "Changed files:"
           echo "$changed"
 
