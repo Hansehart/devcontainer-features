@@ -1,6 +1,6 @@
 {
   "id": "sops",
-  "version": "1.0.4",
+  "version": "2.0.0",
   "name": "sops",
   "description": "Installs the sops secret editor as a single static binary.",
   "documentationURL": "https://github.com/hansehart/devcontainer-features/tree/main/src/sops",
@@ -13,7 +13,7 @@
     "stateDir": {
       "type": "string",
       "default": "",
-      "description": "If set, puts this feature's data at this path. Mount a volume there to persist it across rebuilds."
+      "description": "If set, puts this feature's data at this path, which must be inside the remote user's home. Mount a volume there to persist it across rebuilds."
     }
   },
   "dependsOn": {

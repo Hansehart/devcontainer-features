@@ -1,8 +1,17 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Resolve: the user the CLI provisions for, which varies by base image.
+_REMOTE_USER="${_REMOTE_USER:-root}"
+
 # Options (uppercased by the CLI): VERSION, STATEDIR, NPMRC.
 STATE_DIR="$STATEDIR"
+
+# Resolve: take the state dir before any work is done, so a path this feature cannot
+# own leaves the image untouched.
+if [ -n "$STATE_DIR" ]; then
+  "$(dirname "$0")/state-dir.sh" node "$STATE_DIR"
+fi
 
 export DEBIAN_FRONTEND=noninteractive
 
@@ -64,18 +73,10 @@ tar -xzf "$tmp/$asset" -C /usr/local --strip-components=1 --no-same-owner \
 } > /etc/profile.d/node.sh
 chmod 0644 /etc/profile.d/node.sh
 
-# Configure: own the state dir by a dedicated group so it stays writable after a UID remap.
-if [ -n "$STATE_DIR" ]; then
-  groupadd -r -f node
-  usermod -aG node "$_REMOTE_USER" || true
-  install -d -m 0770 "$STATE_DIR"
-  chown "$_REMOTE_USER:node" "$STATE_DIR"
-  chmod g+s "$STATE_DIR"
-fi
-
 # Hook: install the run-once hook and save the requested config for it to write.
 install -d /usr/local/share/node
 install -m 0755 "$(dirname "$0")/init.sh" /usr/local/share/node/init.sh
+install -m 0755 "$(dirname "$0")/state-dir.sh" /usr/local/share/node/state-dir.sh
 printf '%s' "$NPMRC" > /usr/local/share/node/requested-npmrc
 
 # Verify: the runtime and its package tooling resolve on PATH.

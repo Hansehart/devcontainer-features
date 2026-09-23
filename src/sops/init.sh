@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Create for the dev user alone, matching the state dir the hook writes into.
+umask 0077
+
 # Prepare sops's state once the volume is mounted.
 if [ -r /etc/profile.d/sops.sh ]; then . /etc/profile.d/sops.sh; fi
 

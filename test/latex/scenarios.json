@@ -13,7 +13,7 @@
     "remoteUser": "ubuntu",
     "features": {
       "latex": {
-        "stateDir": "/var/latex"
+        "stateDir": "/home/ubuntu/latex"
       }
     }
   }

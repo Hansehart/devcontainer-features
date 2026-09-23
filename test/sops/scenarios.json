@@ -12,7 +12,7 @@
     "remoteUser": "ubuntu",
     "features": {
       "sops": {
-        "stateDir": "/var/sops"
+        "stateDir": "/home/ubuntu/sops"
       }
     }
   }

@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Resolve: the user the CLI provisions for, which varies by base image.
+_REMOTE_USER="${_REMOTE_USER:-root}"
+
 # Options (uppercased by the CLI): VERSION, DAEMONJSON.
 DAEMON_JSON="$DAEMONJSON"
 
@@ -53,7 +56,7 @@ rm -rf /var/lib/apt/lists/*
 # Configure: keep the docker group tooling expects, though the user owns its socket outright.
 groupadd -f docker
 # A non-root remote user is the one the daemon runs as, so the grants below are its own.
-if [ -n "$_REMOTE_USER" ] && [ "$_REMOTE_USER" != "root" ]; then
+if [ "$_REMOTE_USER" != "root" ]; then
   usermod -aG docker "$_REMOTE_USER" || true
 
   # Grant the subordinate ids the daemon maps its containers into.
@@ -67,7 +70,7 @@ install -d /usr/local/share/docker-in-docker
 install -m 0755 "$(dirname "$0")/docker-init.sh" /usr/local/share/docker-in-docker/docker-init.sh
 
 # Hook: persist which user runs the rootless daemon (the entrypoint has no _REMOTE_USER at runtime).
-printf '%s\n' "${_REMOTE_USER:-root}" > /usr/local/share/docker-in-docker/rootless-user
+printf '%s\n' "$_REMOTE_USER" > /usr/local/share/docker-in-docker/rootless-user
 
 # Hook: save the requested daemon settings for the entrypoint to install (empty writes nothing).
 printf '%s' "$DAEMON_JSON" > /usr/local/share/docker-in-docker/requested-daemon.json

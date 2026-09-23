@@ -1,9 +1,18 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Resolve: the user the CLI provisions for, which varies by base image.
+_REMOTE_USER="${_REMOTE_USER:-root}"
+
 # Options (uppercased by the CLI): VERSION, PYTHON, STATEDIR.
 PYTHON_VERSION="$PYTHON"
 STATE_DIR="$STATEDIR"
+
+# Resolve: take the state dir before any work is done, so a path this feature cannot
+# own leaves the image untouched.
+if [ -n "$STATE_DIR" ]; then
+  "$(dirname "$0")/state-dir.sh" uv "$STATE_DIR"
+fi
 
 export DEBIAN_FRONTEND=noninteractive
 
@@ -55,15 +64,6 @@ install -m 0755 "$tmp/uv" "$tmp/uvx" /usr/local/bin/
 } > /etc/profile.d/uv.sh
 chmod 0644 /etc/profile.d/uv.sh
 
-# Configure: own the state dir by a dedicated group so it stays writable after a UID remap.
-if [ -n "$STATE_DIR" ]; then
-  groupadd -r -f uv
-  usermod -aG uv "$_REMOTE_USER" || true
-  install -d -m 0770 "$STATE_DIR"
-  chown "$_REMOTE_USER:uv" "$STATE_DIR"
-  chmod g+s "$STATE_DIR"
-fi
-
 # Configure: optionally bake a default Python so python3 exists at open.
 if [ -n "$PYTHON_VERSION" ]; then
   su - "$_REMOTE_USER" -c \
@@ -73,6 +73,7 @@ fi
 # Hook: install the create-state-dir hook to run once at container create.
 install -d /usr/local/share/uv
 install -m 0755 "$(dirname "$0")/init.sh" /usr/local/share/uv/init.sh
+install -m 0755 "$(dirname "$0")/state-dir.sh" /usr/local/share/uv/state-dir.sh
 
 # Verify: both tools resolve on PATH.
 uv --version

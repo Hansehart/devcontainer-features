@@ -20,7 +20,8 @@
     "remoteUser": "ubuntu",
     "features": {
       "claude-code": {
-        "stateDir": "/var/claude-code"
+        "stateDir": "/home/ubuntu/claude-code",
+        "settingsJson": "{\\\"permissions\\\":{\\\"defaultMode\\\":\\\"plan\\\"}}"
       }
     }
   }
