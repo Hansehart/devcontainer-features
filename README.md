@@ -10,4 +10,5 @@
 | **LaTeX (TeX Live)** | The TeX Live distribution for typesetting LaTeX documents and bibliographies. | `ghcr.io/hansehart/devcontainer-features/latex` |
 | **Node.js** | The Node.js JavaScript runtime, with npm and npx for installing and running packages. | `ghcr.io/hansehart/devcontainer-features/node` |
 | **sops** | A tool for encrypting, editing, and injecting secrets in config files. | `ghcr.io/hansehart/devcontainer-features/sops` |
+| **tea (Gitea CLI)** | Gitea's official command-line tool for issues, pull requests, and releases. | `ghcr.io/hansehart/devcontainer-features/tea` |
 | **uv (Python)** | Astral's fast Python package and interpreter manager. | `ghcr.io/hansehart/devcontainer-features/uv` |
