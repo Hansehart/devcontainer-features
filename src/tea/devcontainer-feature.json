@@ -13,7 +13,7 @@
     "stateDir": {
       "type": "string",
       "default": "",
-      "description": "If set, puts this feature's data at this path. Mount a volume there to persist it across rebuilds."
+      "description": "If set, puts this feature's data at this path, which must be inside the remote user's home. Mount a volume there to persist it across rebuilds."
     }
   },
   "postCreateCommand": "/usr/local/share/tea/init.sh"

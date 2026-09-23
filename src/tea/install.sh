@@ -7,14 +7,9 @@ _REMOTE_USER="${_REMOTE_USER:-root}"
 # Options (uppercased by the CLI): VERSION, STATEDIR.
 STATE_DIR="$STATEDIR"
 
-# Resolve: keep the state dir inside the dev user's home, the one place the CLI's UID remap
-# chowns, so it stays theirs when the user is renumbered. Check it before any work is done.
+# Resolve: check the state dir before any work is done.
 if [ -n "$STATE_DIR" ]; then
-  _REMOTE_USER_HOME="${_REMOTE_USER_HOME:-$(getent passwd "$_REMOTE_USER" | cut -d: -f6)}"
-  case "$STATE_DIR" in
-    "$_REMOTE_USER_HOME"/*) ;;
-    *) echo "tea: stateDir must be inside $_REMOTE_USER_HOME (got $STATE_DIR)" >&2; exit 1 ;;
-  esac
+  "$(dirname "$0")/state-dir.sh" tea "$STATE_DIR"
 fi
 
 export DEBIAN_FRONTEND=noninteractive
@@ -60,13 +55,14 @@ install -m 0755 "$tmp/$asset" /usr/local/bin/tea
 # Configure: give the state dir to the dev user, at a mode only they can read.
 if [ -n "$STATE_DIR" ]; then
   install -d -m 0700 "$STATE_DIR"
-  chown "$_REMOTE_USER" "$STATE_DIR"
+  chown "$_REMOTE_USER:" "$STATE_DIR"
 fi
 
 # Hook: install the link-state-dir hook and the state dir it links to, since tea
 # resolves its config dir from XDG alone.
 install -d /usr/local/share/tea
 install -m 0755 "$(dirname "$0")/init.sh" /usr/local/share/tea/init.sh
+install -m 0755 "$(dirname "$0")/state-dir.sh" /usr/local/share/tea/state-dir.sh
 echo "STATE_DIR=\"$STATE_DIR\"" > /usr/local/share/tea/config.env
 chmod 0644 /usr/local/share/tea/config.env
 

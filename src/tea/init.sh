@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Create with a set mask, so the hook's output carries the same modes on any daemon.
-umask 0002
+# Create for the dev user alone, matching the state dir the hook writes into.
+umask 0077
 
 # Prepare tea's config once the volume is mounted.
 . /usr/local/share/tea/config.env

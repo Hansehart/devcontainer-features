@@ -77,5 +77,12 @@ check "the hook stays quiet once the config dir holds a config" \
   bash -c '[ -z "$(/usr/local/share/tea/init.sh 2>&1 >/dev/null | grep "is the config tea will read")" ]'
 rm -rf "$HOME/.tea"
 
+# An in-home path is accepted whether the guard works or lets every path through, so a
+# path outside the home is what shows it is doing its job.
+check "a state dir outside the home is refused" \
+  bash -c '! /usr/local/share/tea/state-dir.sh tea /var/tea'
+check "the refusal names the home" \
+  bash -c '/usr/local/share/tea/state-dir.sh tea /var/tea 2>&1 | grep -q "must be inside /home/ubuntu"'
+
 # Report result
 reportResults
