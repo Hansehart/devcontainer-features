@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Resolve: the user the CLI provisions for, which varies by base image.
+# Take the user the CLI provisions for, which varies by base image.
 _REMOTE_USER="${_REMOTE_USER:-root}"
 
 # Options (uppercased by the CLI): VERSION, STATEDIR.
 STATE_DIR="$STATEDIR"
 
-# Resolve: take the state dir before any work is done, so a path this feature cannot
+# Take the state dir before any work is done, so a path this feature cannot
 # own leaves the image untouched.
 if [ -n "$STATE_DIR" ]; then
   "$(dirname "$0")/state-dir.sh" sops "$STATE_DIR"
@@ -15,14 +15,14 @@ fi
 
 export DEBIAN_FRONTEND=noninteractive
 
-# Dependencies: packages this feature needs to install and run.
+# Install the packages this feature needs at build and at run time.
 apt-get update
 apt-get install -y --no-install-recommends \
   ca-certificates \
   curl
 rm -rf /var/lib/apt/lists/*
 
-# Resolve: map the CPU arch to sops's release arch token.
+# Map the CPU arch to sops's release arch token.
 arch="$(uname -m)"
 case "$arch" in
   x86_64 | amd64)  goarch="amd64" ;;
@@ -30,7 +30,7 @@ case "$arch" in
   *) echo "sops: unsupported architecture '$arch'" >&2; exit 1 ;;
 esac
 
-# Resolve: asset names embed the version, so read the latest tag from the GitHub API (explicit versions pass through).
+# Read the latest tag from the GitHub API, since asset names embed the version (explicit versions pass through).
 base="https://github.com/getsops/sops/releases"
 case "${VERSION:-latest}" in
   latest)
@@ -42,26 +42,26 @@ esac
 asset="sops-$tag.linux.$goarch"
 echo "sops: installing $tag ($VERSION)"
 
-# Fetch: download the binary and verify it against sops's published checksums.
+# Download the binary and verify it against sops's published checksums.
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 curl -fsSL "$base/download/$tag/$asset" -o "$tmp/$asset"
 curl -fsSL "$base/download/$tag/sops-$tag.checksums.txt" -o "$tmp/checksums.txt"
 ( cd "$tmp" && grep " $asset\$" checksums.txt | sha256sum -c - )
 
-# Install: place sops on PATH.
+# Place sops on PATH.
 install -m 0755 "$tmp/$asset" /usr/local/bin/sops
 
-# Configure: point SOPS_AGE_KEY_FILE at the age key under the state dir, if given.
+# Point SOPS_AGE_KEY_FILE at the age key under the state dir, if given.
 if [ -n "$STATE_DIR" ]; then
   echo "export SOPS_AGE_KEY_FILE=\"$STATE_DIR/keys.txt\"" > /etc/profile.d/sops.sh
   chmod 0644 /etc/profile.d/sops.sh
 fi
 
-# Hook: install the create-state-dir hook to run once at container create.
+# Install the create-state-dir hook to run once at container create.
 install -d /usr/local/share/sops
 install -m 0755 "$(dirname "$0")/init.sh" /usr/local/share/sops/init.sh
 install -m 0755 "$(dirname "$0")/state-dir.sh" /usr/local/share/sops/state-dir.sh
 
-# Verify: sops resolves on PATH and reports its version locally.
+# Check sops resolves on PATH and reports its version locally.
 sops --version --disable-version-check

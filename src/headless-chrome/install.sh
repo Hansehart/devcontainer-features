@@ -9,7 +9,7 @@ INSTALL_DIR="/opt/chrome-headless-shell"
 
 export DEBIAN_FRONTEND=noninteractive
 
-# Dependencies: packages this feature needs to install and run.
+# Install the packages this feature needs at build and at run time.
 apt-get update
 apt-get install -y --no-install-recommends \
   ca-certificates \
@@ -39,7 +39,7 @@ apt-get install -y --no-install-recommends \
   unzip
 rm -rf /var/lib/apt/lists/*
 
-# Resolve: the channel keyword to a concrete version (exact versions pass through).
+# Map the channel keyword to a concrete version (exact versions pass through).
 case "$VERSION" in
   latest | stable) key="Stable" ;;
   beta)            key="Beta" ;;
@@ -59,16 +59,16 @@ fi
 url="$BUCKET/$resolved/linux64/chrome-headless-shell-linux64.zip"
 echo "chrome: installing chrome-headless-shell $resolved ($VERSION)"
 
-# Fetch: download and unpack the build over HTTPS, trusting the TLS-authenticated Google origin.
+# Download and unpack the build over HTTPS, trusting the TLS-authenticated Google origin.
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 curl -fsSL "$url" -o "$tmp/chs.zip"
 unzip -q "$tmp/chs.zip" -d "$tmp"
 
-# Install: place the binary and expose it on PATH.
+# Place the binary and expose it on PATH.
 mkdir -p "$INSTALL_DIR"
 mv "$tmp/chrome-headless-shell-linux64/"* "$INSTALL_DIR/"
 ln -sf "$INSTALL_DIR/chrome-headless-shell" /usr/local/bin/chrome-headless-shell
 
-# Verify: chrome-headless-shell resolves on PATH.
+# Check chrome-headless-shell resolves on PATH.
 chrome-headless-shell --version
