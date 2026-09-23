@@ -36,7 +36,7 @@
     "remoteUser": "ubuntu",
     "features": {
       "node": {
-        "stateDir": "/var/node"
+        "stateDir": "/home/ubuntu/node"
       }
     }
   }

@@ -1,8 +1,17 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Resolve: the user the CLI provisions for, which varies by base image.
+_REMOTE_USER="${_REMOTE_USER:-root}"
+
 # Options (uppercased by the CLI): VERSION, SCHEME, STATEDIR.
 STATE_DIR="$STATEDIR"
+
+# Resolve: take the state dir before any work is done, so a path this feature cannot
+# own leaves the image untouched.
+if [ -n "$STATE_DIR" ]; then
+  "$(dirname "$0")/state-dir.sh" latex "$STATE_DIR"
+fi
 
 SHARE_DIR="/usr/local/share/latex"
 INSTALLER_DIR="${SHARE_DIR}/installer"
@@ -47,12 +56,6 @@ if [ -z "${STATE_DIR}" ]; then
 else
   echo "export PATH=\"${STATE_DIR}/texlive/${VERSION}/bin/${PLAT}:\$PATH\"" > /etc/profile.d/latex.sh
   chmod 0644 /etc/profile.d/latex.sh
-  # Configure: own the state dir by a dedicated group so it stays writable after a UID remap.
-  groupadd -r -f latex
-  usermod -aG latex "$_REMOTE_USER" || true
-  install -d -m 0770 "${STATE_DIR}"
-  chown "$_REMOTE_USER:latex" "${STATE_DIR}"
-  chmod g+s "${STATE_DIR}"
 fi
 
 # Hook: bake the hook's config and install the shared lib + hook script.
@@ -66,6 +69,7 @@ fi
 } > "${SHARE_DIR}/config.env"
 install -m 0644 "$(dirname "$0")/lib.sh" "${SHARE_DIR}/lib.sh"
 install -m 0755 "$(dirname "$0")/init.sh" "${SHARE_DIR}/init.sh"
+install -m 0755 "$(dirname "$0")/state-dir.sh" "${SHARE_DIR}/state-dir.sh"
 
 # Verify: build-time install resolves on PATH, and the hook verifies stateDir mode.
 [ -n "${STATE_DIR}" ] || latex --version

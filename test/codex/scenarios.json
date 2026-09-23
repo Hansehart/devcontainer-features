@@ -20,7 +20,8 @@
     "remoteUser": "ubuntu",
     "features": {
       "codex": {
-        "stateDir": "/var/codex"
+        "stateDir": "/home/ubuntu/codex",
+        "configToml": "approval_policy = \\\"untrusted\\\"\\nsandbox_mode = \\\"read-only\\\""
       }
     }
   }

@@ -1,6 +1,6 @@
 {
   "id": "codex",
-  "version": "1.1.1",
+  "version": "2.0.0",
   "name": "Codex CLI",
   "description": "Installs the OpenAI Codex CLI on a selectable channel.",
   "documentationURL": "https://github.com/hansehart/devcontainer-features/tree/main/src/codex",
@@ -13,7 +13,7 @@
     "stateDir": {
       "type": "string",
       "default": "",
-      "description": "If set, puts this feature's data at this path. Mount a volume there to persist it across rebuilds."
+      "description": "If set, puts this feature's data at this path, which must be inside the remote user's home. Mount a volume there to persist it across rebuilds."
     },
     "configToml": {
       "type": "string",

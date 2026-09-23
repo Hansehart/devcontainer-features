@@ -1,6 +1,6 @@
 {
   "id": "claude-code",
-  "version": "1.2.1",
+  "version": "2.0.0",
   "name": "Claude Code CLI",
   "description": "Installs the Claude Code CLI on a selectable channel.",
   "documentationURL": "https://github.com/hansehart/devcontainer-features/tree/main/src/claude-code",
@@ -14,7 +14,7 @@
     "stateDir": {
       "type": "string",
       "default": "",
-      "description": "If set, puts this feature's data at this path. Mount a volume there to persist it across rebuilds."
+      "description": "If set, puts this feature's data at this path, which must be inside the remote user's home. Mount a volume there to persist it across rebuilds."
     },
     "disableNonessentialTraffic": {
       "type": "boolean",
