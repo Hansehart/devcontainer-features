@@ -12,6 +12,7 @@
   "semanticCommitScope": "deps",
   "pinDigests": true,
   "minimumReleaseAge": "3 days",
+  "ignorePaths": ["test/**/!(scenarios.json)"],
   "prBodyColumns": ["Package", "Type", "Update", "Change", "Age"],
   "prBodyDefinitions": {
     "Age": "{{#if newVersion}}{{{newVersionAgeInDays}}} days{{/if}}"
@@ -44,6 +45,16 @@
       "matchStrings": ["@devcontainers/cli@(?<currentValue>\\d+\\.\\d+\\.\\d+)"],
       "datasourceTemplate": "npm",
       "depNameTemplate": "@devcontainers/cli"
+    },
+    {
+      "customType": "regex",
+      "description": "Track the Ubuntu base image of the feature tests, in the test workflow and every scenario.",
+      "managerFilePatterns": [
+        "/^\\.github/workflows/test\\.yaml$/",
+        "/^test/[^/]+/scenarios\\.json$/"
+      ],
+      "matchStrings": ["(?<depName>ubuntu):(?<currentValue>\\d+\\.\\d+)(?:@(?<currentDigest>sha256:[a-f0-9]{64}))?"],
+      "datasourceTemplate": "docker"
     }
   ]
 }
