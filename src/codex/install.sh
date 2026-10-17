@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Take the user the CLI provisions for, which varies by base image.
+# Install for the dev user the CLI provisions.
 _REMOTE_USER="${_REMOTE_USER:-root}"
 
 # Options (uppercased by the CLI): VERSION, STATEDIR, CONFIGTOML.
@@ -9,8 +9,7 @@ VERSION="${VERSION:-latest}"
 STATE_DIR="${STATEDIR:-}"
 CONFIG_TOML="${CONFIGTOML:-}"
 
-# Take the state dir before any work is done, so a path this feature cannot
-# own leaves the image untouched.
+# Claim the state dir first, so a rejected path stops the build before it changes anything.
 if [ -n "$STATE_DIR" ]; then
   "$(dirname "$0")/state-dir.sh" codex "$STATE_DIR"
 fi
@@ -25,13 +24,13 @@ apt-get install -y --no-install-recommends \
   ripgrep
 rm -rf /var/lib/apt/lists/*
 
-# Build the install-time env, single-quoted so $HOME expands in the dev user's shell.
+# Describe the installer's environment in the dev user's terms, resolved in their shell.
 codex_env='PATH="$HOME/.local/bin:$PATH" CODEX_HOME="$HOME/.local/share/codex" CODEX_NON_INTERACTIVE=1'
 
-# Run the upstream installer as the dev user, with the payload outside Codex's state dir.
+# Run the vendor installer as the dev user, keeping the binary apart from the state dir.
 su - "$_REMOTE_USER" -c "curl -fsSL https://chatgpt.com/codex/install.sh | $codex_env sh -s -- --release '$VERSION'"
 
-# Write a login-shell profile with PATH plus the opted-in Codex state dir.
+# Write the login profile: the tool's PATH and the chosen state dir.
 {
   echo 'export PATH="$HOME/.local/bin:$PATH"'
   if [ -n "$STATE_DIR" ]; then
@@ -40,11 +39,11 @@ su - "$_REMOTE_USER" -c "curl -fsSL https://chatgpt.com/codex/install.sh | $code
 } > /etc/profile.d/codex.sh
 chmod 0644 /etc/profile.d/codex.sh
 
-# Install the run-once hook and save the requested config for it to write.
+# Install the hook and keep the requested config for it to apply at create.
 install -d /usr/local/share/codex
 install -m 0755 "$(dirname "$0")/init.sh" /usr/local/share/codex/init.sh
 install -m 0755 "$(dirname "$0")/state-dir.sh" /usr/local/share/codex/state-dir.sh
 printf '%s' "$CONFIG_TOML" > /usr/local/share/codex/requested-config.toml
 
-# Check codex resolves on PATH (as the dev user).
+# Confirm the tool runs for the dev user.
 su - "$_REMOTE_USER" -c "codex --version"

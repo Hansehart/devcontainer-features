@@ -4,14 +4,14 @@ set -e
 # Import the test library
 source dev-container-features-test-lib
 
-# Use a login shell so the profile.d snippet adding ~/.local/bin to PATH is sourced.
+# Use a login shell, which reads the feature's profile.
 check "codex on PATH" bash -lc "command -v codex"
 check "codex version" bash -lc "codex --version"
 
-# ripgrep backs the searches Codex uses.
+# The tool's searches rely on ripgrep.
 check "ripgrep on PATH" bash -lc "command -v rg"
 
-# The payload must sit outside CODEX_HOME so a volume on the state dir cannot shadow the binary.
+# Keep the binary apart from the state dir, so a volume there leaves it in view.
 check "payload outside the state dir" bash -lc 'case "$(readlink -f "$(command -v codex)")" in "$HOME"/.local/share/codex/*) ;; *) exit 1;; esac'
 check "state dir holds no payload" bash -lc 'test ! -e "$HOME/.codex/packages"'
 

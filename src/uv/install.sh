@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Take the user the CLI provisions for, which varies by base image.
+# Install for the dev user the CLI provisions.
 _REMOTE_USER="${_REMOTE_USER:-root}"
 
 # Options (uppercased by the CLI): VERSION, STATEDIR, PYTHON.
@@ -9,8 +9,7 @@ VERSION="${VERSION:-latest}"
 STATE_DIR="${STATEDIR:-}"
 PYTHON_VERSION="${PYTHON:-}"
 
-# Take the state dir before any work is done, so a path this feature cannot
-# own leaves the image untouched.
+# Claim the state dir first, so a rejected path stops the build before it changes anything.
 if [ -n "$STATE_DIR" ]; then
   "$(dirname "$0")/state-dir.sh" uv "$STATE_DIR"
 fi
@@ -24,7 +23,7 @@ apt-get install -y --no-install-recommends \
   curl
 rm -rf /var/lib/apt/lists/*
 
-# Map the CPU arch to uv's gnu release target triple.
+# Name the CPU architecture the way the release assets do.
 arch="$(uname -m)"
 case "$arch" in
   x86_64 | amd64)  target="x86_64-unknown-linux-gnu" ;;
@@ -32,7 +31,7 @@ case "$arch" in
   *) echo "uv: unsupported architecture '$arch'" >&2; exit 1 ;;
 esac
 
-# Read the latest tag from the GitHub API, so the log names the version (explicit versions pass through).
+# Resolve the requested version to a release tag.
 base="https://github.com/astral-sh/uv/releases"
 case "$VERSION" in
   latest)
@@ -44,18 +43,18 @@ url_dir="$base/download/$tag"
 asset="uv-$target.tar.gz"
 echo "uv: installing $tag ($VERSION)"
 
-# Download the tarball and verify its published sha256.
+# Download the release and verify it against the published checksum.
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 curl -fsSL "$url_dir/$asset" -o "$tmp/$asset"
 curl -fsSL "$url_dir/$asset.sha256" -o "$tmp/$asset.sha256"
 ( cd "$tmp" && sha256sum -c "$asset.sha256" )
 
-# Extract and place uv + uvx on PATH.
+# Install both tools on the PATH.
 tar -xzf "$tmp/$asset" -C "$tmp" --strip-components=1
 install -m 0755 "$tmp/uv" "$tmp/uvx" /usr/local/bin/
 
-# Write a login-shell profile with PATH, tool bin dir, and optional state redirect.
+# Write the login profile: the tools' PATH and the chosen state locations.
 {
   echo 'export PATH="$HOME/.local/bin:$PATH"'
   if [ -n "$STATE_DIR" ]; then
@@ -69,17 +68,17 @@ install -m 0755 "$tmp/uv" "$tmp/uvx" /usr/local/bin/
 } > /etc/profile.d/uv.sh
 chmod 0644 /etc/profile.d/uv.sh
 
-# Optionally bake a default Python so python3 exists at open.
+# Bake the chosen Python in as the default interpreter.
 if [ -n "$PYTHON_VERSION" ]; then
   su - "$_REMOTE_USER" -c \
     "env -u UV_PYTHON_INSTALL_DIR uv python install --default --preview-features python-install-default '$PYTHON_VERSION'"
 fi
 
-# Install the create-state-dir hook to run once at container create.
+# Install the hook that prepares the state dir when the container is created.
 install -d /usr/local/share/uv
 install -m 0755 "$(dirname "$0")/init.sh" /usr/local/share/uv/init.sh
 install -m 0755 "$(dirname "$0")/state-dir.sh" /usr/local/share/uv/state-dir.sh
 
-# Check both tools resolve on PATH.
+# Confirm both tools run from the PATH.
 uv --version
 command -v uvx >/dev/null

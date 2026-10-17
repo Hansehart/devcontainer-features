@@ -40,7 +40,7 @@ apt-get install -y --no-install-recommends \
   unzip
 rm -rf /var/lib/apt/lists/*
 
-# Map the channel keyword to a concrete version (exact versions pass through).
+# Resolve a channel to its current version; an exact version stands as given.
 case "$VERSION" in
   latest | stable) key="Stable" ;;
   beta)            key="Beta" ;;
@@ -60,16 +60,16 @@ fi
 url="$BUCKET/$resolved/linux64/chrome-headless-shell-linux64.zip"
 echo "headless-chrome: installing $resolved ($VERSION)"
 
-# Download and unpack the build over HTTPS, trusting the TLS-authenticated Google origin.
+# Download the build over HTTPS, which authenticates its origin.
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 curl -fsSL "$url" -o "$tmp/chs.zip"
 unzip -q "$tmp/chs.zip" -d "$tmp"
 
-# Place the binary and expose it on PATH.
+# Install the build in its own directory and link the binary onto the PATH.
 mkdir -p "$INSTALL_DIR"
 mv "$tmp/chrome-headless-shell-linux64/"* "$INSTALL_DIR/"
 ln -sf "$INSTALL_DIR/chrome-headless-shell" /usr/local/bin/chrome-headless-shell
 
-# Check chrome-headless-shell resolves on PATH.
+# Confirm the binary runs from the PATH.
 chrome-headless-shell --version

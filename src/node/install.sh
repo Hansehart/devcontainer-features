@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Take the user the CLI provisions for, which varies by base image.
+# Install for the dev user the CLI provisions.
 _REMOTE_USER="${_REMOTE_USER:-root}"
 
 # Options (uppercased by the CLI): VERSION, STATEDIR, IGNORESCRIPTS, NPMRC.
@@ -10,8 +10,7 @@ STATE_DIR="${STATEDIR:-}"
 IGNORE_SCRIPTS="${IGNORESCRIPTS:-true}"
 NPMRC="${NPMRC:-}"
 
-# Take the state dir before any work is done, so a path this feature cannot
-# own leaves the image untouched.
+# Claim the state dir first, so a rejected path stops the build before it changes anything.
 if [ -n "$STATE_DIR" ]; then
   "$(dirname "$0")/state-dir.sh" node "$STATE_DIR"
 fi
@@ -26,7 +25,7 @@ apt-get install -y --no-install-recommends \
   libatomic1
 rm -rf /var/lib/apt/lists/*
 
-# Map the CPU arch to Node's release arch token.
+# Name the CPU architecture the way the release assets do.
 arch="$(uname -m)"
 case "$arch" in
   x86_64 | amd64)  nodearch="x64" ;;
@@ -34,15 +33,14 @@ case "$arch" in
   *) echo "node: unsupported architecture '$arch'" >&2; exit 1 ;;
 esac
 
-# Map the channel or line to a tag from the release index, since asset names embed the version (explicit versions pass through).
+# Resolve the channel or release line to a release tag.
 base="https://nodejs.org/dist"
-# tr puts one release per line, so the greps below hold whether or not the index stays pretty-printed.
+# Put one release per line, so the searches hold for any index layout.
 index="$(curl -fsSL "$base/index.json" | tr '}' '\n')"
 case "$VERSION" in
   v[0-9]*.[0-9]*.[0-9]*) tag="$VERSION" ;;
   [0-9]*.[0-9]*.[0-9]*)  tag="v$VERSION" ;;
-  # grep -m1 reads a here-string, not a pipe: stopping early on a pipe leaves the writer on a
-  # closed pipe, and pipefail turns that SIGPIPE into a failed install.
+  # Search a here-string, so stopping at the first match ends the search cleanly.
   latest) tag="$(grep -m1 -oP '"version":"\Kv[^"]+' <<< "$index" || true)" ;;
   lts)    tag="$(grep -m1 '"lts":"' <<< "$index" | grep -oP '"version":"\Kv[^"]+' || true)" ;;
   *)      tag="$(grep -m1 -F "\"version\":\"v${VERSION#v}." <<< "$index" | grep -oP '"version":"\Kv[^"]+' || true)" ;;
@@ -51,19 +49,18 @@ esac
 asset="node-$tag-linux-$nodearch.tar.gz"
 echo "node: installing $tag ($VERSION)"
 
-# Download the tarball and verify it against Node's published checksums.
+# Download the release and verify it against the published checksums.
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 curl -fsSL "$base/$tag/$asset" -o "$tmp/$asset"
 curl -fsSL "$base/$tag/SHASUMS256.txt" -o "$tmp/SHASUMS256.txt"
 ( cd "$tmp" && grep " $asset\$" SHASUMS256.txt | sha256sum -c - )
 
-# Extract into /usr/local, as root, so node, npm, and npx land on the default PATH.
+# Unpack into the system prefix, so the runtime and its tools land on the default PATH.
 tar -xzf "$tmp/$asset" -C /usr/local --strip-components=1 --no-same-owner \
   --exclude=CHANGELOG.md --exclude=LICENSE --exclude=README.md
 
-# Write a login-shell profile with a global prefix the dev user owns, so npm -g needs no root,
-# plus the opted-in npm env.
+# Write the login profile: a global prefix the dev user owns and the chosen npm settings.
 {
   echo 'export PATH="$HOME/.local/bin:$PATH"'
   if [ -n "$STATE_DIR" ]; then
@@ -80,13 +77,13 @@ tar -xzf "$tmp/$asset" -C /usr/local --strip-components=1 --no-same-owner \
 } > /etc/profile.d/node.sh
 chmod 0644 /etc/profile.d/node.sh
 
-# Install the run-once hook and save the requested config for it to write.
+# Install the hook and keep the requested config for it to apply at create.
 install -d /usr/local/share/node
 install -m 0755 "$(dirname "$0")/init.sh" /usr/local/share/node/init.sh
 install -m 0755 "$(dirname "$0")/state-dir.sh" /usr/local/share/node/state-dir.sh
 printf '%s' "$NPMRC" > /usr/local/share/node/requested-npmrc
 
-# Check the runtime and its package tooling resolve on PATH.
+# Confirm the runtime and its package tools run from the PATH.
 node --version
 npm --version
 command -v npx >/dev/null

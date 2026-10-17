@@ -1,15 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Take the user the CLI provisions for, which varies by base image.
+# Install for the dev user the CLI provisions.
 _REMOTE_USER="${_REMOTE_USER:-root}"
 
 # Options (uppercased by the CLI): VERSION, STATEDIR.
 VERSION="${VERSION:-latest}"
 STATE_DIR="${STATEDIR:-}"
 
-# Take the state dir before any work is done, so a path this feature cannot
-# own leaves the image untouched.
+# Claim the state dir first, so a rejected path stops the build before it changes anything.
 if [ -n "$STATE_DIR" ]; then
   "$(dirname "$0")/state-dir.sh" tea "$STATE_DIR"
 fi
@@ -23,7 +22,7 @@ apt-get install -y --no-install-recommends \
   curl
 rm -rf /var/lib/apt/lists/*
 
-# Map the CPU arch to tea's release arch token.
+# Name the CPU architecture the way the release assets do.
 arch="$(uname -m)"
 case "$arch" in
   x86_64 | amd64)  goarch="amd64" ;;
@@ -31,7 +30,7 @@ case "$arch" in
   *) echo "tea: unsupported architecture '$arch'" >&2; exit 1 ;;
 esac
 
-# Read the latest tag from the Gitea API, since asset names embed the version (explicit versions pass through).
+# Resolve the requested version to a release tag.
 base="https://gitea.com/gitea/tea/releases"
 case "$VERSION" in
   latest)
@@ -40,34 +39,32 @@ case "$VERSION" in
   v*) tag="$VERSION" ;;
   *)  tag="v$VERSION" ;;
 esac
-# The tag locating the release keeps its v prefix, while the asset name carries the bare version.
+# Name the asset by the bare version inside the tagged release.
 asset="tea-${tag#v}-linux-$goarch"
 echo "tea: installing $tag ($VERSION)"
 
-# Download the binary and verify it against tea's published checksums.
+# Download the release and verify it against the published checksums.
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 curl -fsSL "$base/download/$tag/$asset" -o "$tmp/$asset"
 curl -fsSL "$base/download/$tag/checksums.txt" -o "$tmp/checksums.txt"
 ( cd "$tmp" && grep " $asset\$" checksums.txt | sha256sum -c - )
 
-# Place tea on PATH.
+# Install the binary on the PATH.
 install -m 0755 "$tmp/$asset" /usr/local/bin/tea
 
-# Install the link-state-dir hook and the state dir it links to, since tea
-# resolves its config dir from XDG alone.
+# Install the hook that points the tool's config dir at the state dir.
 install -d /usr/local/share/tea
 install -m 0755 "$(dirname "$0")/init.sh" /usr/local/share/tea/init.sh
 install -m 0755 "$(dirname "$0")/state-dir.sh" /usr/local/share/tea/state-dir.sh
 echo "STATE_DIR=\"$STATE_DIR\"" > /usr/local/share/tea/config.env
 chmod 0644 /usr/local/share/tea/config.env
 
-# Run it once at build, as the dev user whose $HOME names the link, so the image
-# carries the redirect and a create that skips the hook still finds tea's config moved.
-# Running the hook keeps one decision about what may be replaced.
+# Link the config at build too, as the dev user, so the image carries the redirect from
+# the start and one script decides what may be replaced.
 if [ -n "$STATE_DIR" ]; then
   su - "$_REMOTE_USER" -c "/usr/local/share/tea/init.sh --build"
 fi
 
-# Check tea resolves on PATH and reports its version.
+# Confirm the tool runs from the PATH.
 tea --version

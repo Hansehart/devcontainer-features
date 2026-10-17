@@ -13,7 +13,7 @@ apt-get install -y --no-install-recommends \
   curl
 rm -rf /var/lib/apt/lists/*
 
-# Map the CPU arch to age's release arch token.
+# Name the CPU architecture the way the release assets do.
 arch="$(uname -m)"
 case "$arch" in
   x86_64 | amd64)  goarch="amd64" ;;
@@ -21,7 +21,7 @@ case "$arch" in
   *) echo "age: unsupported architecture '$arch'" >&2; exit 1 ;;
 esac
 
-# Read the latest tag from the GitHub API, since asset names embed the version (explicit versions pass through).
+# Resolve the requested version to a release tag.
 base="https://github.com/FiloSottile/age/releases"
 case "$VERSION" in
   latest)
@@ -33,15 +33,15 @@ esac
 asset="age-$tag-linux-$goarch.tar.gz"
 echo "age: installing $tag ($VERSION)"
 
-# Download the tarball over HTTPS, trusting the TLS-authenticated GitHub origin for integrity.
+# Download the release over HTTPS, which authenticates its origin.
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 curl -fsSL "$base/download/$tag/$asset" -o "$tmp/$asset"
 
-# Extract and place age + age-keygen on PATH (/usr/local/bin is already on PATH).
+# Install both tools on the PATH.
 tar -xzf "$tmp/$asset" -C "$tmp" --strip-components=1
 install -m 0755 "$tmp/age" "$tmp/age-keygen" /usr/local/bin/
 
-# Check both tools resolve on PATH.
+# Confirm both tools run from the PATH.
 age --version
 command -v age-keygen >/dev/null

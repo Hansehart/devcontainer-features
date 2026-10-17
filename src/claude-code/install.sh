@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Take the user the CLI provisions for, which varies by base image.
+# Install for the dev user the CLI provisions.
 _REMOTE_USER="${_REMOTE_USER:-root}"
 
 # Options (uppercased by the CLI): VERSION, STATEDIR, DISABLENONESSENTIALTRAFFIC, SETTINGSJSON.
@@ -10,8 +10,7 @@ STATE_DIR="${STATEDIR:-}"
 DISABLE_NONESSENTIAL_TRAFFIC="${DISABLENONESSENTIALTRAFFIC:-true}"
 SETTINGS_JSON="${SETTINGSJSON:-}"
 
-# Take the state dir before any work is done, so a path this feature cannot
-# own leaves the image untouched.
+# Claim the state dir first, so a rejected path stops the build before it changes anything.
 if [ -n "$STATE_DIR" ]; then
   "$(dirname "$0")/state-dir.sh" claude-code "$STATE_DIR"
 fi
@@ -25,10 +24,10 @@ apt-get install -y --no-install-recommends \
   curl
 rm -rf /var/lib/apt/lists/*
 
-# Run the upstream installer as the dev user so claude lands in ~/.local/bin.
+# Run the vendor installer as the dev user, who owns the result.
 su - "$_REMOTE_USER" -c "curl -fsSL https://claude.ai/install.sh | bash -s -- '$VERSION'"
 
-# Write a login-shell profile with PATH plus opted-in Claude env.
+# Write the login profile: the tool's PATH and the chosen settings.
 {
   echo 'export PATH="$HOME/.local/bin:$PATH"'
   if [ -n "$STATE_DIR" ]; then
@@ -40,11 +39,11 @@ su - "$_REMOTE_USER" -c "curl -fsSL https://claude.ai/install.sh | bash -s -- '$
 } > /etc/profile.d/claude-code.sh
 chmod 0644 /etc/profile.d/claude-code.sh
 
-# Install the run-once hook and save the requested settings for it to write.
+# Install the hook and keep the requested settings for it to apply at create.
 install -d /usr/local/share/claude-code
 install -m 0755 "$(dirname "$0")/init.sh" /usr/local/share/claude-code/init.sh
 install -m 0755 "$(dirname "$0")/state-dir.sh" /usr/local/share/claude-code/state-dir.sh
 printf '%s' "$SETTINGS_JSON" > /usr/local/share/claude-code/requested-settings.json
 
-# Check claude resolves on PATH (as the dev user).
+# Confirm the tool runs for the dev user.
 su - "$_REMOTE_USER" -c "claude --version"

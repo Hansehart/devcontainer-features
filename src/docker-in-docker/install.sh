@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Take the user the CLI provisions for, which varies by base image.
+# Install for the dev user the CLI provisions.
 _REMOTE_USER="${_REMOTE_USER:-root}"
 
 # Options (uppercased by the CLI): VERSION, DAEMONJSON.
@@ -19,7 +19,7 @@ apt-get install -y --no-install-recommends \
   iptables \
   pigz
 
-# Add Docker's official apt repository and signing key.
+# Trust Docker's own package repository.
 install -m 0755 -d /etc/apt/keyrings
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
 chmod a+r /etc/apt/keyrings/docker.asc
@@ -27,21 +27,21 @@ echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.
   > /etc/apt/sources.list.d/docker.list
 apt-get update
 
-# Take the current CE packages, or pin them to an apt version matching VERSION.
+# Install the current release, or the release matching the requested version.
 if [ "$VERSION" = "latest" ]; then
-  # Read the candidate apt installs, so the log names the version.
+  # Read the release apt installs, so the log names the version.
   pin="$(apt-cache policy docker-ce | awk '/Candidate:/ {print $2}')"
   ce=(docker-ce docker-ce-cli docker-ce-rootless-extras)
 else
   pin="$(apt-cache madison docker-ce | awk -v v="$VERSION" '$3 ~ v {print $3; exit}')"
   [ -n "$pin" ] || { echo "docker-in-docker: Docker CE version '$VERSION' not found in apt" >&2; exit 1; }
-  # The rootless extras depend on the exact engine version, so they carry the same pin.
+  # Pin the companion packages to the same release, which they require.
   ce=("docker-ce=$pin" "docker-ce-cli=$pin" "docker-ce-rootless-extras=$pin")
 fi
 echo "docker-in-docker: installing $pin ($VERSION)"
 
-# Install the engine, CLI, containerd and the buildx/compose plugins (Docker's official set),
-# plus the userspace networking, id-mapping and capability helpers an unprivileged daemon needs.
+# Install the engine with its official plugins, plus the helpers a daemon run by the dev
+# user relies on.
 apt-get install -y --no-install-recommends "${ce[@]}" \
   containerd.io \
   docker-buildx-plugin \
@@ -52,14 +52,14 @@ apt-get install -y --no-install-recommends "${ce[@]}" \
   slirp4netns \
   uidmap
 
-# Pin the engine so a later apt upgrade keeps it in sync with the persisted data root.
+# Hold the engine at this release, so it stays matched to the data it keeps.
 apt-mark hold docker-ce docker-ce-cli docker-ce-rootless-extras containerd.io
 
 rm -rf /var/lib/apt/lists/*
 
-# Keep the docker group tooling expects, though the user owns its socket outright.
+# Keep the docker group that tooling expects.
 groupadd -f docker
-# A non-root remote user is the one the daemon runs as, so the grants below are its own.
+# Set up the dev user, who runs the daemon.
 if [ "$_REMOTE_USER" != "root" ]; then
   usermod -aG docker "$_REMOTE_USER" || true
 
@@ -69,22 +69,22 @@ if [ "$_REMOTE_USER" != "root" ]; then
   done
 fi
 
-# Install the entrypoint that starts dockerd at container start, then execs the container command.
+# Install the entrypoint that starts the daemon with the container.
 install -d /usr/local/share/docker-in-docker
 install -m 0755 "$(dirname "$0")/docker-init.sh" /usr/local/share/docker-in-docker/docker-init.sh
 
-# Persist which user runs the rootless daemon (the entrypoint has no _REMOTE_USER at runtime).
+# Record which user runs the daemon, for the entrypoint to read at start.
 printf '%s\n' "$_REMOTE_USER" > /usr/local/share/docker-in-docker/rootless-user
 
-# Save the requested daemon settings for the entrypoint to install (empty writes nothing).
+# Keep the requested daemon settings for the entrypoint to apply.
 printf '%s' "$DAEMON_JSON" > /usr/local/share/docker-in-docker/requested-daemon.json
 
-# Carry the seccomp profile the daemon needs, where a consumer can take it from.
+# Ship the seccomp profile the daemon needs, for consumers to reference.
 install -m 0644 "$(dirname "$0")/seccomp.json" /usr/local/share/docker-in-docker/seccomp.json
 
-# Point login shells that inherit no container environment at the published socket.
+# Point login shells at the published socket.
 echo 'export DOCKER_HOST=unix:///run/docker-rootless.sock' > /etc/profile.d/docker-in-docker.sh
 chmod 0644 /etc/profile.d/docker-in-docker.sh
 
-# Check the CLI resolves on PATH.
+# Confirm the CLI runs from the PATH.
 docker --version
