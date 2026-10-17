@@ -1,6 +1,6 @@
 {
   "id": "latex",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "name": "LaTeX (TeX Live)",
   "description": "Installs TeX Live from a pinned tlnet-final snapshot (selectable scheme) and puts the binaries on PATH.",
   "documentationURL": "https://github.com/hansehart/devcontainer-features/tree/main/src/latex",
@@ -11,16 +11,16 @@
       "default": "2025",
       "description": "TeX Live release year to install, from that year's tlnet-final snapshot via install-tl."
     },
+    "stateDir": {
+      "type": "string",
+      "default": "",
+      "description": "If set, puts this feature's data at this path, which must be inside the remote user's home. Mount a volume there to persist it across rebuilds."
+    },
     "scheme": {
       "type": "string",
       "proposals": ["scheme-basic", "scheme-small", "scheme-medium", "scheme-full"],
       "default": "scheme-basic",
       "description": "TeX Live scheme to install, from scheme-basic (minimal) to scheme-full (complete distribution)."
-    },
-    "stateDir": {
-      "type": "string",
-      "default": "",
-      "description": "If set, puts this feature's data at this path, which must be inside the remote user's home. Mount a volume there to persist it across rebuilds."
     }
   },
   "customizations": {

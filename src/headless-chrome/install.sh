@@ -2,6 +2,7 @@
 set -euo pipefail
 
 # Options (uppercased by the CLI): VERSION.
+VERSION="${VERSION:-latest}"
 
 API="https://googlechromelabs.github.io/chrome-for-testing"
 BUCKET="https://storage.googleapis.com/chrome-for-testing-public"
@@ -51,13 +52,13 @@ esac
 if [ -n "$key" ]; then
   resolved="$(curl -fsSL "$API/last-known-good-versions.json" \
     | grep -oP "\"$key\":\{[^}]*?\"version\":\"\K[0-9.]+")"
-  [ -n "$resolved" ] || { echo "chrome: could not resolve channel '$VERSION'" >&2; exit 1; }
+  [ -n "$resolved" ] || { echo "headless-chrome: could not resolve channel '$VERSION'" >&2; exit 1; }
 else
   resolved="$VERSION"
 fi
 
 url="$BUCKET/$resolved/linux64/chrome-headless-shell-linux64.zip"
-echo "chrome: installing chrome-headless-shell $resolved ($VERSION)"
+echo "headless-chrome: installing $resolved ($VERSION)"
 
 # Download and unpack the build over HTTPS, trusting the TLS-authenticated Google origin.
 tmp="$(mktemp -d)"

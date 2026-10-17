@@ -4,9 +4,10 @@ set -euo pipefail
 # Take the user the CLI provisions for, which varies by base image.
 _REMOTE_USER="${_REMOTE_USER:-root}"
 
-# Options (uppercased by the CLI): VERSION, PYTHON, STATEDIR.
-PYTHON_VERSION="$PYTHON"
-STATE_DIR="$STATEDIR"
+# Options (uppercased by the CLI): VERSION, STATEDIR, PYTHON.
+VERSION="${VERSION:-latest}"
+STATE_DIR="${STATEDIR:-}"
+PYTHON_VERSION="${PYTHON:-}"
 
 # Take the state dir before any work is done, so a path this feature cannot
 # own leaves the image untouched.
@@ -31,13 +32,17 @@ case "$arch" in
   *) echo "uv: unsupported architecture '$arch'" >&2; exit 1 ;;
 esac
 
-# Build the GitHub Releases URL for the channel or version.
+# Read the latest tag from the GitHub API, so the log names the version (explicit versions pass through).
 base="https://github.com/astral-sh/uv/releases"
 case "$VERSION" in
-  latest) url_dir="$base/latest/download" ;;
-  *)      url_dir="$base/download/$VERSION" ;;
+  latest)
+    tag="$(curl -fsSL "https://api.github.com/repos/astral-sh/uv/releases/latest" | grep -oP '"tag_name":\s*"\K[^"]+')"
+    [ -n "$tag" ] || { echo "uv: could not resolve the latest version" >&2; exit 1; } ;;
+  *) tag="$VERSION" ;;
 esac
+url_dir="$base/download/$tag"
 asset="uv-$target.tar.gz"
+echo "uv: installing $tag ($VERSION)"
 
 # Download the tarball and verify its published sha256.
 tmp="$(mktemp -d)"

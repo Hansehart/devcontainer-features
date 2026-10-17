@@ -5,14 +5,15 @@ set -euo pipefail
 _REMOTE_USER="${_REMOTE_USER:-root}"
 
 # Options (uppercased by the CLI): VERSION, STATEDIR, CONFIGTOML.
-STATE_DIR="$STATEDIR"
+VERSION="${VERSION:-latest}"
+STATE_DIR="${STATEDIR:-}"
+CONFIG_TOML="${CONFIGTOML:-}"
 
 # Take the state dir before any work is done, so a path this feature cannot
 # own leaves the image untouched.
 if [ -n "$STATE_DIR" ]; then
   "$(dirname "$0")/state-dir.sh" codex "$STATE_DIR"
 fi
-CONFIG_TOML="$CONFIGTOML"
 
 export DEBIAN_FRONTEND=noninteractive
 

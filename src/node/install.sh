@@ -5,7 +5,9 @@ set -euo pipefail
 _REMOTE_USER="${_REMOTE_USER:-root}"
 
 # Options (uppercased by the CLI): VERSION, STATEDIR, NPMRC.
-STATE_DIR="$STATEDIR"
+VERSION="${VERSION:-lts}"
+STATE_DIR="${STATEDIR:-}"
+NPMRC="${NPMRC:-}"
 
 # Take the state dir before any work is done, so a path this feature cannot
 # own leaves the image untouched.
@@ -35,7 +37,7 @@ esac
 base="https://nodejs.org/dist"
 # tr puts one release per line, so the greps below hold whether or not the index stays pretty-printed.
 index="$(curl -fsSL "$base/index.json" | tr '}' '\n')"
-case "${VERSION:-lts}" in
+case "$VERSION" in
   v[0-9]*.[0-9]*.[0-9]*) tag="$VERSION" ;;
   [0-9]*.[0-9]*.[0-9]*)  tag="v$VERSION" ;;
   # grep -m1 reads a here-string, not a pipe: stopping early on a pipe leaves the writer on a
