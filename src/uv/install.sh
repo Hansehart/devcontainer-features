@@ -31,13 +31,17 @@ case "$arch" in
   *) echo "uv: unsupported architecture '$arch'" >&2; exit 1 ;;
 esac
 
-# Build the GitHub Releases URL for the channel or version.
+# Read the latest tag from the GitHub API, so the log names the version (explicit versions pass through).
 base="https://github.com/astral-sh/uv/releases"
 case "$VERSION" in
-  latest) url_dir="$base/latest/download" ;;
-  *)      url_dir="$base/download/$VERSION" ;;
+  latest)
+    tag="$(curl -fsSL "https://api.github.com/repos/astral-sh/uv/releases/latest" | grep -oP '"tag_name":\s*"\K[^"]+')"
+    [ -n "$tag" ] || { echo "uv: could not resolve the latest version" >&2; exit 1; } ;;
+  *) tag="$VERSION" ;;
 esac
+url_dir="$base/download/$tag"
 asset="uv-$target.tar.gz"
+echo "uv: installing $tag ($VERSION)"
 
 # Download the tarball and verify its published sha256.
 tmp="$(mktemp -d)"

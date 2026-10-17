@@ -28,6 +28,8 @@ apt-get update
 
 # Take the current CE packages, or pin them to an apt version matching VERSION.
 if [ "$VERSION" = "latest" ]; then
+  # Read the candidate apt installs, so the log names the version.
+  pin="$(apt-cache policy docker-ce | awk '/Candidate:/ {print $2}')"
   ce=(docker-ce docker-ce-cli docker-ce-rootless-extras)
 else
   pin="$(apt-cache madison docker-ce | awk -v v="$VERSION" '$3 ~ v {print $3; exit}')"
@@ -35,6 +37,7 @@ else
   # The rootless extras depend on the exact engine version, so they carry the same pin.
   ce=("docker-ce=$pin" "docker-ce-cli=$pin" "docker-ce-rootless-extras=$pin")
 fi
+echo "docker-in-docker: installing $pin ($VERSION)"
 
 # Install the engine, CLI, containerd and the buildx/compose plugins (Docker's official set),
 # plus the userspace networking, id-mapping and capability helpers an unprivileged daemon needs.
