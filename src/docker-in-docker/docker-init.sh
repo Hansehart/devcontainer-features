@@ -1,49 +1,49 @@
 #!/bin/sh
 set -e
 
-# The unprivileged user that owns the daemon (persisted by install.sh).
+# Read the user who runs the daemon, as recorded at build.
 RUSER="$(cat /usr/local/share/docker-in-docker/rootless-user 2>/dev/null || true)"
 
-# The daemon runs as the remote user, so root and a name with no passwd entry both stop here.
+# Start the daemon only for a known non-root user.
 if [ "$RUSER" = "root" ] || ! RUSER_ENT="$(getent passwd "$RUSER")"; then
   echo "docker-in-docker: needs a non-root remoteUser, the daemon stays down" >&2
-  # Hand off to the container command, or stop when there is none to hand off to.
+  # Hand off to the container command.
   exec "$@"
   exit 0
 fi
 
-# Id and home come from that entry, the runtime directory from the id.
+# Derive the user's id, home and runtime directory.
 RUID="$(echo "$RUSER_ENT" | cut -d: -f3)"
 RHOME="$(echo "$RUSER_ENT" | cut -d: -f6)"
 RUNTIME_DIR="/run/user/${RUID}"
-# A fixed store, so the volume holding it is declarable without knowing the account.
+# Keep the store at a fixed path, so a volume can hold it for any account.
 DATA_ROOT=/var/lib/docker-rootless
 
-# Match the iptables backend to the host kernel we share.
+# Match the firewall backend to the host kernel.
 if type iptables-legacy > /dev/null 2>&1 \
    && { grep -qE '^ip_tables\b' /proc/modules || [ -d /sys/module/ip_tables ]; } \
    && update-alternatives --list iptables 2>/dev/null | grep -q '/usr/sbin/iptables-legacy'; then
-  # Select legacy when /proc/modules shows ip_tables loaded, reflecting the kernel without a modprobe.
+  # Use the legacy backend when the kernel runs it.
   update-alternatives --set iptables  /usr/sbin/iptables-legacy  || true
   update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy || true
 elif type iptables-nft > /dev/null 2>&1 \
      && update-alternatives --list iptables 2>/dev/null | grep -q '/usr/sbin/iptables-nft'; then
-  # Select nft when the module is absent.
+  # Use the nft backend everywhere else.
   update-alternatives --set iptables  /usr/sbin/iptables-nft  || true
   update-alternatives --set ip6tables /usr/sbin/ip6tables-nft || true
 fi
 
 export container=docker
 
-# Mount securityfs for AppArmor detection and a private tmpfs on /tmp.
+# Give the daemon the mounts it expects: securityfs and a private /tmp.
 if [ -d /sys/kernel/security ] && ! mountpoint -q /sys/kernel/security; then
   mount -t securityfs none /sys/kernel/security || true
 fi
 mountpoint -q /tmp || mount -t tmpfs none /tmp || true
 
-# Nest the cgroup controllers where the host delegates them, and pass over where it does not.
+# Nest the cgroup controllers wherever the host delegates them.
 if [ -f /sys/fs/cgroup/cgroup.controllers ] && mkdir -p /sys/fs/cgroup/init 2>/dev/null; then
-  # Move the existing processes into a leaf, retrying while they settle.
+  # Move the running processes into a leaf, retrying while they settle.
   cg_tries=0
   until xargs -rn1 < /sys/fs/cgroup/cgroup.procs > /sys/fs/cgroup/init/cgroup.procs 2>/dev/null \
         || [ "$cg_tries" -ge 5 ]; do
@@ -55,24 +55,24 @@ if [ -f /sys/fs/cgroup/cgroup.controllers ] && mkdir -p /sys/fs/cgroup/init 2>/d
     > /sys/fs/cgroup/cgroup.subtree_control 2>/dev/null || true
 fi
 
-# The userspace network stack builds its tap on this device, given or created here.
+# Provide the tun device the userspace network stack builds on.
 if [ ! -c /dev/net/tun ]; then
   mkdir -p /dev/net
   mknod /dev/net/tun c 10 200 2>/dev/null || true
-  # Open to the remote user, which runs the network stack.
+  # Open it to the user who runs the network stack.
   chmod 0666 /dev/net/tun 2>/dev/null || true
 fi
-# Say so here, where the reason is known, since the daemon reports it as a network failure.
+# Name a missing tun device here, where the cause is clear.
 [ -c /dev/net/tun ] \
   || echo "docker-in-docker: no /dev/net/tun, the daemon comes up without networking" >&2
 
-# The runtime and store directories, owned by the remote user and the store on a volume.
+# Create the runtime and store directories for the daemon's user.
 mkdir -p "$RUNTIME_DIR" "$DATA_ROOT"
-# The runtime directory carries the daemon socket, so it stays shut to other accounts.
+# Keep the runtime directory, which holds the socket, private to that user.
 chmod 0700 "$RUNTIME_DIR"
 chown "$RUSER":"$RUSER" "$RUNTIME_DIR" "$DATA_ROOT" || true
 
-# Write the requested daemon settings, which the home directory may not carry yet.
+# Seed the user's daemon settings with the requested ones.
 req=/usr/local/share/docker-in-docker/requested-daemon.json
 if [ -s "$req" ] && [ ! -f "${RHOME}/.config/docker/daemon.json" ]; then
   mkdir -p "${RHOME}/.config/docker"
@@ -80,26 +80,25 @@ if [ -s "$req" ] && [ ! -f "${RHOME}/.config/docker/daemon.json" ]; then
   chown -R "$RUSER":"$RUSER" "${RHOME}/.config/docker" || true
 fi
 
-# Restore the id-mapping helpers' capabilities, which the image unpack drops.
+# Give the id-mapping helpers the capabilities they run with.
 for b in /usr/bin/newuidmap /usr/bin/newgidmap; do
   chmod u-s "$b" 2>/dev/null || true
   setcap cap_setuid,cap_setgid+ep "$b" 2>/dev/null || true
 done
 
-# Publish the socket under a fixed name, since the daemon's own path carries a user id.
+# Publish the socket under a fixed name for every account.
 ln -sfn "${RUNTIME_DIR}/docker.sock" /run/docker-rootless.sock
 
-# A directory mounted here carries a second socket, for reaching the daemon from outside the
-# container. Naming one listener replaces the default, so both are named, and settings that
-# already carry hosts would collide with the flag.
+# Serve a second socket in a mounted directory, for reaching the daemon from outside the
+# container. Both listeners are named together; daemon settings that name hosts win.
 SHARED_DIR=/run/docker-host
 HOSTS=""
 if [ -d "$SHARED_DIR" ]; then
   if grep -q '"hosts"' "$req" 2>/dev/null; then
     echo "docker-in-docker: daemonJson already names hosts, so ${SHARED_DIR} is left out" >&2
   else
-    # The daemon creates the socket as the remote user, whose id the mount carries back out,
-    # and the socket answers to whoever opens it, so the directory stays shut to that id alone.
+    # Keep the shared directory private to the daemon's user, since its socket serves anyone
+    # who reaches it.
     chown "$RUSER":"$RUSER" "$SHARED_DIR" || true
     chmod 0700 "$SHARED_DIR" || true
     HOSTS="-H unix://${RUNTIME_DIR}/docker.sock -H unix://${SHARED_DIR}/docker.sock"
@@ -107,12 +106,11 @@ if [ -d "$SHARED_DIR" ]; then
 fi
 
 start_dockerd() {
-  # Clear pid files left by an unclean stop, which otherwise block the next start.
+  # Clear pid files from an earlier run, so the daemon starts fresh.
   find /run /var/run -iname 'docker*.pid' -delete 2>/dev/null || true
   find /run /var/run -iname 'container*.pid' -delete 2>/dev/null || true
 
-  # Run as the remote user with userspace networking and a private pid namespace, which
-  # an unmasked procfs and permissive confinement profiles admit.
+  # Run the daemon as its user, with userspace networking and a private pid namespace.
   # shellcheck disable=SC2086  # HOSTS carries separate flags
   runuser -u "$RUSER" -- env \
     HOME="$RHOME" \
@@ -125,14 +123,14 @@ start_dockerd() {
     dockerd-rootless.sh $HOSTS --data-root "$DATA_ROOT" --storage-driver=overlay2 > /tmp/dockerd.log 2>&1
 }
 
-# Supervise in the background, so the container command starts without waiting.
+# Supervise the daemon in the background, so the container command starts right away.
 {
-  # Trust a mounted CA, so registries behind a TLS proxy resolve for the daemon.
+  # Trust any mounted CA, so the daemon reaches registries behind a TLS proxy.
   update-ca-certificates >/dev/null 2>&1 || true
 
   if ! start_dockerd; then
     echo "docker-in-docker: rootless dockerd exited, retrying once" >&2
-    # Carry the reason into the container log, which is all a CI run gets to read.
+    # Copy the daemon's log into the container log, where every run can read it.
     cat /tmp/dockerd.log >&2 || true
     sleep 2
     if ! start_dockerd; then
@@ -142,5 +140,5 @@ start_dockerd() {
   fi
 } &
 
-# Hand off to the container's original entrypoint/command.
+# Hand off to the container command.
 exec "$@"

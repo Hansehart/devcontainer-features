@@ -11,7 +11,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
-          # The base commit has to be present locally to diff against it.
+          # Fetch the full history, so the diff reaches the base commit.
           fetch-depth: 0
       - name: "Select the features to test"
         id: select
@@ -20,7 +20,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          # Every directory under the sources is detected as a feature.
+          # Treat every directory under the sources as a feature.
           all=$(ls src | jq -Rsc 'split("\n") | map(select(length > 0))')
 
           # Diff from where the branch left main, so the list holds this branch's own changes.
@@ -28,14 +28,14 @@ jobs:
           echo "Changed files:"
           echo "$changed"
 
-          # A changed harness belongs to no feature, so it runs the full matrix.
+          # Test every feature when the CI setup itself changes.
           if echo "$changed" | grep -qE '^\.github/'; then
             echo "features=$all" >> "$GITHUB_OUTPUT"
             echo "CI configuration changed, testing every feature: $all"
             exit 0
           fi
 
-          # A feature is affected only by its own sources and its own tests.
+          # Select a feature when its own sources or tests change.
           selected=$(
             for feature in $(ls src); do
               if echo "$changed" | grep -qE "^(src|test)/${feature}/"; then
@@ -48,7 +48,7 @@ jobs:
 
   test:
     needs: detect
-    # An empty matrix is a workflow error, so skip the job instead.
+    # Run the job only when some feature was selected.
     if: ${{ needs.detect.outputs.features != '[]' }}
     runs-on: ubuntu-latest
     strategy:

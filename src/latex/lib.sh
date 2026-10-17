@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Sourced by install.sh and init.sh to define install_texlive(), inheriting the caller's shell options.
+# The TeX Live install routine, shared by the install script and the hook.
 
-# Install TeX Live into $1, portable so the self-contained tree stays reusable when persisted.
+# Install a self-contained TeX Live tree, which stays usable wherever it is kept.
 install_texlive() {
   local texdir="$1"
   local tmp

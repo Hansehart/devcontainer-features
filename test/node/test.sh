@@ -4,10 +4,10 @@ set -e
 # Import the test library
 source dev-container-features-test-lib
 
-# Use a login shell so the profile.d snippet setting the npm prefix is sourced.
+# Use a login shell, which reads the feature's profile.
 check "node on PATH" bash -lc "command -v node"
 check "node version" bash -lc "node --version"
-# The default channel floats, so assert what identifies it: LTS majors are always even.
+# The default channel floats, so assert its mark: LTS majors are even.
 check "default resolved an LTS line" bash -lc "node --version | grep -qE '^v[0-9]*[02468]\.'"
 check "npm on PATH" bash -lc "command -v npm"
 check "npx on PATH" bash -lc "command -v npx"

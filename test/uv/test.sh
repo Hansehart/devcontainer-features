@@ -4,7 +4,7 @@ set -e
 # Import the test library
 source dev-container-features-test-lib
 
-# Use a login shell so the profile.d snippet adding ~/.local/bin to PATH is sourced.
+# Use a login shell, which reads the feature's profile.
 check "uv on PATH" bash -lc "command -v uv"
 check "uv version" bash -lc "uv --version"
 check "uvx on PATH" bash -lc "command -v uvx"

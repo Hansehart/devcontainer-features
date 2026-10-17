@@ -1,23 +1,23 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Create for the dev user alone, matching the state dir the hook writes into.
+# Keep everything the hook creates private to the dev user.
 umask 0077
 
-# Prepare Codex's config once the volume is mounted.
+# Read the feature's settings.
 if [ -r /etc/profile.d/codex.sh ]; then . /etc/profile.d/codex.sh; fi
 
-# Create the state dir once the volume is mounted (Codex errors on a missing CODEX_HOME).
+# Create the state dir on the mounted volume, where the tool expects it.
 if [ -n "${CODEX_HOME:-}" ]; then mkdir -p "${CODEX_HOME}"; fi
 
-# A state dir sharing a filesystem with / holds its contents in the container, which goes at
-# the next rebuild. Report it after the mkdir, and let the create carry on.
+# Warn when the state dir sits on the container filesystem, since a volume is what keeps it
+# across rebuilds; the create carries on.
 state_dir="${CODEX_HOME:-}"
 if [ -n "$state_dir" ] && [ "$(stat -c %d "$state_dir")" = "$(stat -c %d /)" ]; then
   echo "codex: $state_dir is on the container filesystem; mount a volume there to keep it across rebuilds" >&2
 fi
 
-# Write the requested config to config.toml (empty leaves the file untouched).
+# Apply the requested config, when there is one.
 req=/usr/local/share/codex/requested-config.toml
 if [ -s "$req" ]; then
   target="${CODEX_HOME:-$HOME/.codex}/config.toml"
