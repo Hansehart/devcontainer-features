@@ -10,16 +10,16 @@
       "default": "latest",
       "description": "Channel (latest) or an exact version (major.minor.patch)."
     },
+    "stateDir": {
+      "type": "string",
+      "default": "",
+      "description": "If set, puts this feature's data at this path, which must be inside the remote user's home. Mount a volume there to persist it across rebuilds."
+    },
     "python": {
       "type": "string",
       "proposals": ["", "latest"],
       "default": "",
       "description": "Installs this CPython at build as the default (adds python/python3 to PATH). Empty installs no interpreter, leaving uv to use an available Python or download one on demand."
-    },
-    "stateDir": {
-      "type": "string",
-      "default": "",
-      "description": "If set, puts this feature's data at this path, which must be inside the remote user's home. Mount a volume there to persist it across rebuilds."
     }
   },
   "customizations": {
