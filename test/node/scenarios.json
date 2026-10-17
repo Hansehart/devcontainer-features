@@ -1,4 +1,12 @@
 {
+  "ignore_scripts_false": {
+    "image": "ubuntu:24.04",
+    "features": {
+      "node": {
+        "ignoreScripts": false
+      }
+    }
+  },
   "latest_channel": {
     "image": "ubuntu:24.04",
     "features": {
