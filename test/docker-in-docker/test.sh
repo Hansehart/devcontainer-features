@@ -4,18 +4,18 @@ set -e
 # Import the test library
 source dev-container-features-test-lib
 
-# Default apparmor and seccomp apply here, so this covers the client alone.
-# The rootless_daemon scenario relaxes both and covers the daemon.
+# The default confinement applies here, so this covers the client; the rootless_daemon
+# scenario covers the daemon.
 
 check "docker on PATH" bash -c "command -v docker"
 check "docker version" docker --version
 check "compose plugin" docker compose version
 check "buildx plugin" docker buildx version
-# An empty environment proves profile.d supplies the socket name to a login shell.
+# Start from an empty environment, so the socket name comes from the profile alone.
 check "login shell gets DOCKER_HOST" bash -c 'env -i bash -lc "echo \$DOCKER_HOST" | grep -qx unix:///run/docker-rootless.sock'
 check "socket path is fixed" bash -c '[ "$DOCKER_HOST" = "unix:///run/docker-rootless.sock" ]'
-# The default image runs as root, where the entrypoint leaves the daemon down and the socket
-# unlinked. The rootless_daemon scenario covers the link for its remote user.
+# The default image runs as root, which keeps the daemon down and the socket unlinked; the
+# rootless_daemon scenario covers the link.
 check "root leaves the socket unlinked" bash -c '[ "$(id -u)" = 0 ] && [ ! -e /run/docker-rootless.sock ] && [ ! -L /run/docker-rootless.sock ]'
 
 # Report result
