@@ -14,8 +14,9 @@ check "buildx plugin" docker buildx version
 # An empty environment proves profile.d supplies the socket name to a login shell.
 check "login shell gets DOCKER_HOST" bash -c 'env -i bash -lc "echo \$DOCKER_HOST" | grep -qx unix:///run/docker-rootless.sock'
 check "socket path is fixed" bash -c '[ "$DOCKER_HOST" = "unix:///run/docker-rootless.sock" ]'
-# Read against the id this shell runs as, which the link is resolved to at start.
-check "socket link resolves to the remote user" bash -c '[ "$(readlink /run/docker-rootless.sock)" = "/run/user/$(id -u)/docker.sock" ]'
+# The default image runs as root, where the entrypoint leaves the daemon down and the socket
+# unlinked. The rootless_daemon scenario covers the link for its remote user.
+check "root leaves the socket unlinked" bash -c '[ "$(id -u)" = 0 ] && [ ! -e /run/docker-rootless.sock ] && [ ! -L /run/docker-rootless.sock ]'
 
 # Report result
 reportResults
