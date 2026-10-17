@@ -1,4 +1,12 @@
 {
+  "nonessential_traffic_allowed": {
+    "image": "ubuntu:24.04",
+    "features": {
+      "claude-code": {
+        "disableNonessentialTraffic": false
+      }
+    }
+  },
   "pinned_version": {
     "image": "ubuntu:24.04",
     "features": {
