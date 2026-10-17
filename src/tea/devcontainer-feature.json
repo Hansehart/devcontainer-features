@@ -1,6 +1,6 @@
 {
   "id": "tea",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "name": "tea (Gitea CLI)",
   "description": "Installs the official Gitea CLI as a single static binary.",
   "documentationURL": "https://github.com/hansehart/devcontainer-features/tree/main/src/tea",

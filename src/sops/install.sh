@@ -5,7 +5,8 @@ set -euo pipefail
 _REMOTE_USER="${_REMOTE_USER:-root}"
 
 # Options (uppercased by the CLI): VERSION, STATEDIR.
-STATE_DIR="$STATEDIR"
+VERSION="${VERSION:-latest}"
+STATE_DIR="${STATEDIR:-}"
 
 # Take the state dir before any work is done, so a path this feature cannot
 # own leaves the image untouched.
@@ -32,7 +33,7 @@ esac
 
 # Read the latest tag from the GitHub API, since asset names embed the version (explicit versions pass through).
 base="https://github.com/getsops/sops/releases"
-case "${VERSION:-latest}" in
+case "$VERSION" in
   latest)
     tag="$(curl -fsSL "https://api.github.com/repos/getsops/sops/releases/latest" | grep -oP '"tag_name":\s*"\K[^"]+')"
     [ -n "$tag" ] || { echo "sops: could not resolve the latest version" >&2; exit 1; } ;;

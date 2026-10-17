@@ -5,7 +5,9 @@ set -euo pipefail
 _REMOTE_USER="${_REMOTE_USER:-root}"
 
 # Options (uppercased by the CLI): VERSION, SCHEME, STATEDIR.
-STATE_DIR="$STATEDIR"
+VERSION="${VERSION:-2025}"
+SCHEME="${SCHEME:-scheme-basic}"
+STATE_DIR="${STATEDIR:-}"
 
 # Take the state dir before any work is done, so a path this feature cannot
 # own leaves the image untouched.

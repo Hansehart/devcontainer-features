@@ -2,6 +2,7 @@
 set -euo pipefail
 
 # Options (uppercased by the CLI): VERSION.
+VERSION="${VERSION:-latest}"
 
 export DEBIAN_FRONTEND=noninteractive
 
@@ -22,7 +23,7 @@ esac
 
 # Read the latest tag from the GitHub API, since asset names embed the version (explicit versions pass through).
 base="https://github.com/FiloSottile/age/releases"
-case "${VERSION:-latest}" in
+case "$VERSION" in
   latest)
     tag="$(curl -fsSL "https://api.github.com/repos/FiloSottile/age/releases/latest" | grep -oP '"tag_name":\s*"\K[^"]+')"
     [ -n "$tag" ] || { echo "age: could not resolve the latest version" >&2; exit 1; } ;;

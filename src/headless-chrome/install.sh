@@ -2,6 +2,7 @@
 set -euo pipefail
 
 # Options (uppercased by the CLI): VERSION.
+VERSION="${VERSION:-latest}"
 
 API="https://googlechromelabs.github.io/chrome-for-testing"
 BUCKET="https://storage.googleapis.com/chrome-for-testing-public"

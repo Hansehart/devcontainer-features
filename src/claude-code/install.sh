@@ -5,15 +5,16 @@ set -euo pipefail
 _REMOTE_USER="${_REMOTE_USER:-root}"
 
 # Options (uppercased by the CLI): VERSION, STATEDIR, DISABLENONESSENTIALTRAFFIC, SETTINGSJSON.
-STATE_DIR="$STATEDIR"
+VERSION="${VERSION:-latest}"
+STATE_DIR="${STATEDIR:-}"
+DISABLE_NONESSENTIAL_TRAFFIC="${DISABLENONESSENTIALTRAFFIC:-true}"
+SETTINGS_JSON="${SETTINGSJSON:-}"
 
 # Take the state dir before any work is done, so a path this feature cannot
 # own leaves the image untouched.
 if [ -n "$STATE_DIR" ]; then
   "$(dirname "$0")/state-dir.sh" claude-code "$STATE_DIR"
 fi
-DISABLE_NONESSENTIAL_TRAFFIC="$DISABLENONESSENTIALTRAFFIC"
-SETTINGS_JSON="$SETTINGSJSON"
 
 export DEBIAN_FRONTEND=noninteractive
 

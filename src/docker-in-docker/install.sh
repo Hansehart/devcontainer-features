@@ -5,7 +5,8 @@ set -euo pipefail
 _REMOTE_USER="${_REMOTE_USER:-root}"
 
 # Options (uppercased by the CLI): VERSION, DAEMONJSON.
-DAEMON_JSON="$DAEMONJSON"
+VERSION="${VERSION:-latest}"
+DAEMON_JSON="${DAEMONJSON:-}"
 
 export DEBIAN_FRONTEND=noninteractive
 
