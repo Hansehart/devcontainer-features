@@ -4,9 +4,10 @@ set -euo pipefail
 # Take the user the CLI provisions for, which varies by base image.
 _REMOTE_USER="${_REMOTE_USER:-root}"
 
-# Options (uppercased by the CLI): VERSION, STATEDIR, NPMRC.
+# Options (uppercased by the CLI): VERSION, STATEDIR, IGNORESCRIPTS, NPMRC.
 VERSION="${VERSION:-lts}"
 STATE_DIR="${STATEDIR:-}"
+IGNORE_SCRIPTS="${IGNORESCRIPTS:-true}"
 NPMRC="${NPMRC:-}"
 
 # Take the state dir before any work is done, so a path this feature cannot
@@ -61,7 +62,7 @@ curl -fsSL "$base/$tag/SHASUMS256.txt" -o "$tmp/SHASUMS256.txt"
 tar -xzf "$tmp/$asset" -C /usr/local --strip-components=1 --no-same-owner \
   --exclude=CHANGELOG.md --exclude=LICENSE --exclude=README.md
 
-# Write a login-shell profile with a global prefix the dev user owns, so npm -g needs no root.
+# Write the login profile with a global prefix the dev user owns and the chosen npm settings.
 {
   echo 'export PATH="$HOME/.local/bin:$PATH"'
   if [ -n "$STATE_DIR" ]; then
@@ -71,6 +72,9 @@ tar -xzf "$tmp/$asset" -C /usr/local --strip-components=1 --no-same-owner \
     echo "export PATH=\"$STATE_DIR/global/bin:\$PATH\""
   else
     echo 'export NPM_CONFIG_PREFIX="$HOME/.local"'
+  fi
+  if [ "$IGNORE_SCRIPTS" = "true" ]; then
+    echo 'export NPM_CONFIG_IGNORE_SCRIPTS=true'
   fi
 } > /etc/profile.d/node.sh
 chmod 0644 /etc/profile.d/node.sh
