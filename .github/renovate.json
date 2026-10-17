@@ -12,7 +12,16 @@
   "semanticCommitScope": "deps",
   "pinDigests": true,
   "minimumReleaseAge": "3 days",
-  "ignorePaths": [],
+  "ignorePaths": [
+    "**/node_modules/**",
+    "**/bower_components/**",
+    "**/vendor/**",
+    "**/examples/**",
+    "**/__tests__/**",
+    "**/test/**/!(scenarios.json)",
+    "**/tests/**",
+    "**/__fixtures__/**"
+  ],
   "prBodyColumns": ["Package", "Type", "Update", "Change", "Age"],
   "prBodyDefinitions": {
     "Age": "{{#if newVersion}}{{{newVersionAgeInDays}}} days{{/if}}"
