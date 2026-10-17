@@ -19,7 +19,7 @@
     "ignoreScripts": {
       "type": "boolean",
       "default": true,
-      "description": "Set NPM_CONFIG_IGNORE_SCRIPTS=true to skip dependency install scripts; npm run still runs a script by name."
+      "description": "Set NPM_CONFIG_IGNORE_SCRIPTS=true to skip dependency install scripts."
     },
     "npmrc": {
       "type": "string",

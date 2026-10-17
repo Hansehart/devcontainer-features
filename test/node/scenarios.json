@@ -1,5 +1,5 @@
 {
-  "ignore_scripts_off": {
+  "ignore_scripts_false": {
     "image": "ubuntu:24.04",
     "features": {
       "node": {

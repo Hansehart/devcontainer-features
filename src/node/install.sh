@@ -60,7 +60,7 @@ curl -fsSL "$base/$tag/SHASUMS256.txt" -o "$tmp/SHASUMS256.txt"
 tar -xzf "$tmp/$asset" -C /usr/local --strip-components=1 --no-same-owner \
   --exclude=CHANGELOG.md --exclude=LICENSE --exclude=README.md
 
-# Write the login profile: a global prefix the dev user owns and the chosen npm settings.
+# Write the login profile with a global prefix the dev user owns and the chosen npm settings.
 {
   echo 'export PATH="$HOME/.local/bin:$PATH"'
   if [ -n "$STATE_DIR" ]; then

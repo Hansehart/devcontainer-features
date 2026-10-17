@@ -1,5 +1,5 @@
 {
-  "nonessential_traffic_allowed": {
+  "disable_nonessential_traffic_false": {
     "image": "ubuntu:24.04",
     "features": {
       "claude-code": {
