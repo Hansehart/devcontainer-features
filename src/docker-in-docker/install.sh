@@ -4,10 +4,10 @@ set -euo pipefail
 # Install for the dev user the CLI provisions.
 _REMOTE_USER="${_REMOTE_USER:-root}"
 
-# Options (uppercased by the CLI): VERSION, COMPOSEVERSION, BUILDXVERSION, DAEMONJSON.
+# Options (uppercased by the CLI): VERSION, BUILDXVERSION, COMPOSEVERSION, DAEMONJSON.
 VERSION="${VERSION:-latest}"
-COMPOSE_VERSION="${COMPOSEVERSION:-latest}"
 BUILDX_VERSION="${BUILDXVERSION:-latest}"
+COMPOSE_VERSION="${COMPOSEVERSION:-latest}"
 DAEMON_JSON="${DAEMONJSON:-}"
 
 export DEBIAN_FRONTEND=noninteractive
@@ -47,9 +47,9 @@ resolve() {
 
 # Resolve each component to an exact release, so the log names what gets installed.
 engine="$(resolve docker-ce "$VERSION")"
-compose="$(resolve docker-compose-plugin "$COMPOSE_VERSION")"
 buildx="$(resolve docker-buildx-plugin "$BUILDX_VERSION")"
-echo "docker-in-docker: installing engine $engine ($VERSION), compose $compose ($COMPOSE_VERSION), buildx $buildx ($BUILDX_VERSION)"
+compose="$(resolve docker-compose-plugin "$COMPOSE_VERSION")"
+echo "docker-in-docker: installing engine $engine ($VERSION), buildx $buildx ($BUILDX_VERSION), compose $compose ($COMPOSE_VERSION)"
 
 # Install the engine with its official plugins, plus the helpers a daemon run by the dev
 # user relies on. The engine's companion packages share its release, which they require.

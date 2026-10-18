@@ -10,15 +10,15 @@
       "default": "latest",
       "description": "Engine channel (latest) or a version (major, major.minor or major.minor.patch)."
     },
-    "composeVersion": {
-      "type": "string",
-      "default": "latest",
-      "description": "Compose plugin channel (latest) or a version (major, major.minor or major.minor.patch)."
-    },
     "buildxVersion": {
       "type": "string",
       "default": "latest",
       "description": "Buildx plugin channel (latest) or a version (major, major.minor or major.minor.patch)."
+    },
+    "composeVersion": {
+      "type": "string",
+      "default": "latest",
+      "description": "Compose plugin channel (latest) or a version (major, major.minor or major.minor.patch)."
     },
     "daemonJson": {
       "type": "string",
