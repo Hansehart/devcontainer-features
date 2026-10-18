@@ -76,5 +76,14 @@
         "type": "volume"
       }
     ]
+  },
+  "state_dir": {
+    "image": "ubuntu:24.04",
+    "remoteUser": "ubuntu",
+    "features": {
+      "docker-in-docker": {
+        "stateDir": "/home/ubuntu/docker-in-docker"
+      }
+    }
   }
 }

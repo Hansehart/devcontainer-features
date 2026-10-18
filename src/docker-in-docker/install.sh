@@ -4,11 +4,17 @@ set -euo pipefail
 # Install for the dev user the CLI provisions.
 _REMOTE_USER="${_REMOTE_USER:-root}"
 
-# Options (uppercased by the CLI): VERSION, BUILDXVERSION, COMPOSEVERSION, DAEMONJSON.
+# Options (uppercased by the CLI): VERSION, BUILDXVERSION, COMPOSEVERSION, STATEDIR, DAEMONJSON.
 VERSION="${VERSION:-latest}"
 BUILDX_VERSION="${BUILDXVERSION:-latest}"
 COMPOSE_VERSION="${COMPOSEVERSION:-latest}"
+STATE_DIR="${STATEDIR:-}"
 DAEMON_JSON="${DAEMONJSON:-}"
+
+# Claim the state dir first, so a rejected path stops the build before it changes anything.
+if [ -n "$STATE_DIR" ]; then
+  "$(dirname "$0")/state-dir.sh" docker-in-docker "$STATE_DIR"
+fi
 
 export DEBIAN_FRONTEND=noninteractive
 
@@ -96,8 +102,17 @@ printf '%s' "$DAEMON_JSON" > /usr/local/share/docker-in-docker/requested-daemon.
 # Ship the seccomp profile the daemon needs, for consumers to reference.
 install -m 0644 "$(dirname "$0")/seccomp.json" /usr/local/share/docker-in-docker/seccomp.json
 
-# Point login shells at the published socket.
-echo 'export DOCKER_HOST=unix:///run/docker-rootless.sock' > /etc/profile.d/docker-in-docker.sh
+# Install the hook that creates the state dir, and the guard it was claimed with.
+install -m 0755 "$(dirname "$0")/init.sh" /usr/local/share/docker-in-docker/init.sh
+install -m 0755 "$(dirname "$0")/state-dir.sh" /usr/local/share/docker-in-docker/state-dir.sh
+
+# Point login shells at the published socket, and the CLI config at the state dir when set.
+{
+  echo 'export DOCKER_HOST=unix:///run/docker-rootless.sock'
+  if [ -n "$STATE_DIR" ]; then
+    echo "export DOCKER_CONFIG=\"$STATE_DIR\""
+  fi
+} > /etc/profile.d/docker-in-docker.sh
 chmod 0644 /etc/profile.d/docker-in-docker.sh
 
 # Confirm the CLI runs from the PATH.

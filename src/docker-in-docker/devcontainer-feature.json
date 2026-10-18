@@ -20,6 +20,11 @@
       "default": "latest",
       "description": "Compose plugin channel (latest) or a version (major, major.minor or major.minor.patch)."
     },
+    "stateDir": {
+      "type": "string",
+      "default": "",
+      "description": "If set, puts this feature's data at this path, which must be inside the remote user's home. Mount a volume there to persist it across rebuilds. Holds the Docker CLI config, including docker login credentials, which are stored in plain text without a credential helper."
+    },
     "daemonJson": {
       "type": "string",
       "default": "",
@@ -27,6 +32,7 @@
     }
   },
   "entrypoint": "/usr/local/share/docker-in-docker/docker-init.sh",
+  "postCreateCommand": "/usr/local/share/docker-in-docker/init.sh",
   "privileged": false,
   "containerEnv": {
     "DOCKER_BUILDKIT": "1",
