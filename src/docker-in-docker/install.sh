@@ -4,11 +4,11 @@ set -euo pipefail
 # Install for the dev user the CLI provisions.
 _REMOTE_USER="${_REMOTE_USER:-root}"
 
-# Options (uppercased by the CLI): VERSION, BUILDXVERSION, COMPOSEVERSION, STATEDIR, DAEMONJSON.
+# Options (uppercased by the CLI): VERSION, STATEDIR, BUILDXVERSION, COMPOSEVERSION, DAEMONJSON.
 VERSION="${VERSION:-latest}"
+STATE_DIR="${STATEDIR:-}"
 BUILDX_VERSION="${BUILDXVERSION:-latest}"
 COMPOSE_VERSION="${COMPOSEVERSION:-latest}"
-STATE_DIR="${STATEDIR:-}"
 DAEMON_JSON="${DAEMONJSON:-}"
 
 # Claim the state dir first, so a rejected path stops the build before it changes anything.
