@@ -1,14 +1,10 @@
 # Contributing
 
-## Options
+## Style
 
-Every option belongs to one of these kinds:
-
-- **Version:** `latest` or a version, resolved to an exact release before installing, and that release is logged.
-- **State:** `stateDir` is opt-in, must be inside the remote user's home, and is meant to sit on a volume. `state-dir.sh` checks the path at build time, and `init.sh` creates it at create and warns when it sits on the container filesystem.
-- **User config:** written exactly as given, and only when set.
-- **Hardening:** a boolean, default `true`, that sets one documented env var in `/etc/profile.d/<feature>.sh`. `false` is the single opt-out, and the hardening stays independent of user config.
-- **Feature-specific:** whatever is unique to the tool.
+- **Comments** describe a step's intent in abstract terms, so they stay true as the code changes, and are phrased positively. They describe the code as it is now.
+- **Commits** follow Conventional Commits, scoped to the feature. Feature versions use semver.
+- **PR and issue descriptions** stay slim and minimal, about 2–3 sentences on average.
 
 ## Tests
 
@@ -18,8 +14,12 @@ Every option belongs to one of these kinds:
 - **Booleans:** a scenario named `<option>_false`.
 - **User config:** a real hardening setting that differs from the default. Check that it's written and that the tool reads it.
 
-## Style
+## Options
 
-- **Comments** describe a step's intent in abstract terms, so they stay true as the code changes, and are phrased positively. They describe the code as it is now.
-- **Commits** follow Conventional Commits, scoped to the feature. Feature versions use semver.
-- **PR and issue descriptions** stay slim and minimal, about 2–3 sentences on average.
+Every option belongs to one of these kinds:
+
+- **Version:** `latest` or a version, resolved to an exact release before installing, and that release is logged.
+- **State:** `stateDir` is opt-in, must be inside the remote user's home, and is meant to sit on a volume. `state-dir.sh` checks the path at build time, and `init.sh` creates it at create and warns when it sits on the container filesystem.
+- **User config:** written exactly as given, and only when set.
+- **Hardening:** a boolean, default `true`, that sets one documented env var in `/etc/profile.d/<feature>.sh`. `false` is the single opt-out, and the hardening stays independent of user config.
+- **Feature-specific:** whatever is unique to the tool.
