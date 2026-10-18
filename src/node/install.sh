@@ -56,9 +56,19 @@ curl -fsSL "$base/$tag/$asset" -o "$tmp/$asset"
 curl -fsSL "$base/$tag/SHASUMS256.txt" -o "$tmp/SHASUMS256.txt"
 ( cd "$tmp" && grep " $asset\$" SHASUMS256.txt | sha256sum -c - )
 
-# Unpack into the system prefix, so the runtime and its tools land on the default PATH.
-tar -xzf "$tmp/$asset" -C /usr/local --strip-components=1 --no-same-owner \
+# Unpack into the feature's own folder, replacing any earlier install.
+rm -rf /usr/local/node
+install -d /usr/local/node
+tar -xzf "$tmp/$asset" -C /usr/local/node --strip-components=1 --no-same-owner \
   --exclude=CHANGELOG.md --exclude=LICENSE --exclude=README.md
+
+# Link the runtime and its tools onto the default PATH.
+ln -sf /usr/local/node/bin/* /usr/local/bin/
+
+# Keep the global prefix on the default PATH where no profile sets one, since npm would
+# otherwise derive it from the runtime's own folder.
+install -d /usr/local/node/etc
+echo 'prefix=/usr/local' > /usr/local/node/etc/npmrc
 
 # Write the login profile with a global prefix the dev user owns and the chosen npm settings.
 {
