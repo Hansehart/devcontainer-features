@@ -1,0 +1,25 @@
+# Contributing
+
+## Options
+
+Every option belongs to one of these kinds:
+
+- **Version:** `latest` or a version, resolved to an exact release before installing, and that release is logged.
+- **State:** `stateDir` is opt-in, must be inside the remote user's home, and is meant to sit on a volume. `state-dir.sh` checks the path at build time, and `init.sh` creates it at create and warns when it sits on the container filesystem.
+- **User config:** written exactly as given, and only when set.
+- **Hardening:** a boolean, default `true`, that sets one documented env var in `/etc/profile.d/<feature>.sh`. `false` is the single opt-out, and the hardening stays independent of user config.
+- **Feature-specific:** whatever is unique to the tool.
+
+## Tests
+
+- Test every option at least once with a non-default value.
+- **Versions:** one `pinned_version` scenario with the newest release, kept current by Renovate.
+- **Paths:** `stateDir` is `/home/ubuntu/<feature-id>`, with `remoteUser: ubuntu`.
+- **Booleans:** a scenario named `<option>_false`.
+- **User config:** a real hardening setting that differs from the default. Check that it's written and that the tool reads it.
+
+## Style
+
+- **Comments** describe a step's intent in abstract terms, so they stay true as the code changes, and are phrased positively.
+- **Commits** follow Conventional Commits, scoped to the feature. Feature versions use semver.
+- **PR and issue descriptions** stay slim and minimal, about 2–3 sentences on average.
