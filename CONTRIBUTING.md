@@ -9,10 +9,10 @@
 ## Tests
 
 - **Coverage:** every option is tested at least once with a non-default value.
-- **Versions:** one `pinned_version` scenario with the newest release.
-- **Paths:** `stateDir` is `/home/ubuntu/<feature-id>`, with `remoteUser: ubuntu`.
-- **Booleans:** each one gets a scenario that sets its non-default value, named `<option>_<value>`.
+- **Version:** one `pinned_version` scenario with the newest release.
+- **State:** a `state_dir` scenario sets `stateDir` to `/home/ubuntu/<feature-id>`, with `remoteUser: ubuntu`.
 - **User config:** a real hardening setting that differs from the default. Check that it's written and that the tool reads it.
+- **Hardening:** a scenario that sets the opt-out value, named `<option>_<value>`.
 
 ## Options
 
