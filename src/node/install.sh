@@ -56,8 +56,7 @@ curl -fsSL "$base/$tag/$asset" -o "$tmp/$asset"
 curl -fsSL "$base/$tag/SHASUMS256.txt" -o "$tmp/SHASUMS256.txt"
 ( cd "$tmp" && grep " $asset\$" SHASUMS256.txt | sha256sum -c - )
 
-# Unpack into the feature's own folder, replacing any earlier install.
-rm -rf /usr/local/node
+# Unpack into the feature's own folder.
 install -d /usr/local/node
 tar -xzf "$tmp/$asset" -C /usr/local/node --strip-components=1 --no-same-owner \
   --exclude=CHANGELOG.md --exclude=LICENSE --exclude=README.md
