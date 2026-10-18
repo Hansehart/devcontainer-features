@@ -3,7 +3,7 @@
 ## Style
 
 - **Comments** state what a step is for, in abstract terms, so they stay accurate as the concrete details change.
-- **Commits** follow Conventional Commits, scoped to the feature. Feature versions use semver.
+- **Commits** start with the kind of change and the feature's name, followed by a short summary. A feature's version raises its first number for breaking changes, its second for new options, and its third for fixes.
 - **PR and issue descriptions** stay slim and minimal, about 2–3 sentences on average.
 
 ## Tests
