@@ -4,8 +4,10 @@ set -euo pipefail
 # Install for the dev user the CLI provisions.
 _REMOTE_USER="${_REMOTE_USER:-root}"
 
-# Options (uppercased by the CLI): VERSION, DAEMONJSON.
+# Options (uppercased by the CLI): VERSION, COMPOSEVERSION, BUILDXVERSION, DAEMONJSON.
 VERSION="${VERSION:-latest}"
+COMPOSE_VERSION="${COMPOSEVERSION:-latest}"
+BUILDX_VERSION="${BUILDXVERSION:-latest}"
 DAEMON_JSON="${DAEMONJSON:-}"
 
 export DEBIAN_FRONTEND=noninteractive
@@ -27,25 +29,37 @@ echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.
   > /etc/apt/sources.list.d/docker.list
 apt-get update
 
-# Install the current release, or the release matching the requested version.
-if [ "$VERSION" = "latest" ]; then
-  # Read the release apt installs, so the log names the version.
-  pin="$(apt-cache policy docker-ce | awk '/Candidate:/ {print $2}')"
-  ce=(docker-ce docker-ce-cli docker-ce-rootless-extras)
-else
-  pin="$(apt-cache madison docker-ce | awk -v v="$VERSION" '$3 ~ v {print $3; exit}')"
-  [ -n "$pin" ] || { echo "docker-in-docker: Docker CE version '$VERSION' not found in apt" >&2; exit 1; }
-  # Pin the companion packages to the same release, which they require.
-  ce=("docker-ce=$pin" "docker-ce-cli=$pin" "docker-ce-rootless-extras=$pin")
-fi
-echo "docker-in-docker: installing $pin ($VERSION)"
+# Print the apt release of a package: the current one for latest, else the newest whose
+# version starts with the requested one at a dot or dash boundary.
+resolve() {
+  local pkg="$1" want="$2" ver
+  if [ "$want" = "latest" ]; then
+    ver="$(apt-cache policy "$pkg" | awk '/Candidate:/ {print $2}')"
+  else
+    # Skip the epoch, so 28 matches 5:28.5.2-1~ubuntu.24.04~noble.
+    ver="$(apt-cache madison "$pkg" | awk -v v="$want" '
+      { s = $3; sub(/^[0-9]+:/, "", s) }
+      index(s, v) == 1 && substr(s, length(v) + 1, 1) ~ /[.-]/ { print $3; exit }')"
+  fi
+  [ -n "$ver" ] || { echo "docker-in-docker: $pkg version '$want' not found in apt" >&2; return 1; }
+  echo "$ver"
+}
+
+# Resolve each component to an exact release, so the log names what gets installed.
+engine="$(resolve docker-ce "$VERSION")"
+compose="$(resolve docker-compose-plugin "$COMPOSE_VERSION")"
+buildx="$(resolve docker-buildx-plugin "$BUILDX_VERSION")"
+echo "docker-in-docker: installing engine $engine ($VERSION), compose $compose ($COMPOSE_VERSION), buildx $buildx ($BUILDX_VERSION)"
 
 # Install the engine with its official plugins, plus the helpers a daemon run by the dev
-# user relies on.
-apt-get install -y --no-install-recommends "${ce[@]}" \
+# user relies on. The engine's companion packages share its release, which they require.
+apt-get install -y --no-install-recommends \
+  "docker-ce=$engine" \
+  "docker-ce-cli=$engine" \
+  "docker-ce-rootless-extras=$engine" \
   containerd.io \
-  docker-buildx-plugin \
-  docker-compose-plugin \
+  "docker-buildx-plugin=$buildx" \
+  "docker-compose-plugin=$compose" \
   fuse-overlayfs \
   iproute2 \
   libcap2-bin \
