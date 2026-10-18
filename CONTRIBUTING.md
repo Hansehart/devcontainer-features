@@ -8,7 +8,7 @@
 
 ## Tests
 
-- Test every option at least once with a non-default value.
+- **Coverage:** every option is tested at least once with a non-default value.
 - **Versions:** one `pinned_version` scenario with the newest release, kept current by Renovate.
 - **Paths:** `stateDir` is `/home/ubuntu/<feature-id>`, with `remoteUser: ubuntu`.
 - **Booleans:** a scenario named `<option>_false`.
