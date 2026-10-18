@@ -2,7 +2,7 @@
 
 ## Style
 
-- **Comments** describe a step's intent in abstract terms, so they stay true as the code changes, and are phrased positively. They describe the code as it is now.
+- **Comments** state what a step is for, in abstract terms, so they stay accurate as the concrete details change.
 - **Commits** follow Conventional Commits, scoped to the feature. Feature versions use semver.
 - **PR and issue descriptions** stay slim and minimal, about 2–3 sentences on average.
 
