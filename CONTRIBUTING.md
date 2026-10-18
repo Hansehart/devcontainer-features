@@ -1,14 +1,14 @@
 # Contributing
 
-## Style
-
-- **Comments** state a step's intent, in abstract terms, so they stay accurate as the concrete details change.
-- **Commits** start with the kind of change and the feature's name, followed by a short summary. A feature's version raises its first number for breaking changes, its second for new options, and its third for fixes.
-
 ## Workflow
 
 - **Changes** ideally start as an issue, are made on their own branch, and land on main as one squashed commit.
 - **Descriptions** of pull requests and issues stay slim and minimal, about 2–3 sentences on average.
+
+## Style
+
+- **Comments** state a step's intent, in abstract terms, so they stay accurate as the concrete details change.
+- **Commits** start with the kind of change and the feature's name, followed by a short summary. A feature's version raises its first number for breaking changes, its second for new options, and its third for fixes.
 
 ## Options
 
