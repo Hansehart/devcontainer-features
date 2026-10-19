@@ -1,6 +1,6 @@
 {
   "id": "docker-in-docker",
-  "version": "2.1.4",
+  "version": "2.2.0",
   "name": "Docker in Docker",
   "description": "Installs a rootless Docker engine for building and running containers inside the dev container.",
   "documentationURL": "https://github.com/hansehart/devcontainer-features/tree/main/src/docker-in-docker",
@@ -8,7 +8,22 @@
     "version": {
       "type": "string",
       "default": "latest",
-      "description": "Channel (latest) or an exact version (major.minor.patch)."
+      "description": "Engine channel (latest) or a version (major, major.minor or major.minor.patch)."
+    },
+    "stateDir": {
+      "type": "string",
+      "default": "",
+      "description": "If set, puts this feature's data at this path, which must be inside the remote user's home. Mount a volume there to persist it across rebuilds."
+    },
+    "buildxVersion": {
+      "type": "string",
+      "default": "latest",
+      "description": "Buildx plugin channel (latest) or a version (major, major.minor or major.minor.patch)."
+    },
+    "composeVersion": {
+      "type": "string",
+      "default": "latest",
+      "description": "Compose plugin channel (latest) or a version (major, major.minor or major.minor.patch)."
     },
     "daemonJson": {
       "type": "string",
@@ -17,6 +32,7 @@
     }
   },
   "entrypoint": "/usr/local/share/docker-in-docker/docker-init.sh",
+  "postCreateCommand": "/usr/local/share/docker-in-docker/init.sh",
   "privileged": false,
   "containerEnv": {
     "DOCKER_BUILDKIT": "1",
