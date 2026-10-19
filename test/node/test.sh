@@ -16,11 +16,11 @@ check "global prefix writable by the dev user" bash -lc 'mkdir -p "$(npm prefix 
 
 # The runtime lives in its own folder, linked onto the PATH.
 for cmd in node npm npx; do
-  check "$cmd links into the node folder" bash -c "readlink -f \"\$(command -v $cmd)\" | grep -q '^/usr/local/node/'"
+  check "$cmd links into the node folder" bash -c "readlink -f \"\$(command -v $cmd)\" | grep -q '^/opt/node/'"
 done
 check "nothing left in the shared tree" test ! -e /usr/local/lib/node_modules/npm
-# Skip the profile, so the global prefix comes from the runtime's own config.
-check "global prefix stays on the default PATH" bash -c '[ "$(npm prefix -g)" = /usr/local ]'
+# Drop the profile's prefix, so the global prefix comes from the feature's global config.
+check "global prefix stays on the default PATH" bash -c '[ "$(env -u NPM_CONFIG_PREFIX npm prefix -g)" = /usr/local ]'
 
 # A project whose postinstall leaves a marker shows whether npm runs install scripts.
 project="$(mktemp -d)"

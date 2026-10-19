@@ -27,5 +27,8 @@
       "description": "npm config as INI with backslash-escaped line breaks, written to .npmrc."
     }
   },
+  "containerEnv": {
+    "NPM_CONFIG_GLOBALCONFIG": "/usr/local/etc/node/npmrc"
+  },
   "postCreateCommand": "/usr/local/share/node/init.sh"
 }
