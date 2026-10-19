@@ -1,6 +1,6 @@
 {
   "id": "node",
-  "version": "3.0.1",
+  "version": "3.0.2",
   "name": "Node.js",
   "description": "Installs the Node.js runtime with npm and npx on a selectable channel or release line.",
   "documentationURL": "https://github.com/hansehart/devcontainer-features/tree/main/src/node",
@@ -28,7 +28,7 @@
     }
   },
   "containerEnv": {
-    "NPM_CONFIG_GLOBALCONFIG": "/usr/local/etc/node/npmrc"
+    "NPM_CONFIG_GLOBALCONFIG": "/etc/opt/node/npmrc"
   },
   "postCreateCommand": "/usr/local/share/node/init.sh"
 }
