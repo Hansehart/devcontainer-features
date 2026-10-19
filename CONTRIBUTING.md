@@ -25,6 +25,7 @@ Every option belongs to one of these kinds, and every option is tested at least 
 Files go where the Filesystem Hierarchy Standard (FHS) puts them, so every feature lays out the same way.
 
 - **Programs:** a single binary goes in `/usr/local/bin`. A program made of many files goes in its own `/opt/<program>` tree, with its commands linked into `/usr/local/bin` and its own config in `/etc/opt/<program>`.
+- **Packages:** apt packages keep the distribution's paths, and their signing keys go in `/etc/apt/keyrings`.
 - **Hook scripts:** `init.sh`, `state-dir.sh`, the entrypoint and the code they use go in `/usr/local/lib/<feature>`.
 - **Shipped data:** fixed files the feature ships for others to reference go in `/usr/local/share/<feature>`.
 - **Settings:** what the feature records at build time for its hooks to apply goes in `/usr/local/etc/<feature>`.
