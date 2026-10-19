@@ -14,6 +14,14 @@ check "npx on PATH" bash -lc "command -v npx"
 check "global prefix in the dev user's home" bash -lc '[ "$(npm prefix -g)" = "$HOME/.local" ]'
 check "global prefix writable by the dev user" bash -lc 'mkdir -p "$(npm prefix -g)/lib" && touch "$(npm prefix -g)/lib/.probe" && rm "$(npm prefix -g)/lib/.probe"'
 
+# The runtime lives in its own folder, linked onto the PATH.
+for cmd in node npm npx; do
+  check "$cmd links into the node folder" bash -c "readlink -f \"\$(command -v $cmd)\" | grep -q '^/opt/node/'"
+done
+check "nothing left in the shared tree" test ! -e /usr/local/lib/node_modules/npm
+# Drop the profile's prefix, so the global prefix comes from the feature's global config.
+check "global prefix stays on the default PATH" bash -c '[ "$(env -u NPM_CONFIG_PREFIX npm prefix -g)" = /usr/local ]'
+
 # A project whose postinstall leaves a marker shows whether npm runs install scripts.
 project="$(mktemp -d)"
 cat > "$project/package.json" <<'EOF'
