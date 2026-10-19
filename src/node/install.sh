@@ -64,8 +64,8 @@ tar -xzf "$tmp/$asset" -C /opt/node --strip-components=1 --no-same-owner \
 # Link the runtime and its tools onto the default PATH.
 ln -sf /opt/node/bin/* /usr/local/bin/
 
-# Keep the global prefix on the default PATH where no profile sets one, since npm would
-# otherwise derive it from the runtime's own folder; containerEnv points npm at this config.
+# Give every process a global prefix on the default PATH, through the config containerEnv
+# points npm at.
 install -d /usr/local/etc/node
 echo 'prefix=/usr/local' > /usr/local/etc/node/npmrc
 
