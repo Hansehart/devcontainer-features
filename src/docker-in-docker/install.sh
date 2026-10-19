@@ -35,14 +35,15 @@ echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.
   > /etc/apt/sources.list.d/docker.list
 apt-get update
 
-# Print the apt release of a package: the current one for latest, else the newest whose
-# version starts with the requested one at a dot or dash boundary.
+# Turn a requested version into the exact release apt installs, so a short version
+# picks the newest release in its line.
 resolve() {
   local pkg="$1" want="$2" ver
   if [ "$want" = "latest" ]; then
     ver="$(apt-cache policy "$pkg" | awk '/Candidate:/ {print $2}')"
   else
-    # Skip the epoch, so 28 matches 5:28.5.2-1~ubuntu.24.04~noble.
+    # Compare against the project's own version number, so a requested version reads as
+    # the project numbers its releases.
     ver="$(apt-cache madison "$pkg" | awk -v v="$want" '
       { s = $3; sub(/^[0-9]+:/, "", s) }
       index(s, v) == 1 && substr(s, length(v) + 1, 1) ~ /[.-]/ { print $3; exit }')"
