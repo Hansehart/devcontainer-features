@@ -66,8 +66,8 @@ ln -sf /opt/node/bin/* /usr/local/bin/
 
 # Give every process a global prefix on the default PATH, through the config containerEnv
 # points npm at.
-install -d /usr/local/etc/node
-echo 'prefix=/usr/local' > /usr/local/etc/node/npmrc
+install -d /etc/opt/node
+echo 'prefix=/usr/local' > /etc/opt/node/npmrc
 
 # Write the login profile with a global prefix the dev user owns and the chosen npm settings.
 {
