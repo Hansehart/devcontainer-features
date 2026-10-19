@@ -103,7 +103,7 @@ printf '%s' "$DAEMON_JSON" > /usr/local/share/docker-in-docker/requested-daemon.
 # Ship the seccomp profile the daemon needs, for consumers to reference.
 install -m 0644 "$(dirname "$0")/seccomp.json" /usr/local/share/docker-in-docker/seccomp.json
 
-# Install the hook that creates the state dir, and the guard it was claimed with.
+# Install the hook that prepares the state dir when the container is created.
 install -m 0755 "$(dirname "$0")/init.sh" /usr/local/share/docker-in-docker/init.sh
 install -m 0755 "$(dirname "$0")/state-dir.sh" /usr/local/share/docker-in-docker/state-dir.sh
 
