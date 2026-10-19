@@ -19,3 +19,15 @@ Every option belongs to one of these kinds, and every option is tested at least 
 - **Feature-specific:** whatever is unique to the tool.
 - **Hardening:** a boolean, default `true`, that sets one documented env var in `/etc/profile.d/<feature>.sh`. `false` is the single opt-out, and the hardening stays independent of user config. Tested by a scenario that sets the opt-out value, named `<option>_<value>`.
 - **User config:** written exactly as given, and only when set. Tested with a real hardening setting that differs from the default, checking that it's written and that the tool reads it.
+
+## Layout
+
+Files go where the Filesystem Hierarchy Standard (FHS) puts them, so every feature lays out the same way.
+
+- **Programs:** a single binary goes in `/usr/local/bin`. A program made of many files goes in its own `/opt/<program>` tree, with its commands linked into `/usr/local/bin` and its own config in `/etc/opt/<program>`.
+- **Hook scripts:** `init.sh`, `state-dir.sh`, the entrypoint and the code they use go in `/usr/local/lib/<feature>`.
+- **Shipped data:** fixed files the feature ships for others to reference go in `/usr/local/share/<feature>`.
+- **Settings:** what the feature records at build time for its hooks to apply goes in `/usr/local/etc/<feature>`.
+- **Environment:** env vars for login shells go in `/etc/profile.d/<feature>.sh`, and env vars every process needs go in `containerEnv`.
+- **Runtime state:** data a service changes while running goes in `/var/lib/<service>`, and sockets in `/run`.
+- **User data:** everything that belongs to the remote user stays in their home, including per-user installs in `~/.local/bin` and the `stateDir`.
