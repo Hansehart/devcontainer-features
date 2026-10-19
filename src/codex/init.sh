@@ -7,7 +7,7 @@ umask 0077
 # Read the feature's settings.
 if [ -r /etc/profile.d/codex.sh ]; then . /etc/profile.d/codex.sh; fi
 
-# Create the state dir on the mounted volume, where the tool expects it.
+# Create the state dir on the mounted volume.
 if [ -n "${CODEX_HOME:-}" ]; then mkdir -p "${CODEX_HOME}"; fi
 
 # Warn when the state dir sits on the container filesystem, since a volume is what keeps it
