@@ -7,7 +7,7 @@ umask 0077
 # Read the feature's settings.
 if [ -r /etc/profile.d/docker-in-docker.sh ]; then . /etc/profile.d/docker-in-docker.sh; fi
 
-# Create the state dir on the mounted volume, where the CLI expects its config.
+# Create the state dir on the mounted volume, where the tool expects it.
 if [ -n "${DOCKER_CONFIG:-}" ]; then mkdir -p "${DOCKER_CONFIG}"; fi
 
 # Warn when the state dir sits on the container filesystem, since a volume is what keeps it
