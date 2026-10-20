@@ -34,7 +34,3 @@ Every option belongs to one of these kinds, and every option is tested at least 
 - **Feature-specific:** whatever is unique to the tool.
 - **Hardening:** a boolean, default `true`, that sets one documented env var in `/etc/profile.d/<feature>.sh`. `false` is the single opt-out, and the hardening stays independent of user config. Tested by a scenario that sets the opt-out value, named `<option>_<value>`.
 - **User config:** written exactly as given, and only when set. Tested with a real hardening setting that differs from the default, checking that it's written and that the tool reads it.
-
-### Versioning
-
-A feature's version raises its first number for breaking changes, its second for new options, and its third for fixes.
