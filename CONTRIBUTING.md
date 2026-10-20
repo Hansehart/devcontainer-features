@@ -5,6 +5,7 @@
 - **Changes** ideally start as an issue, are made on their own branch, and land on main through a pull request as one squashed commit.
 - **Commits** start with the kind of change and the feature's name, followed by a short summary.
 - **Descriptions** of pull requests and issues stay slim and minimal, about 2–3 sentences on average.
+- **Tests** come first: a change starts with a test that fails without it, and the implementation then makes it pass.
 
 ## Code
 
