@@ -5,11 +5,11 @@
 - **Changes** ideally start as an issue, are made on their own branch, and land on main through a pull request as one squashed commit.
 - **Commits** start with the kind of change and the feature's name, followed by a short summary.
 - **Descriptions** of pull requests and issues stay slim and minimal, about 2–3 sentences on average.
-- **Tests** come first: a change starts with a test that fails without it, and the implementation then makes it pass.
 
 ## Code
 
 - **Comments** state a step's intent, in abstract terms, so they stay accurate as the concrete details change.
+- **Tests** come first: a change starts with a test that fails without it, and the implementation then makes it pass.
 
 ## Features
 
@@ -19,12 +19,13 @@ Files go where the Filesystem Hierarchy Standard (FHS) puts them, so every featu
 
 - **Environment:** env vars with a fixed value go in `containerEnv`, and env vars whose value depends on an option go in `/etc/profile.d/<feature>.sh`.
 - **Hook scripts:** the scripts the feature runs at build, create or start, and the code they share, go in `/usr/local/libexec/<feature>`.
-- **Packages:** apt packages keep the distribution's paths, and their signing keys go in `/etc/apt/keyrings`.
-- **Programs:** a single binary goes in `/usr/local/bin`. A program made of many files goes in its own `/opt/<program>` tree, with its commands linked into `/usr/local/bin` and its own config in `/etc/opt/<program>`.
+- **Packages:** apt packages keep the distribution's paths and stay in the image, and their signing keys go in `/etc/apt/keyrings`.
+- **Programs:** a single binary goes in `/usr/local/bin`. A program made of many files goes in its own `/opt/<program>` tree, with its commands linked into `/usr/local/bin` and its own config in `/etc/opt/<program>`. A large program instead sits on a volume at `/opt/<program>` and is installed at create into `/opt/<program>/<version>`, which also holds its generated data and config.
 - **Runtime state:** data a program changes while running goes in `/var/opt/<program>` for a program in `/opt` and in `/var/lib/<program>` for any other program, and files that live only while it runs go in `/run`.
 - **Settings:** what the feature records at build time for its hooks to apply goes in `/usr/local/etc/<feature>`.
 - **Shipped data:** fixed files the feature ships for others to reference go in `/usr/local/share/<feature>`.
-- **User data:** everything that belongs to the remote user stays in their home, including per-user installs in `~/.local/bin` and the feature's state dir.
+- **User data:** everything that belongs to the remote user stays in their home, including per-user installs in `~/.local/bin` and the feature's state dir, which holds data only.
+- **Volumes:** a volume the feature declares is named after the feature, and holds either a large program or the runtime state of a program.
 
 ### Options
 
