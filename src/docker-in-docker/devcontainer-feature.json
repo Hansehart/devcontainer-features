@@ -1,6 +1,6 @@
 {
   "id": "docker-in-docker",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "name": "Docker in Docker",
   "description": "Installs a rootless Docker engine for building and running containers inside the dev container.",
   "documentationURL": "https://github.com/hansehart/devcontainer-features/tree/main/src/docker-in-docker",
@@ -31,8 +31,8 @@
       "description": "Daemon settings as JSON with backslash-escaped quotes, written to daemon.json."
     }
   },
-  "entrypoint": "/usr/local/share/docker-in-docker/docker-init.sh",
-  "postCreateCommand": "/usr/local/share/docker-in-docker/init.sh",
+  "entrypoint": "/usr/local/libexec/docker-in-docker/docker-init.sh",
+  "postCreateCommand": "/usr/local/libexec/docker-in-docker/init.sh",
   "privileged": false,
   "containerEnv": {
     "DOCKER_BUILDKIT": "1",

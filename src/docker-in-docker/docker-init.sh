@@ -2,7 +2,7 @@
 set -e
 
 # Read the user who runs the daemon, as recorded at build.
-RUSER="$(cat /usr/local/share/docker-in-docker/rootless-user 2>/dev/null || true)"
+RUSER="$(cat /usr/local/etc/docker-in-docker/rootless-user 2>/dev/null || true)"
 
 # Start the daemon only for a known non-root user.
 if [ "$RUSER" = "root" ] || ! RUSER_ENT="$(getent passwd "$RUSER")"; then
@@ -73,7 +73,7 @@ chmod 0700 "$RUNTIME_DIR"
 chown "$RUSER":"$RUSER" "$RUNTIME_DIR" "$DATA_ROOT" || true
 
 # Seed the user's daemon settings with the requested ones.
-req=/usr/local/share/docker-in-docker/requested-daemon.json
+req=/usr/local/etc/docker-in-docker/requested-daemon.json
 if [ -s "$req" ] && [ ! -f "${RHOME}/.config/docker/daemon.json" ]; then
   mkdir -p "${RHOME}/.config/docker"
   cp "$req" "${RHOME}/.config/docker/daemon.json"
