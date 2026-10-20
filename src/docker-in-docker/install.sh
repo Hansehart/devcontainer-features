@@ -90,22 +90,22 @@ if [ "$_REMOTE_USER" != "root" ]; then
   done
 fi
 
-# Install the entrypoint that starts the daemon with the container.
-install -d /usr/local/share/docker-in-docker
-install -m 0755 "$(dirname "$0")/docker-init.sh" /usr/local/share/docker-in-docker/docker-init.sh
+# Install the entrypoint that starts the daemon with the container, and the hook that
+# prepares the state dir when the container is created.
+install -d /usr/local/libexec/docker-in-docker
+install -m 0755 "$(dirname "$0")/docker-init.sh" /usr/local/libexec/docker-in-docker/docker-init.sh
+install -m 0755 "$(dirname "$0")/init.sh" /usr/local/libexec/docker-in-docker/init.sh
+install -m 0755 "$(dirname "$0")/state-dir.sh" /usr/local/libexec/docker-in-docker/state-dir.sh
 
-# Record which user runs the daemon, for the entrypoint to read at start.
-printf '%s\n' "$_REMOTE_USER" > /usr/local/share/docker-in-docker/rootless-user
-
-# Keep the requested daemon settings for the entrypoint to apply.
-printf '%s' "$DAEMON_JSON" > /usr/local/share/docker-in-docker/requested-daemon.json
+# Record which user runs the daemon and the requested daemon settings, for the entrypoint
+# to apply at start.
+install -d /usr/local/etc/docker-in-docker
+printf '%s\n' "$_REMOTE_USER" > /usr/local/etc/docker-in-docker/rootless-user
+printf '%s' "$DAEMON_JSON" > /usr/local/etc/docker-in-docker/requested-daemon.json
 
 # Ship the seccomp profile the daemon needs, for consumers to reference.
+install -d /usr/local/share/docker-in-docker
 install -m 0644 "$(dirname "$0")/seccomp.json" /usr/local/share/docker-in-docker/seccomp.json
-
-# Install the hook that prepares the state dir when the container is created.
-install -m 0755 "$(dirname "$0")/init.sh" /usr/local/share/docker-in-docker/init.sh
-install -m 0755 "$(dirname "$0")/state-dir.sh" /usr/local/share/docker-in-docker/state-dir.sh
 
 # Point login shells at the published socket, and the CLI config at the state dir when set.
 {
