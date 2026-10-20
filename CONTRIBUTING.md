@@ -19,7 +19,7 @@ Files go where the Filesystem Hierarchy Standard (FHS) puts them, so every featu
 - **Environment:** env vars with a fixed value go in `containerEnv`, and env vars whose value depends on an option go in `/etc/profile.d/<feature>.sh`.
 - **Hook scripts:** the scripts the feature runs at build, create or start, and the code they share, go in `/usr/local/lib/<feature>`.
 - **Packages:** apt packages keep the distribution's paths, and their signing keys go in `/etc/apt/keyrings`.
-- **Programs:** a single binary goes in `/usr/local/bin`. A program made of many files goes in its own `/opt/<program>` tree, with its commands linked into `/usr/local/bin` and its own config in `/etc/opt/<program>`.
+- **Programs:** a single binary goes in `/usr/local/bin`. A program made of many files goes in its own `/opt/<program>` tree, with its commands linked into `/usr/local/bin`, its own config in `/etc/opt/<program>`, and data it changes while running in `/var/opt/<program>`.
 - **Runtime state:** data a service changes while running goes in `/var/lib/<service>`, and files that live only while it runs go in `/run`.
 - **Settings:** what the feature records at build time for its hooks to apply goes in `/usr/local/etc/<feature>`.
 - **Shipped data:** fixed files the feature ships for others to reference go in `/usr/local/share/<feature>`.
