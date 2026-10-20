@@ -86,11 +86,14 @@ echo 'prefix=/usr/local' > /etc/opt/node/npmrc
 } > /etc/profile.d/node.sh
 chmod 0644 /etc/profile.d/node.sh
 
-# Install the hook and keep the requested config for it to apply at create.
-install -d /usr/local/share/node
-install -m 0755 "$(dirname "$0")/init.sh" /usr/local/share/node/init.sh
-install -m 0755 "$(dirname "$0")/state-dir.sh" /usr/local/share/node/state-dir.sh
-printf '%s' "$NPMRC" > /usr/local/share/node/requested-npmrc
+# Install the hook that prepares the state dir and applies the requested config at create.
+install -d /usr/local/libexec/node
+install -m 0755 "$(dirname "$0")/init.sh" /usr/local/libexec/node/init.sh
+install -m 0755 "$(dirname "$0")/state-dir.sh" /usr/local/libexec/node/state-dir.sh
+
+# Record the requested config, for the hook to apply at create.
+install -d /usr/local/etc/node
+printf '%s' "$NPMRC" > /usr/local/etc/node/requested-npmrc
 
 # Confirm the runtime and its package tools run from the PATH.
 node --version
