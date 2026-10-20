@@ -13,9 +13,9 @@ check "PATH points into the state dir" grep -qF '/home/ubuntu/latex/texlive/' /e
 
 # A path outside the home proves the guard rejects what it should.
 check "a state dir outside the home is refused" \
-  bash -c '! /usr/local/share/latex/state-dir.sh latex /var/latex'
+  bash -c '! /usr/local/libexec/latex/state-dir.sh latex /var/latex'
 check "the refusal names the home" \
-  bash -c '/usr/local/share/latex/state-dir.sh latex /var/latex 2>&1 | grep -q "must be inside /home/ubuntu"'
+  bash -c '/usr/local/libexec/latex/state-dir.sh latex /var/latex 2>&1 | grep -q "must be inside /home/ubuntu"'
 
 # Report result
 reportResults

@@ -5,10 +5,9 @@ set -euo pipefail
 umask 0077
 
 # Install TeX Live onto the state dir once and reuse it on later creates.
-SHARE_DIR="/usr/local/share/latex"
 # shellcheck source=lib.sh
-. "$SHARE_DIR/lib.sh"
-. "$SHARE_DIR/config.env"
+. /usr/local/libexec/latex/lib.sh
+. /usr/local/etc/latex/config.env
 
 # Act only when a state dir holds the install.
 [ -n "${STATE_DIR:-}" ] || exit 0
@@ -28,7 +27,8 @@ fi
 echo "latex: installing TeX Live $VERSION ($SCHEME) into $TEXDIR once, reused on later rebuilds"
 rm -rf "$TEXDIR"
 mkdir -p "$TEXDIR"
-install_texlive "$TEXDIR"
+# Keep the generated data and host config in the tree, so the volume holds all of it.
+install_texlive "$TEXDIR" "$TEXDIR/texmf-var" "$TEXDIR/texmf-config"
 
 # Confirm the new tree runs.
 "$TEXDIR/bin/$PLAT/latex" --version

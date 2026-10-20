@@ -14,8 +14,9 @@ if [ -n "$STATE_DIR" ]; then
   "$(dirname "$0")/state-dir.sh" latex "$STATE_DIR"
 fi
 
-SHARE_DIR="/usr/local/share/latex"
-INSTALLER_DIR="$SHARE_DIR/installer"
+LIBEXEC_DIR="/usr/local/libexec/latex"
+CONFIG_DIR="/usr/local/etc/latex"
+INSTALLER_DIR="$LIBEXEC_DIR/installer"
 REPO="https://texlive.info/historic/systems/texlive/$VERSION/tlnet-final"
 
 # Share the TeX Live install routine with the hook.
@@ -50,15 +51,16 @@ PLAT="$("$INSTALLER_DIR/install-tl" -print-platform)"
 
 # Install TeX Live into the image, or leave it to the hook when a state dir holds it.
 if [ -z "$STATE_DIR" ]; then
-  TEXDIR="/usr/local/texlive/$VERSION"
-  install_texlive "$TEXDIR"
+  TEXDIR="/opt/texlive/$VERSION"
+  install_texlive "$TEXDIR" "/var/opt/texlive/$VERSION" "/etc/opt/texlive/$VERSION"
   ln -sf "$TEXDIR/bin/$PLAT"/* /usr/local/bin/
 else
   echo "export PATH=\"$STATE_DIR/texlive/$VERSION/bin/$PLAT:\$PATH\"" > /etc/profile.d/latex.sh
   chmod 0644 /etc/profile.d/latex.sh
 fi
 
-# Hand the hook its settings, the shared routine and its script.
+# Record the hook's settings.
+install -d "$CONFIG_DIR"
 {
   echo "STATE_DIR=\"$STATE_DIR\""
   echo "VERSION=\"$VERSION\""
@@ -66,10 +68,12 @@ fi
   echo "REPO=\"$REPO\""
   echo "PLAT=\"$PLAT\""
   echo "INSTALLER_DIR=\"$INSTALLER_DIR\""
-} > "$SHARE_DIR/config.env"
-install -m 0644 "$(dirname "$0")/lib.sh" "$SHARE_DIR/lib.sh"
-install -m 0755 "$(dirname "$0")/init.sh" "$SHARE_DIR/init.sh"
-install -m 0755 "$(dirname "$0")/state-dir.sh" "$SHARE_DIR/state-dir.sh"
+} > "$CONFIG_DIR/config.env"
+
+# Install the hook, the shared routine and the state-dir guard next to the kept installer.
+install -m 0644 "$(dirname "$0")/lib.sh" "$LIBEXEC_DIR/lib.sh"
+install -m 0755 "$(dirname "$0")/init.sh" "$LIBEXEC_DIR/init.sh"
+install -m 0755 "$(dirname "$0")/state-dir.sh" "$LIBEXEC_DIR/state-dir.sh"
 
 # Confirm an image install runs from the PATH; the hook confirms a state-dir install.
 [ -n "$STATE_DIR" ] || latex --version

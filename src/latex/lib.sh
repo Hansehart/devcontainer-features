@@ -1,17 +1,17 @@
 #!/usr/bin/env bash
 # The TeX Live install routine, shared by the install script and the hook.
 
-# Install a self-contained TeX Live tree, which stays usable wherever it is kept.
+# Install a TeX Live tree, with its generated data and host config in the given dirs.
 install_texlive() {
-  local texdir="$1"
+  local texdir="$1" vardir="$2" configdir="$3"
   local tmp
   tmp="$(mktemp -d)"
   {
     echo "selected_scheme $SCHEME"
     echo "TEXDIR $texdir"
     echo "TEXMFLOCAL $texdir/texmf-local"
-    echo "TEXMFSYSVAR $texdir/texmf-var"
-    echo "TEXMFSYSCONFIG $texdir/texmf-config"
+    echo "TEXMFSYSVAR $vardir"
+    echo "TEXMFSYSCONFIG $configdir"
     echo "instopt_portable 1"
     echo "tlpdbopt_install_docfiles 0"
     echo "tlpdbopt_install_srcfiles 0"
