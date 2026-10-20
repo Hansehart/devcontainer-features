@@ -16,7 +16,7 @@
 
 Files go where the Filesystem Hierarchy Standard (FHS) puts them, so every feature lays out the same way.
 
-- **Environment:** env vars for login shells go in `/etc/profile.d/<feature>.sh`, and env vars every process needs go in `containerEnv`.
+- **Environment:** env vars with a fixed value go in `containerEnv`, and env vars whose value depends on an option go in `/etc/profile.d/<feature>.sh`.
 - **Hook scripts:** the scripts the feature runs at build, create or start, and the code they share, go in `/usr/local/lib/<feature>`.
 - **Packages:** apt packages keep the distribution's paths, and their signing keys go in `/etc/apt/keyrings`.
 - **Programs:** a single binary goes in `/usr/local/bin`. A program made of many files goes in its own `/opt/<program>` tree, with its commands linked into `/usr/local/bin` and its own config in `/etc/opt/<program>`.
