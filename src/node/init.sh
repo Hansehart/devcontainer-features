@@ -19,7 +19,7 @@ if [ -n "$state_dir" ] && [ "$(stat -c %d "$state_dir")" = "$(stat -c %d /)" ]; 
 fi
 
 # Apply the requested config, when there is one.
-req=/usr/local/share/node/requested-npmrc
+req=/usr/local/etc/node/requested-npmrc
 if [ -s "$req" ]; then
   target="${NPM_CONFIG_USERCONFIG:-$HOME/.npmrc}"
   mkdir -p "$(dirname "$target")"
