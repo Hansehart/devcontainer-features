@@ -8,7 +8,7 @@ check "latex on PATH" bash -c "command -v latex"
 check "latex version" latex --version
 check "pdflatex on PATH" bash -c "command -v pdflatex"
 
-# TeX Live lives in its own tree, with its generated data in the variable data dir.
+# The distribution lives in its own tree, with its generated data kept apart.
 check "latex links into the TeX Live tree" bash -c "readlink -f \"\$(command -v latex)\" | grep -q '^/opt/texlive/'"
 check "generated data in /var/opt" bash -c "kpsewhich -var-value TEXMFSYSVAR | grep -q '^/var/opt/texlive/'"
 # The user's own caches sit in their home, where they can write them.

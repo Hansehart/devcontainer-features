@@ -38,8 +38,8 @@ curl -fsSL "$REPO/install-tl-unx.tar.gz.sha512" -o "$tmp/install-tl-unx.tar.gz.s
 tar -xzf "$tmp/install-tl-unx.tar.gz" -C "$tmp"
 installer="$(find "$tmp" -maxdepth 1 -type d -name 'install-tl-*' -print -quit)"
 
-# Install TeX Live into its own tree, with its generated data and host config where FHS
-# puts them for a program in /opt.
+# Install the distribution into its own tree, with its generated data and host config kept
+# apart, where the layout rules place them.
 {
   echo "selected_scheme $SCHEME"
   echo "TEXDIR $TEXDIR"
@@ -59,7 +59,7 @@ TEXLIVE_INSTALL_ENV_NOCHECK=1 "$installer/install-tl" \
 PLAT="$("$installer/install-tl" -print-platform)"
 ln -sf "$TEXDIR/bin/$PLAT"/* /usr/local/bin/
 
-# Point the user's own TeX trees at the state dir when set.
+# Point the user's own trees at the state dir when set.
 if [ -n "$STATE_DIR" ]; then
   {
     echo "export TEXMFHOME=\"$STATE_DIR/texmf\""
@@ -74,5 +74,5 @@ install -d /usr/local/libexec/latex
 install -m 0755 "$(dirname "$0")/init.sh" /usr/local/libexec/latex/init.sh
 install -m 0755 "$(dirname "$0")/state-dir.sh" /usr/local/libexec/latex/state-dir.sh
 
-# Confirm TeX Live runs from the PATH.
+# Confirm the distribution runs from the PATH.
 latex --version

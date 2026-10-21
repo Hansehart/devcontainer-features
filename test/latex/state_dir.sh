@@ -8,7 +8,7 @@ source dev-container-features-test-lib
 check "state dir pre-created" test -d /home/ubuntu/latex
 check "state dir writable by the dev user" bash -c 'touch /home/ubuntu/latex/.probe && rm /home/ubuntu/latex/.probe'
 
-# TeX Live sits in the image, and the state dir holds the user's own TeX data.
+# The distribution sits in the image, and the state dir holds the user's own data.
 check "latex links into the TeX Live tree" bash -c "readlink -f \"\$(command -v latex)\" | grep -q '^/opt/texlive/'"
 
 # Run the hook as a container create does.
@@ -20,7 +20,7 @@ check "TEXMFCONFIG exported" bash -lc '[ "$TEXMFCONFIG" = /home/ubuntu/latex/tex
 check "the hook creates the user trees" \
   test -d /home/ubuntu/latex/texmf -a -d /home/ubuntu/latex/texmf-var -a -d /home/ubuntu/latex/texmf-config
 
-# A package in the user tree is found, the way one installed with tlmgr --usermode would be.
+# A package in the user tree is found, as one the user installs themselves would be.
 mkdir -p /home/ubuntu/latex/texmf/tex/latex/probe
 touch /home/ubuntu/latex/texmf/tex/latex/probe/probe.sty
 check "TeX finds a package in the state dir" \

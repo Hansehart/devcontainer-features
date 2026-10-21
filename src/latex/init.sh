@@ -7,7 +7,7 @@ umask 0077
 # Read the feature's settings.
 if [ -r /etc/profile.d/latex.sh ]; then . /etc/profile.d/latex.sh; fi
 
-# Create the user's TeX trees on the mounted volume.
+# Create the user's trees on the mounted volume.
 if [ -n "${TEXMFHOME:-}" ]; then mkdir -p "$TEXMFHOME" "$TEXMFVAR" "$TEXMFCONFIG"; fi
 
 # Warn when the state dir sits on the container filesystem, since a volume is what keeps it
