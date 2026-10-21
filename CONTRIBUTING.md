@@ -9,7 +9,7 @@
 ## Code
 
 - **Comments** state a step's intent, in abstract terms, so they stay accurate as the concrete details change.
-- **Tests** come first: a change starts with a test that fails without it, and the implementation then makes it pass.
+- **Tests:** a change starts with a test that fails without it, and the implementation then makes it pass.
 
 ## Features
 
