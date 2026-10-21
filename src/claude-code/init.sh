@@ -18,7 +18,7 @@ if [ -n "$state_dir" ] && [ "$(stat -c %d "$state_dir")" = "$(stat -c %d /)" ]; 
 fi
 
 # Apply the requested settings, when there are any.
-req=/usr/local/share/claude-code/requested-settings.json
+req=/usr/local/etc/claude-code/requested-settings.json
 if [ -s "$req" ]; then
   target="${CLAUDE_CONFIG_DIR:-$HOME/.claude}/settings.json"
   mkdir -p "$(dirname "$target")"

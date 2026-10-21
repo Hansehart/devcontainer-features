@@ -39,11 +39,14 @@ su - "$_REMOTE_USER" -c "curl -fsSL https://claude.ai/install.sh | bash -s -- '$
 } > /etc/profile.d/claude-code.sh
 chmod 0644 /etc/profile.d/claude-code.sh
 
-# Install the hook and keep the requested settings for it to apply at create.
-install -d /usr/local/share/claude-code
-install -m 0755 "$(dirname "$0")/init.sh" /usr/local/share/claude-code/init.sh
-install -m 0755 "$(dirname "$0")/state-dir.sh" /usr/local/share/claude-code/state-dir.sh
-printf '%s' "$SETTINGS_JSON" > /usr/local/share/claude-code/requested-settings.json
+# Install the hook that prepares the state dir and applies the requested settings at create.
+install -d /usr/local/libexec/claude-code
+install -m 0755 "$(dirname "$0")/init.sh" /usr/local/libexec/claude-code/init.sh
+install -m 0755 "$(dirname "$0")/state-dir.sh" /usr/local/libexec/claude-code/state-dir.sh
+
+# Record the requested settings, for the hook to apply at create.
+install -d /usr/local/etc/claude-code
+printf '%s' "$SETTINGS_JSON" > /usr/local/etc/claude-code/requested-settings.json
 
 # Confirm the tool runs for the dev user.
 su - "$_REMOTE_USER" -c "claude --version"
