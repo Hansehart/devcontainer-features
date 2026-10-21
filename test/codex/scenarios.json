@@ -1,6 +1,6 @@
 {
   "config_toml": {
-    "image": "ubuntu:24.04",
+    "image": "ubuntu:26.04",
     "features": {
       "codex": {
         "configToml": "approval_policy = \\\"untrusted\\\"\\nsandbox_mode = \\\"read-only\\\""
@@ -8,7 +8,7 @@
     }
   },
   "pinned_version": {
-    "image": "ubuntu:24.04",
+    "image": "ubuntu:26.04",
     "features": {
       "codex": {
         "version": "0.148.0"
@@ -16,7 +16,7 @@
     }
   },
   "state_dir": {
-    "image": "ubuntu:24.04",
+    "image": "ubuntu:26.04",
     "remoteUser": "ubuntu",
     "features": {
       "codex": {

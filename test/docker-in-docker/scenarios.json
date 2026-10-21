@@ -1,6 +1,6 @@
 {
   "daemon_json": {
-    "image": "ubuntu:24.04",
+    "image": "ubuntu:26.04",
     "remoteUser": "ubuntu",
     "features": {
       "docker-in-docker": {
@@ -9,7 +9,7 @@
     }
   },
   "pinned_version": {
-    "image": "ubuntu:24.04",
+    "image": "ubuntu:26.04",
     "remoteUser": "ubuntu",
     "features": {
       "docker-in-docker": {
@@ -20,7 +20,7 @@
     }
   },
   "rootless_daemon": {
-    "image": "ubuntu:24.04",
+    "image": "ubuntu:26.04",
     "remoteUser": "ubuntu",
     "runArgs": [
       "--security-opt",
@@ -43,7 +43,7 @@
     }
   },
   "shared_socket": {
-    "image": "ubuntu:24.04",
+    "image": "ubuntu:26.04",
     "remoteUser": "ubuntu",
     "runArgs": [
       "--security-opt",
@@ -78,7 +78,7 @@
     ]
   },
   "state_dir": {
-    "image": "ubuntu:24.04",
+    "image": "ubuntu:26.04",
     "remoteUser": "ubuntu",
     "features": {
       "docker-in-docker": {

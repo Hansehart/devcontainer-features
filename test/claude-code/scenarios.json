@@ -1,6 +1,6 @@
 {
   "disable_nonessential_traffic_false": {
-    "image": "ubuntu:24.04",
+    "image": "ubuntu:26.04",
     "features": {
       "claude-code": {
         "disableNonessentialTraffic": false
@@ -8,7 +8,7 @@
     }
   },
   "pinned_version": {
-    "image": "ubuntu:24.04",
+    "image": "ubuntu:26.04",
     "features": {
       "claude-code": {
         "version": "2.1.231"
@@ -16,7 +16,7 @@
     }
   },
   "settings_json": {
-    "image": "ubuntu:24.04",
+    "image": "ubuntu:26.04",
     "features": {
       "claude-code": {
         "settingsJson": "{\\\"permissions\\\":{\\\"defaultMode\\\":\\\"plan\\\"}}"
@@ -24,7 +24,7 @@
     }
   },
   "state_dir": {
-    "image": "ubuntu:24.04",
+    "image": "ubuntu:26.04",
     "remoteUser": "ubuntu",
     "features": {
       "claude-code": {
