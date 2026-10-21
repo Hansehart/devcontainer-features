@@ -9,6 +9,7 @@
 ## Code
 
 - **Comments** state a step's intent, in abstract terms, so they stay accurate as the concrete details change.
+- **Tests** come first, so a change starts with a test that fails without it, and the implementation then makes it pass.
 
 ## Features
 
@@ -23,7 +24,8 @@ Files go where the Filesystem Hierarchy Standard (FHS) puts them, so every featu
 - **Runtime state:** data a program changes while running goes in `/var/opt/<program>` for a program in `/opt` and in `/var/lib/<program>` for any other program, and files that live only while it runs go in `/run`.
 - **Settings:** what the feature records at build time for its hooks to apply goes in `/usr/local/etc/<feature>`.
 - **Shipped data:** fixed files the feature ships for others to reference go in `/usr/local/share/<feature>`.
-- **User data:** everything that belongs to the remote user stays in their home, including per-user installs in `~/.local/bin` and the feature's state dir.
+- **User data:** everything that belongs to the remote user stays in their home, including per-user installs in `~/.local/bin` and the feature's state dir, which holds data only.
+- **Volumes:** a volume the feature declares is named after the feature, and holds the runtime state of a program.
 
 ### Options
 
