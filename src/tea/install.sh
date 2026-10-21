@@ -54,16 +54,19 @@ curl -fsSL "$base/download/$tag/checksums.txt" -o "$tmp/checksums.txt"
 install -m 0755 "$tmp/$asset" /usr/local/bin/tea
 
 # Install the hook that points the tool's config dir at the state dir.
-install -d /usr/local/share/tea
-install -m 0755 "$(dirname "$0")/init.sh" /usr/local/share/tea/init.sh
-install -m 0755 "$(dirname "$0")/state-dir.sh" /usr/local/share/tea/state-dir.sh
-echo "STATE_DIR=\"$STATE_DIR\"" > /usr/local/share/tea/config.env
-chmod 0644 /usr/local/share/tea/config.env
+install -d /usr/local/libexec/tea
+install -m 0755 "$(dirname "$0")/init.sh" /usr/local/libexec/tea/init.sh
+install -m 0755 "$(dirname "$0")/state-dir.sh" /usr/local/libexec/tea/state-dir.sh
+
+# Record the state dir, for the hook to read at build and at create.
+install -d /usr/local/etc/tea
+echo "STATE_DIR=\"$STATE_DIR\"" > /usr/local/etc/tea/config.env
+chmod 0644 /usr/local/etc/tea/config.env
 
 # Link the config at build too, as the dev user, so the image carries the redirect from
 # the start and one script decides what may be replaced.
 if [ -n "$STATE_DIR" ]; then
-  su - "$_REMOTE_USER" -c "/usr/local/share/tea/init.sh --build"
+  su - "$_REMOTE_USER" -c "/usr/local/libexec/tea/init.sh --build"
 fi
 
 # Confirm the tool runs from the PATH.

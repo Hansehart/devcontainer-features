@@ -5,7 +5,7 @@ set -euo pipefail
 umask 0077
 
 # Read the feature's settings.
-. /usr/local/share/tea/config.env
+. /usr/local/etc/tea/config.env
 
 # Act only when a state dir is set.
 [ -n "${STATE_DIR:-}" ] || exit 0
