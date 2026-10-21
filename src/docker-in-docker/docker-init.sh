@@ -28,20 +28,20 @@ if type iptables-legacy > /dev/null 2>&1 \
   update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy || true
 elif type iptables-nft > /dev/null 2>&1 \
      && update-alternatives --list iptables 2>/dev/null | grep -q '/usr/sbin/iptables-nft'; then
-  # Use the nft backend everywhere else.
+  # Use the newer backend everywhere else.
   update-alternatives --set iptables  /usr/sbin/iptables-nft  || true
   update-alternatives --set ip6tables /usr/sbin/ip6tables-nft || true
 fi
 
 export container=docker
 
-# Give the daemon the mounts it expects: securityfs and a private /tmp.
+# Give the daemon the mounts it expects.
 if [ -d /sys/kernel/security ] && ! mountpoint -q /sys/kernel/security; then
   mount -t securityfs none /sys/kernel/security || true
 fi
 mountpoint -q /tmp || mount -t tmpfs none /tmp || true
 
-# Nest the cgroup controllers wherever the host delegates them.
+# Nest the resource controllers wherever the host delegates them.
 if [ -f /sys/fs/cgroup/cgroup.controllers ] && mkdir -p /sys/fs/cgroup/init 2>/dev/null; then
   # Move the running processes into a leaf, retrying while they settle.
   cg_tries=0
@@ -55,14 +55,14 @@ if [ -f /sys/fs/cgroup/cgroup.controllers ] && mkdir -p /sys/fs/cgroup/init 2>/d
     > /sys/fs/cgroup/cgroup.subtree_control 2>/dev/null || true
 fi
 
-# Provide the tun device the userspace network stack builds on.
+# Provide the network device the userspace network stack builds on.
 if [ ! -c /dev/net/tun ]; then
   mkdir -p /dev/net
   mknod /dev/net/tun c 10 200 2>/dev/null || true
   # Open it to the user who runs the network stack.
   chmod 0666 /dev/net/tun 2>/dev/null || true
 fi
-# Name a missing tun device here, where the cause is clear.
+# Name a missing network device here, where the cause is clear.
 [ -c /dev/net/tun ] \
   || echo "docker-in-docker: no /dev/net/tun, the daemon comes up without networking" >&2
 

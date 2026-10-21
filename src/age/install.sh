@@ -33,7 +33,7 @@ esac
 asset="age-$tag-linux-$goarch.tar.gz"
 echo "age: installing $tag ($VERSION)"
 
-# Download the release over HTTPS, which authenticates its origin.
+# Download the release over an authenticated connection.
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 curl -fsSL "$base/download/$tag/$asset" -o "$tmp/$asset"

@@ -64,12 +64,12 @@ tar -xzf "$tmp/$asset" -C /opt/node --strip-components=1 --no-same-owner \
 # Link the runtime and its tools onto the default PATH.
 ln -sf /opt/node/bin/* /usr/local/bin/
 
-# Give every process a global prefix on the default PATH, through the config containerEnv
-# points npm at.
+# Give every process a global prefix on the default PATH, through a config every process is
+# pointed at.
 install -d /etc/opt/node
 echo 'prefix=/usr/local' > /etc/opt/node/npmrc
 
-# Write the login profile with a global prefix the dev user owns and the chosen npm settings.
+# Write the login profile with a global prefix the dev user owns and the chosen settings.
 {
   echo 'export PATH="$HOME/.local/bin:$PATH"'
   if [ -n "$STATE_DIR" ]; then

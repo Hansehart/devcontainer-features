@@ -60,7 +60,7 @@ fi
 url="$BUCKET/$resolved/linux64/chrome-headless-shell-linux64.zip"
 echo "headless-chrome: installing $resolved ($VERSION)"
 
-# Download the build over HTTPS, which authenticates its origin.
+# Download the build over an authenticated connection.
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 curl -fsSL "$url" -o "$tmp/chs.zip"

@@ -68,7 +68,7 @@ install -m 0755 "$tmp/uv" "$tmp/uvx" /usr/local/bin/
 } > /etc/profile.d/uv.sh
 chmod 0644 /etc/profile.d/uv.sh
 
-# Bake the chosen Python in as the default interpreter.
+# Bake the chosen interpreter in as the default.
 if [ -n "$PYTHON_VERSION" ]; then
   su - "$_REMOTE_USER" -c \
     "env -u UV_PYTHON_INSTALL_DIR uv python install --default --preview-features python-install-default '$PYTHON_VERSION'"
