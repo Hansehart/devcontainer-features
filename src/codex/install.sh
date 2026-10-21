@@ -39,11 +39,14 @@ su - "$_REMOTE_USER" -c "curl -fsSL https://chatgpt.com/codex/install.sh | $code
 } > /etc/profile.d/codex.sh
 chmod 0644 /etc/profile.d/codex.sh
 
-# Install the hook and keep the requested config for it to apply at create.
-install -d /usr/local/share/codex
-install -m 0755 "$(dirname "$0")/init.sh" /usr/local/share/codex/init.sh
-install -m 0755 "$(dirname "$0")/state-dir.sh" /usr/local/share/codex/state-dir.sh
-printf '%s' "$CONFIG_TOML" > /usr/local/share/codex/requested-config.toml
+# Install the hook that prepares the state dir and applies the requested config at create.
+install -d /usr/local/libexec/codex
+install -m 0755 "$(dirname "$0")/init.sh" /usr/local/libexec/codex/init.sh
+install -m 0755 "$(dirname "$0")/state-dir.sh" /usr/local/libexec/codex/state-dir.sh
+
+# Record the requested config, for the hook to apply at create.
+install -d /usr/local/etc/codex
+printf '%s' "$CONFIG_TOML" > /usr/local/etc/codex/requested-config.toml
 
 # Confirm the tool runs for the dev user.
 su - "$_REMOTE_USER" -c "codex --version"
