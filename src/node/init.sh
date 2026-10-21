@@ -7,7 +7,7 @@ umask 0077
 # Read the feature's settings.
 if [ -r /etc/profile.d/node.sh ]; then . /etc/profile.d/node.sh; fi
 
-# Create npm's cache and global prefix on the mounted volume.
+# Create the tool's cache and global prefix on the mounted volume.
 if [ -n "${NPM_CONFIG_CACHE:-}" ]; then mkdir -p "${NPM_CONFIG_CACHE}"; fi
 if [ -n "${NPM_CONFIG_PREFIX:-}" ]; then mkdir -p "${NPM_CONFIG_PREFIX}"; fi
 

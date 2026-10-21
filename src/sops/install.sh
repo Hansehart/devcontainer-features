@@ -52,7 +52,7 @@ curl -fsSL "$base/download/$tag/sops-$tag.checksums.txt" -o "$tmp/checksums.txt"
 # Install the binary on the PATH.
 install -m 0755 "$tmp/$asset" /usr/local/bin/sops
 
-# Point the tool at the age key in the state dir, when one is set.
+# Point the tool at the key in the state dir, when one is set.
 if [ -n "$STATE_DIR" ]; then
   echo "export SOPS_AGE_KEY_FILE=\"$STATE_DIR/keys.txt\"" > /etc/profile.d/sops.sh
   chmod 0644 /etc/profile.d/sops.sh

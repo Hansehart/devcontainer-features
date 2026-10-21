@@ -27,7 +27,7 @@ apt-get install -y --no-install-recommends \
   iptables \
   pigz
 
-# Trust Docker's own package repository.
+# Trust the vendor's own package repository.
 install -m 0755 -d /etc/apt/keyrings
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
 chmod a+r /etc/apt/keyrings/docker.asc
@@ -35,7 +35,7 @@ echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.
   > /etc/apt/sources.list.d/docker.list
 apt-get update
 
-# Turn a requested version into the exact release apt installs, so a short version
+# Turn a requested version into the exact release the package manager installs, so a short version
 # picks the newest release in its line.
 resolve() {
   local pkg="$1" want="$2" ver
@@ -103,7 +103,7 @@ install -d /usr/local/etc/docker-in-docker
 printf '%s\n' "$_REMOTE_USER" > /usr/local/etc/docker-in-docker/rootless-user
 printf '%s' "$DAEMON_JSON" > /usr/local/etc/docker-in-docker/requested-daemon.json
 
-# Ship the seccomp profile the daemon needs, for consumers to reference.
+# Ship the syscall profile the daemon needs, for consumers to reference.
 install -d /usr/local/share/docker-in-docker
 install -m 0644 "$(dirname "$0")/seccomp.json" /usr/local/share/docker-in-docker/seccomp.json
 
