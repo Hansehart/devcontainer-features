@@ -75,9 +75,9 @@ if [ -n "$PYTHON_VERSION" ]; then
 fi
 
 # Install the hook that prepares the state dir when the container is created.
-install -d /usr/local/share/uv
-install -m 0755 "$(dirname "$0")/init.sh" /usr/local/share/uv/init.sh
-install -m 0755 "$(dirname "$0")/state-dir.sh" /usr/local/share/uv/state-dir.sh
+install -d /usr/local/libexec/uv
+install -m 0755 "$(dirname "$0")/init.sh" /usr/local/libexec/uv/init.sh
+install -m 0755 "$(dirname "$0")/state-dir.sh" /usr/local/libexec/uv/state-dir.sh
 
 # Confirm both tools run from the PATH.
 uv --version
