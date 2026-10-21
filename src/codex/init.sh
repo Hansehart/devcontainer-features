@@ -18,7 +18,7 @@ if [ -n "$state_dir" ] && [ "$(stat -c %d "$state_dir")" = "$(stat -c %d /)" ]; 
 fi
 
 # Apply the requested config, when there is one.
-req=/usr/local/share/codex/requested-config.toml
+req=/usr/local/etc/codex/requested-config.toml
 if [ -s "$req" ]; then
   target="${CODEX_HOME:-$HOME/.codex}/config.toml"
   mkdir -p "$(dirname "$target")"
