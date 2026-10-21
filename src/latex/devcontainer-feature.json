@@ -1,6 +1,6 @@
 {
   "id": "latex",
-  "version": "2.0.1",
+  "version": "3.0.0",
   "name": "LaTeX (TeX Live)",
   "description": "Installs TeX Live from a pinned tlnet-final snapshot (selectable scheme) and puts the binaries on PATH.",
   "documentationURL": "https://github.com/hansehart/devcontainer-features/tree/main/src/latex",
@@ -30,5 +30,5 @@
       ]
     }
   },
-  "postCreateCommand": "/usr/local/share/latex/init.sh"
+  "postCreateCommand": "/usr/local/libexec/latex/init.sh"
 }

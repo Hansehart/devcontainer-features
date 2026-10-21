@@ -14,13 +14,8 @@ if [ -n "$STATE_DIR" ]; then
   "$(dirname "$0")/state-dir.sh" latex "$STATE_DIR"
 fi
 
-SHARE_DIR="/usr/local/share/latex"
-INSTALLER_DIR="$SHARE_DIR/installer"
 REPO="https://texlive.info/historic/systems/texlive/$VERSION/tlnet-final"
-
-# Share the TeX Live install routine with the hook.
-# shellcheck source=lib.sh
-. "$(dirname "$0")/lib.sh"
+TEXDIR="/opt/texlive/$VERSION"
 
 export DEBIAN_FRONTEND=noninteractive
 
@@ -34,42 +29,50 @@ apt-get install -y --no-install-recommends \
   wget
 rm -rf /var/lib/apt/lists/*
 
-# Fetch the installer for the chosen release, verify it, and keep it for the hook.
-mkdir -p "$INSTALLER_DIR"
+# Fetch the installer for the chosen release and verify it.
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 curl -fsSL "$REPO/install-tl-unx.tar.gz" -o "$tmp/install-tl-unx.tar.gz"
 curl -fsSL "$REPO/install-tl-unx.tar.gz.sha512" -o "$tmp/install-tl-unx.tar.gz.sha512"
 ( cd "$tmp" && sha512sum -c install-tl-unx.tar.gz.sha512 )
 tar -xzf "$tmp/install-tl-unx.tar.gz" -C "$tmp"
-boot="$(find "$tmp" -maxdepth 1 -type d -name 'install-tl-*' -print -quit)"
-cp -a "$boot"/. "$INSTALLER_DIR"/
+installer="$(find "$tmp" -maxdepth 1 -type d -name 'install-tl-*' -print -quit)"
 
-# Read the platform name, which locates the binaries.
-PLAT="$("$INSTALLER_DIR/install-tl" -print-platform)"
+# Install the distribution into its own tree, with its generated data and host config kept
+# apart, where the layout rules place them.
+{
+  echo "selected_scheme $SCHEME"
+  echo "TEXDIR $TEXDIR"
+  echo "TEXMFLOCAL $TEXDIR/texmf-local"
+  echo "TEXMFSYSVAR /var/opt/texlive/$VERSION"
+  echo "TEXMFSYSCONFIG /etc/opt/texlive/$VERSION"
+  echo "tlpdbopt_install_docfiles 0"
+  echo "tlpdbopt_install_srcfiles 0"
+  echo "tlpdbopt_autobackup 0"
+} > "$tmp/texlive.profile"
+TEXLIVE_INSTALL_ENV_NOCHECK=1 "$installer/install-tl" \
+  --profile "$tmp/texlive.profile" \
+  --repository "$REPO" \
+  --no-interaction
 
-# Install TeX Live into the image, or leave it to the hook when a state dir holds it.
-if [ -z "$STATE_DIR" ]; then
-  TEXDIR="/usr/local/texlive/$VERSION"
-  install_texlive "$TEXDIR"
-  ln -sf "$TEXDIR/bin/$PLAT"/* /usr/local/bin/
-else
-  echo "export PATH=\"$STATE_DIR/texlive/$VERSION/bin/$PLAT:\$PATH\"" > /etc/profile.d/latex.sh
+# Link the commands onto the default PATH.
+PLAT="$("$installer/install-tl" -print-platform)"
+ln -sf "$TEXDIR/bin/$PLAT"/* /usr/local/bin/
+
+# Point the user's own trees at the state dir when set.
+if [ -n "$STATE_DIR" ]; then
+  {
+    echo "export TEXMFHOME=\"$STATE_DIR/texmf\""
+    echo "export TEXMFVAR=\"$STATE_DIR/texmf-var\""
+    echo "export TEXMFCONFIG=\"$STATE_DIR/texmf-config\""
+  } > /etc/profile.d/latex.sh
   chmod 0644 /etc/profile.d/latex.sh
 fi
 
-# Hand the hook its settings, the shared routine and its script.
-{
-  echo "STATE_DIR=\"$STATE_DIR\""
-  echo "VERSION=\"$VERSION\""
-  echo "SCHEME=\"$SCHEME\""
-  echo "REPO=\"$REPO\""
-  echo "PLAT=\"$PLAT\""
-  echo "INSTALLER_DIR=\"$INSTALLER_DIR\""
-} > "$SHARE_DIR/config.env"
-install -m 0644 "$(dirname "$0")/lib.sh" "$SHARE_DIR/lib.sh"
-install -m 0755 "$(dirname "$0")/init.sh" "$SHARE_DIR/init.sh"
-install -m 0755 "$(dirname "$0")/state-dir.sh" "$SHARE_DIR/state-dir.sh"
+# Install the hook that prepares the state dir when the container is created.
+install -d /usr/local/libexec/latex
+install -m 0755 "$(dirname "$0")/init.sh" /usr/local/libexec/latex/init.sh
+install -m 0755 "$(dirname "$0")/state-dir.sh" /usr/local/libexec/latex/state-dir.sh
 
-# Confirm an image install runs from the PATH; the hook confirms a state-dir install.
-[ -n "$STATE_DIR" ] || latex --version
+# Confirm the distribution runs from the PATH.
+latex --version
