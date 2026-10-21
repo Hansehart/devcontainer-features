@@ -20,12 +20,12 @@ Files go where the Filesystem Hierarchy Standard (FHS) puts them, so every featu
 - **Environment:** env vars with a fixed value go in `containerEnv`, and env vars whose value depends on an option go in `/etc/profile.d/<feature>.sh`.
 - **Hook scripts:** the scripts the feature runs at build, create or start, and the code they share, go in `/usr/local/libexec/<feature>`.
 - **Packages:** apt packages keep the distribution's paths and stay in the image, and their signing keys go in `/etc/apt/keyrings`.
-- **Programs:** a single binary goes in `/usr/local/bin`. A program made of many files goes in its own `/opt/<program>` tree, with its commands linked into `/usr/local/bin` and its own config in `/etc/opt/<program>`. A large program instead sits on a volume at `/opt/<program>` and is installed at create into `/opt/<program>/<version>`, which also holds its generated data and config.
+- **Programs:** a single binary goes in `/usr/local/bin`. A program made of many files goes in its own `/opt/<program>` tree, with its commands linked into `/usr/local/bin` and its own config in `/etc/opt/<program>`.
 - **Runtime state:** data a program changes while running goes in `/var/opt/<program>` for a program in `/opt` and in `/var/lib/<program>` for any other program, and files that live only while it runs go in `/run`.
 - **Settings:** what the feature records at build time for its hooks to apply goes in `/usr/local/etc/<feature>`.
 - **Shipped data:** fixed files the feature ships for others to reference go in `/usr/local/share/<feature>`.
 - **User data:** everything that belongs to the remote user stays in their home, including per-user installs in `~/.local/bin` and the feature's state dir, which holds data only.
-- **Volumes:** a volume the feature declares is named after the feature, and holds either a large program or the runtime state of a program.
+- **Volumes:** a volume the feature declares is named after the feature, and holds the runtime state of a program.
 
 ### Options
 
