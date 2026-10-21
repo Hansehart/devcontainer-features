@@ -1,6 +1,6 @@
 {
   "id": "docker-in-docker",
-  "version": "2.2.1",
+  "version": "3.0.0",
   "name": "Docker in Docker",
   "description": "Installs a rootless Docker engine for building and running containers inside the dev container.",
   "documentationURL": "https://github.com/hansehart/devcontainer-features/tree/main/src/docker-in-docker",
@@ -40,7 +40,7 @@
   },
   "mounts": [
     {
-      "source": "dind-rootless-data",
+      "source": "docker-in-docker",
       "target": "/var/lib/docker-rootless",
       "type": "volume"
     }
