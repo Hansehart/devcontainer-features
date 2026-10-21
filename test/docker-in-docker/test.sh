@@ -20,6 +20,9 @@ check "root leaves the socket unlinked" bash -c '[ "$(id -u)" = 0 ] && [ ! -e /r
 # The settings sit with the feature's config, and the seccomp profile with its shipped data.
 check "settings in the feature's config dir" test -f /usr/local/etc/docker-in-docker/rootless-user
 check "seccomp profile in the shipped data" test -f /usr/local/share/docker-in-docker/seccomp.json
+# The store's volume is named after the feature.
+check "store volume named after the feature" \
+  bash -c "awk '\$5 == \"/var/lib/docker-rootless\" { print \$4 }' /proc/self/mountinfo | grep -q '/docker-in-docker/_data\$'"
 
 # Report result
 reportResults
