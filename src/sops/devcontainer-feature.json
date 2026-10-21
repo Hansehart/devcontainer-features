@@ -1,6 +1,6 @@
 {
   "id": "sops",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "name": "sops",
   "description": "Installs the sops secret editor as a single static binary.",
   "documentationURL": "https://github.com/hansehart/devcontainer-features/tree/main/src/sops",
@@ -19,5 +19,5 @@
   "dependsOn": {
     "ghcr.io/hansehart/devcontainer-features/age:1": {}
   },
-  "postCreateCommand": "/usr/local/share/sops/init.sh"
+  "postCreateCommand": "/usr/local/libexec/sops/init.sh"
 }

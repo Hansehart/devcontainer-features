@@ -59,9 +59,9 @@ if [ -n "$STATE_DIR" ]; then
 fi
 
 # Install the hook that prepares the state dir when the container is created.
-install -d /usr/local/share/sops
-install -m 0755 "$(dirname "$0")/init.sh" /usr/local/share/sops/init.sh
-install -m 0755 "$(dirname "$0")/state-dir.sh" /usr/local/share/sops/state-dir.sh
+install -d /usr/local/libexec/sops
+install -m 0755 "$(dirname "$0")/init.sh" /usr/local/libexec/sops/init.sh
+install -m 0755 "$(dirname "$0")/state-dir.sh" /usr/local/libexec/sops/state-dir.sh
 
 # Confirm the tool runs from the PATH, checking its version offline.
 sops --version --disable-version-check
