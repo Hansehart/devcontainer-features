@@ -9,7 +9,7 @@ check "state dir pre-created" test -d /home/ubuntu/claude-code
 check "state dir writable by the dev user" bash -c 'touch /home/ubuntu/claude-code/.probe && rm /home/ubuntu/claude-code/.probe'
 
 # Run the hook as a container create does.
-/usr/local/share/claude-code/init.sh
+/usr/local/libexec/claude-code/init.sh
 
 check "CLAUDE_CONFIG_DIR exported" bash -lc '[ "$CLAUDE_CONFIG_DIR" = /home/ubuntu/claude-code ]'
 
@@ -20,13 +20,13 @@ check "hook output private to the dev user" \
 
 # This scenario keeps the state dir on the container filesystem, which the hook warns about.
 check "the hook reports the unmounted state dir" \
-  bash -c '/usr/local/share/claude-code/init.sh 2>&1 >/dev/null | grep -q "on the container filesystem"'
+  bash -c '/usr/local/libexec/claude-code/init.sh 2>&1 >/dev/null | grep -q "on the container filesystem"'
 
 # A path outside the home proves the guard rejects what it should.
 check "a state dir outside the home is refused" \
-  bash -c '! /usr/local/share/claude-code/state-dir.sh claude-code /var/claude-code'
+  bash -c '! /usr/local/libexec/claude-code/state-dir.sh claude-code /var/claude-code'
 check "the refusal names the home" \
-  bash -c '/usr/local/share/claude-code/state-dir.sh claude-code /var/claude-code 2>&1 | grep -q "must be inside /home/ubuntu"'
+  bash -c '/usr/local/libexec/claude-code/state-dir.sh claude-code /var/claude-code 2>&1 | grep -q "must be inside /home/ubuntu"'
 
 # Report result
 reportResults
