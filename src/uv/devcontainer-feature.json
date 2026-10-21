@@ -1,6 +1,6 @@
 {
   "id": "uv",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "name": "uv (Python)",
   "description": "Installs the uv Python package and interpreter manager as a single static binary.",
   "documentationURL": "https://github.com/hansehart/devcontainer-features/tree/main/src/uv",
@@ -31,5 +31,5 @@
       ]
     }
   },
-  "postCreateCommand": "/usr/local/share/uv/init.sh"
+  "postCreateCommand": "/usr/local/libexec/uv/init.sh"
 }
