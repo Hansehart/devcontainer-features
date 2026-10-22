@@ -1,6 +1,6 @@
 {
   "id": "claude-code",
-  "version": "2.0.2",
+  "version": "2.1.0",
   "name": "Claude Code CLI",
   "description": "Installs the Claude Code CLI on a selectable channel.",
   "documentationURL": "https://github.com/hansehart/devcontainer-features/tree/main/src/claude-code",
@@ -25,6 +25,13 @@
       "type": "string",
       "default": "",
       "description": "Claude settings as JSON with backslash-escaped quotes, written to settings.json."
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "anthropic.claude-code"
+      ]
     }
   },
   "postCreateCommand": "/usr/local/libexec/claude-code/init.sh"
