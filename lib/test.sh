@@ -15,7 +15,9 @@ sandbox() {
   # Package manager and machine name, recorded and faked.
   printf '#!/bin/sh\necho "$*" >> "%s/apt.log"\n' "$SANDBOX" > "$SANDBOX/bin/apt-get"
   printf '#!/bin/sh\necho "${FAKE_ARCH:-x86_64}"\n' > "$SANDBOX/bin/uname"
-  chmod +x "$SANDBOX/bin/apt-get" "$SANDBOX/bin/uname"
+  # Switching user, recorded and run as the current user.
+  printf '#!/bin/sh\necho "as $2: $4" >> "%s/su.log"\nexec bash -c "$4"\n' "$SANDBOX" > "$SANDBOX/bin/su"
+  chmod +x "$SANDBOX/bin/apt-get" "$SANDBOX/bin/uname" "$SANDBOX/bin/su"
   # A release tarball holding one tool, its checksum list and its per-file checksum.
   printf '#!/bin/sh\necho "tool 1.2.3"\n' > "$SANDBOX/pkg/tool-v1.2.3/tool"
   chmod +x "$SANDBOX/pkg/tool-v1.2.3/tool"
@@ -153,12 +155,12 @@ check "an unverified download still installs" installed tool
 sandbox; feature <<<"$(standard | sed '/checksums=/d')
 feature_main"
 run
-check "a download without a verification declaration stops" has "tool: declare one of checksums, checksum or unverified"
+check "a download without a verification declaration stops" has "tool: declare one of checksums, checksum, unverified or delegated"
 
 sandbox; feature <<<"$(standard | sed 's#checksums="\$REL/\$tag/checksums.txt"#checksums="\$REL/\$tag/checksums.txt"; unverified="both"#')
 feature_main"
 run
-check "two verification declarations stop" has "tool: declare one of checksums, checksum or unverified"
+check "two verification declarations stop" has "tool: declare one of checksums, checksum, unverified or delegated"
 
 sandbox; feature <<<"$(standard | sed '/^install_program/d')
 feature_main"
@@ -297,6 +299,42 @@ settings() { write_file /usr/local/etc/tool/blank; }
 feature_main"
 run
 check "write_file without content writes an empty file" bash -c "[ -f '$SANDBOX/root/usr/local/etc/tool/blank' ] && ! [ -s '$SANDBOX/root/usr/local/etc/tool/blank' ]"
+
+# --- vendor installers ------------------------------------------------------------------
+
+# The body for a tool whose vendor installer fetches and checks it, run as the dev user.
+delegating() {
+  cat <<'EOF'
+resolve_version() { tag="$VERSION"; delegated="the vendor installer checks its own download"; }
+install_program() { as_user "echo installed by the vendor installer"; }
+EOF
+}
+
+sandbox; feature <<<"$(delegating)
+confirm() { :; }
+feature_main"
+run _REMOTE_USER=dev
+check "a delegated download needs no release file" has "installed by the vendor installer"
+check "a delegated download states its reason" has "tool: delegating the download: the vendor installer checks its own download"
+check "as_user runs the command as the dev user" grep -qxF "as dev: echo installed by the vendor installer" "$SANDBOX/su.log"
+
+sandbox; feature <<<"$(delegating | sed 's#delegated="the vendor installer checks its own download"#delegated="x"; checksums="y"#')
+feature_main"
+run
+check "a delegated download with a second declaration stops" has "tool: declare one of checksums, checksum, unverified or delegated"
+
+sandbox; feature <<<"$(delegating)
+confirm() { :; }
+feature_main"
+run
+check "a version that names itself is logged once" bash -c "grep -qx 'tool: installing latest' '$SANDBOX/out'"
+
+sandbox; feature <<<"$(delegating)
+confirm() { :; }
+settings() { record requested.json '{\"a\": 1}'; record empty ''; }
+feature_main"
+run
+check "record keeps a setting for the feature's hooks" bash -c "[ \"\$(cat '$SANDBOX/root/usr/local/etc/tool/requested.json')\" = '{\"a\": 1}' ] && [ -f '$SANDBOX/root/usr/local/etc/tool/empty' ] && ! [ -s '$SANDBOX/root/usr/local/etc/tool/empty' ]"
 
 echo "$passed passed, $failed failed"
 [ "$failed" -eq 0 ]
