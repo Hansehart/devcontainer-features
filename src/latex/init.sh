@@ -4,7 +4,7 @@ set -euo pipefail
 
 # Create the user's trees on the mounted volume.
 init_state() {
-  if [ -n "$STATE_DIR" ]; then mkdir -p "$TEXMFHOME" "$TEXMFVAR" "$TEXMFCONFIG"; fi
+  if [ -n "${TEXMFHOME:-}" ]; then mkdir -p "$TEXMFHOME" "$TEXMFVAR" "$TEXMFCONFIG"; fi
 }
 
 init_main latex "$@"
