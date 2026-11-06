@@ -5,9 +5,10 @@
 # Default the dev user the CLI provisions, for features that act as that user.
 _REMOTE_USER="${_REMOTE_USER:-root}"
 
-# Locate the feature's own files, and the root the system paths hang from.
+# Locate the feature's own files, and the root the system paths hang from, which only the
+# library's tests move.
 FEATURE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-FEATURE_ROOT="${FEATURE_ROOT:-}"
+FEATURE_ROOT="${_FEATURE_TEST_ROOT:-}"
 if [ -n "$FEATURE_ROOT" ]; then PATH="$FEATURE_ROOT/usr/local/bin:$PATH"; fi
 
 # Read the options features share, and the packages every feature needs.
@@ -47,15 +48,15 @@ release_tag() {
   local host="$1" repo="$2" version="$3" bare="${4:-}" api tag
   if [ "$version" = latest ]; then
     if [ "$host" = github ]; then
-      api="${RELEASE_API:-https://api.github.com}"
+      api="${_FEATURE_TEST_API:-https://api.github.com}"
     else
-      api="${RELEASE_API:-https://$host}/api/v1"
+      api="${_FEATURE_TEST_API:-https://$host}/api/v1"
     fi
     tag="$(curl -fsSL "$api/repos/$repo/releases/latest" | grep -oP '"tag_name":\s*"\K[^"]+' || true)"
     [ -n "$tag" ] || die "could not resolve the latest version"
     printf '%s' "$tag"
   elif [ "$bare" = --bare ]; then
-    printf '%s' "$version"
+    printf '%s' "${version#v}"
   else
     printf 'v%s' "${version#v}"
   fi
