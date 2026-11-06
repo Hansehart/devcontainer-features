@@ -1,75 +1,68 @@
 #!/usr/bin/env bash
 set -euo pipefail
+. "$(dirname "$0")/lib.sh"
 
 # Options (uppercased by the CLI): VERSION.
-VERSION="${VERSION:-latest}"
-
-API="https://googlechromelabs.github.io/chrome-for-testing"
-BUCKET="https://storage.googleapis.com/chrome-for-testing-public"
-INSTALL_DIR="/opt/chrome-headless-shell"
-
-export DEBIAN_FRONTEND=noninteractive
-
-# Install the packages this feature needs at build and at run time.
-apt-get update
-apt-get install -y --no-install-recommends \
-  ca-certificates \
-  curl \
-  fonts-liberation \
-  libasound2t64 \
-  libatk-bridge2.0-0t64 \
-  libatk1.0-0t64 \
-  libatspi2.0-0t64 \
-  libcairo2 \
-  libcups2t64 \
-  libdbus-1-3 \
-  libdrm2 \
-  libgbm1 \
-  libglib2.0-0t64 \
-  libnspr4 \
-  libnss3 \
-  libpango-1.0-0 \
-  libx11-6 \
-  libxcb1 \
-  libxcomposite1 \
-  libxdamage1 \
-  libxext6 \
-  libxfixes3 \
-  libxkbcommon0 \
-  libxrandr2 \
+FEATURE=headless-chrome
+VERSION="$(option VERSION latest)"
+# Install the libraries the browser loads at run time.
+PACKAGES+=(
+  fonts-liberation
+  libasound2t64
+  libatk-bridge2.0-0t64
+  libatk1.0-0t64
+  libatspi2.0-0t64
+  libcairo2
+  libcups2t64
+  libdbus-1-3
+  libdrm2
+  libgbm1
+  libglib2.0-0t64
+  libnspr4
+  libnss3
+  libpango-1.0-0
+  libx11-6
+  libxcb1
+  libxcomposite1
+  libxdamage1
+  libxext6
+  libxfixes3
+  libxkbcommon0
+  libxrandr2
   unzip
-rm -rf /var/lib/apt/lists/*
+)
 
-# Resolve a channel to its current version; an exact version stands as given.
-case "$VERSION" in
-  latest | stable) key="Stable" ;;
-  beta)            key="Beta" ;;
-  dev)             key="Dev" ;;
-  canary)          key="Canary" ;;
-  *)               key="" ;;
-esac
+# Resolve a channel to its current version, keeping an exact version as given.
+resolve_version() {
+  local key=""
+  case "$VERSION" in
+    latest | stable) key="Stable" ;;
+    beta)            key="Beta" ;;
+    dev)             key="Dev" ;;
+    canary)          key="Canary" ;;
+  esac
+  if [ -n "$key" ]; then
+    tag="$(curl -fsSL "https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions.json" \
+      | grep -oP "\"$key\":\{[^}]*?\"version\":\"\K[0-9.]+" || true)"
+    [ -n "$tag" ] || die "could not resolve channel '$VERSION'"
+  else
+    tag="$VERSION"
+  fi
+  local platform
+  platform="$(arch_name x86_64=linux64)"
+  url="https://storage.googleapis.com/chrome-for-testing-public/$tag/$platform/chrome-headless-shell-$platform.zip"
+  unverified="the vendor publishes no checksums for these builds"
+}
 
-if [ -n "$key" ]; then
-  resolved="$(curl -fsSL "$API/last-known-good-versions.json" \
-    | grep -oP "\"$key\":\{[^}]*?\"version\":\"\K[0-9.]+")"
-  [ -n "$resolved" ] || { echo "headless-chrome: could not resolve channel '$VERSION'" >&2; exit 1; }
-else
-  resolved="$VERSION"
-fi
+# Place the build in its own tree, with the browser on the PATH.
+install_program() {
+  unpack /opt/chrome-headless-shell
+  link_bin /opt/chrome-headless-shell chrome-headless-shell
+}
 
-url="$BUCKET/$resolved/linux64/chrome-headless-shell-linux64.zip"
-echo "headless-chrome: installing $resolved ($VERSION)"
+# Confirm the browser runs from the PATH.
+confirm() {
+  chrome-headless-shell --version
+}
 
-# Download the build over an authenticated connection.
-tmp="$(mktemp -d)"
-trap 'rm -rf "$tmp"' EXIT
-curl -fsSL "$url" -o "$tmp/chs.zip"
-unzip -q "$tmp/chs.zip" -d "$tmp"
-
-# Install the build in its own directory and link the binary onto the PATH.
-mkdir -p "$INSTALL_DIR"
-mv "$tmp/chrome-headless-shell-linux64/"* "$INSTALL_DIR/"
-ln -sf "$INSTALL_DIR/chrome-headless-shell" /usr/local/bin/chrome-headless-shell
-
-# Confirm the binary runs from the PATH.
-chrome-headless-shell --version
+feature_main
