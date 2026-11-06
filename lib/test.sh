@@ -374,5 +374,26 @@ printf '#!/bin/sh\necho plain\n' > "$repo/src/plain/install.sh"; cp "$LIB" "$rep
 bash "$repo/lib/sync.sh" --check > "$SANDBOX/out" 2>&1
 check "the sync check reports a library copy its feature no longer sources" has "src/plain/lib.sh is a library copy its feature doesn't source"
 
+# --- version format and delegated unpacks ------------------------------------------------
+
+sandbox; feature <<<"$(delegating)
+confirm() { :; }
+feature_main"
+sed -i 's/^resolve_version() { tag=/resolve_version() { require_version "^(latest|[0-9]+\\\\.[0-9]+\\\\.[0-9]+)\\$"; tag=/' "$SANDBOX/feature/install.sh"
+run VERSION="latest'; touch $SANDBOX/pwned; echo '"
+check "a version outside the format stops before any command runs" bash -c "grep -qF \"tool: unsupported version 'latest'\" '$SANDBOX/out' && ! [ -e '$SANDBOX/pwned' ] && ! [ -e '$SANDBOX/su.log' ]"
+
+sandbox; feature <<<"$(delegating)
+confirm() { :; }
+feature_main"
+sed -i 's/^resolve_version() { tag=/resolve_version() { require_version "^(latest|[0-9]+\\\\.[0-9]+\\\\.[0-9]+)\\$"; tag=/' "$SANDBOX/feature/install.sh"
+run VERSION=2.1.0
+check "a version in the format installs" has "tool: installing 2.1.0"
+
+sandbox; feature <<<"$(delegating | sed 's#^install_program.*#install_program() { unpack /opt/tool; }#')
+feature_main"
+run
+check "unpacking after a delegated download names what's missing" has "tool: nothing was downloaded to unpack"
+
 echo "$passed passed, $failed failed"
 [ "$failed" -eq 0 ]
