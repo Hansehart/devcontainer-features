@@ -20,11 +20,6 @@ install_program() {
   install_bin "$tmp/$asset" as tea
 }
 
-# Record the state dir, for the hook to read at build and at create.
-settings() {
-  record config.env "STATE_DIR=\"$STATE_DIR\""$'\n'
-}
-
 # Link the config at build too, as the dev user, so the image carries the redirect from
 # the start and one script decides what may be replaced.
 post_install() {
