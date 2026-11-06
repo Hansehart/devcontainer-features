@@ -12,7 +12,7 @@
   "semanticCommitScope": "deps",
   "pinDigests": true,
   "minimumReleaseAge": "3 days",
-  "ignorePaths": ["test/**/!(scenarios.json)"],
+  "ignorePaths": ["test/**/!(scenarios.json|pinned_version.sh)"],
   "prBodyColumns": ["Package", "Type", "Update", "Change", "Age"],
   "prBodyDefinitions": {
     "Age": "{{#if newVersion}}{{{newVersionAgeInDays}}} days{{/if}}"
@@ -55,6 +55,87 @@
       ],
       "matchStrings": ["(?<depName>ubuntu):(?<currentValue>\\d+\\.\\d+)(?:@(?<currentDigest>sha256:[a-f0-9]{64}))?"],
       "datasourceTemplate": "docker"
+    },
+    {
+      "customType": "regex",
+      "description": "Keep the pinned age release in its test on the newest release.",
+      "managerFilePatterns": [
+        "/^test/age/scenarios\\.json$/",
+        "/^test/age/pinned_version\\.sh$/"
+      ],
+      "matchStrings": ["(?:^|[^\\d.])(?<currentValue>\\d+\\.\\d+\\.\\d+)(?:[^\\d.]|$)"],
+      "datasourceTemplate": "github-releases",
+      "depNameTemplate": "FiloSottile/age",
+      "extractVersionTemplate": "^v(?<version>.+)$"
+    },
+    {
+      "customType": "regex",
+      "description": "Keep the pinned Claude Code release in its test on the newest release.",
+      "managerFilePatterns": [
+        "/^test/claude-code/scenarios\\.json$/",
+        "/^test/claude-code/pinned_version\\.sh$/"
+      ],
+      "matchStrings": ["(?:^|[^\\d.])(?<currentValue>\\d+\\.\\d+\\.\\d+)(?:[^\\d.]|$)"],
+      "datasourceTemplate": "npm",
+      "depNameTemplate": "@anthropic-ai/claude-code"
+    },
+    {
+      "customType": "regex",
+      "description": "Keep the pinned Codex release in its test on the newest release.",
+      "managerFilePatterns": [
+        "/^test/codex/scenarios\\.json$/",
+        "/^test/codex/pinned_version\\.sh$/"
+      ],
+      "matchStrings": ["(?:^|[^\\d.])(?<currentValue>\\d+\\.\\d+\\.\\d+)(?:[^\\d.]|$)"],
+      "datasourceTemplate": "npm",
+      "depNameTemplate": "@openai/codex"
+    },
+    {
+      "customType": "regex",
+      "description": "Keep the pinned Node.js release in its test on the newest release.",
+      "managerFilePatterns": [
+        "/^test/node/scenarios\\.json$/",
+        "/^test/node/pinned_version\\.sh$/"
+      ],
+      "matchStrings": ["(?:^|[^\\d.])(?<currentValue>\\d+\\.\\d+\\.\\d+)(?:[^\\d.]|$)"],
+      "datasourceTemplate": "node-version",
+      "depNameTemplate": "node"
+    },
+    {
+      "customType": "regex",
+      "description": "Keep the pinned sops release in its test on the newest release.",
+      "managerFilePatterns": [
+        "/^test/sops/scenarios\\.json$/",
+        "/^test/sops/pinned_version\\.sh$/"
+      ],
+      "matchStrings": ["(?:^|[^\\d.])(?<currentValue>\\d+\\.\\d+\\.\\d+)(?:[^\\d.]|$)"],
+      "datasourceTemplate": "github-releases",
+      "depNameTemplate": "getsops/sops",
+      "extractVersionTemplate": "^v(?<version>.+)$"
+    },
+    {
+      "customType": "regex",
+      "description": "Keep the pinned tea release in its test on the newest release.",
+      "managerFilePatterns": [
+        "/^test/tea/scenarios\\.json$/",
+        "/^test/tea/pinned_version\\.sh$/"
+      ],
+      "matchStrings": ["(?:^|[^\\d.])(?<currentValue>\\d+\\.\\d+\\.\\d+)(?:[^\\d.]|$)"],
+      "datasourceTemplate": "gitea-releases",
+      "depNameTemplate": "gitea/tea",
+      "registryUrlTemplate": "https://gitea.com",
+      "extractVersionTemplate": "^v(?<version>.+)$"
+    },
+    {
+      "customType": "regex",
+      "description": "Keep the pinned uv release in its test on the newest release.",
+      "managerFilePatterns": [
+        "/^test/uv/scenarios\\.json$/",
+        "/^test/uv/pinned_version\\.sh$/"
+      ],
+      "matchStrings": ["(?:^|[^\\d.])(?<currentValue>\\d+\\.\\d+\\.\\d+)(?:[^\\d.]|$)"],
+      "datasourceTemplate": "github-releases",
+      "depNameTemplate": "astral-sh/uv"
     }
   ]
 }
