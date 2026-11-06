@@ -16,6 +16,9 @@ check "payload outside the state dir" bash -lc 'case "$(readlink -f "$(command -
 check "state dir holds no payload" bash -lc 'test ! -e "$HOME/.codex/packages"'
 # The requested config sits with the feature's config.
 check "requested config in the feature's config dir" test -f /usr/local/etc/codex/requested-config.toml
+# The shared hook reads the state dir the build recorded.
+check "the state dir recorded for the hook" test -f /usr/local/etc/codex/state-dir
+check "the shared hook beside the feature's hook" test -f /usr/local/libexec/codex/hook.sh
 
 # Report result
 reportResults
