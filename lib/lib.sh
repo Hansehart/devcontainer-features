@@ -110,7 +110,7 @@ download_release() {
     ( cd "$tmp" && printf '%s  %s\n' "$(awk '{ print $1; exit }' "$asset.sha256")" "$asset" \
       | sha256sum -c - ) || die "checksum mismatch for $asset"
   else
-    log "skipping verification: $unverified"
+    log "trusting the download over HTTPS: $unverified"
   fi
 }
 
