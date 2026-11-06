@@ -134,7 +134,7 @@ check "a per-file checksum holding the hash alone verifies the download" install
 sandbox; feature <<<"$(standard | sed 's#checksums="\$REL/\$tag/checksums.txt"#unverified="the vendor publishes none"#')
 feature_main"
 run
-check "an unverified download states its reason" has "tool: skipping verification: the vendor publishes none"
+check "an unverified download states its reason" has "tool: trusting the download over HTTPS: the vendor publishes none"
 check "an unverified download still installs" installed tool
 
 sandbox; feature <<<"$(standard | sed '/checksums=/d')
