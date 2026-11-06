@@ -3,7 +3,7 @@
     "image": "ubuntu:24.04",
     "features": {
       "tea": {
-        "version": "0.15.1"
+        "version": "0.16.0"
       }
     }
   },
