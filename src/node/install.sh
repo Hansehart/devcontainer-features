@@ -35,15 +35,26 @@ esac
 
 # Resolve the channel or release line to a release tag.
 base="https://nodejs.org/dist"
+# Read the release a pointer directory holds from its checksum list.
+pointed_tag() {
+  curl -fsSL "$1/SHASUMS256.txt" | grep -m1 -oP 'node-\Kv[0-9]+\.[0-9]+\.[0-9]+(?=-)' || true
+}
 # Put one release per line, so the searches hold for any index layout.
 index="$(curl -fsSL "$base/index.json" | tr '}' '\n')"
+tag=""
 case "$VERSION" in
   v[0-9]*.[0-9]*.[0-9]*) tag="$VERSION" ;;
   [0-9]*.[0-9]*.[0-9]*)  tag="v$VERSION" ;;
-  # Search a here-string, so stopping at the first match ends the search cleanly.
-  latest) tag="$(grep -m1 -oP '"version":"\Kv[^"]+' <<< "$index" || true)" ;;
-  lts)    tag="$(grep -m1 '"lts":"' <<< "$index" | grep -oP '"version":"\Kv[^"]+' || true)" ;;
-  *)      tag="$(grep -m1 -F "\"version\":\"v${VERSION#v}." <<< "$index" | grep -oP '"version":"\Kv[^"]+' || true)" ;;
+  # Follow the release pointers, which move on releases alone.
+  latest)         tag="$(pointed_tag "$base/latest")" ;;
+  [0-9]* | v[0-9]*)
+    if [[ "${VERSION#v}" =~ ^[0-9]+$ ]]; then
+      tag="$(pointed_tag "$base/latest-v${VERSION#v}.x")"
+    else
+      # Search a here-string, so stopping at the first match ends the search cleanly.
+      tag="$(grep -m1 -F "\"version\":\"v${VERSION#v}." <<< "$index" | grep -oP '"version":"\Kv[^"]+' || true)"
+    fi ;;
+  lts)            tag="$(grep -m1 '"lts":"' <<< "$index" | grep -oP '"version":"\Kv[^"]+' || true)" ;;
 esac
 [ -n "$tag" ] || { echo "node: could not resolve version '$VERSION'" >&2; exit 1; }
 asset="node-$tag-linux-$nodearch.tar.gz"
