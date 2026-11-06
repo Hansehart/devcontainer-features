@@ -215,6 +215,11 @@ install_hooks() {
   if [ -f "$FEATURE_DIR/state-dir.sh" ]; then
     install -m 0755 "$FEATURE_DIR/state-dir.sh" "$dir/state-dir.sh"
   fi
+  if [ -f "$FEATURE_DIR/hook.sh" ]; then
+    install -m 0644 "$FEATURE_DIR/hook.sh" "$dir/hook.sh"
+  fi
+  # Record the state dir, for the hook to prepare at create.
+  record state-dir "$STATE_DIR"
 }
 
 # Run a part the feature may define, when it does.
