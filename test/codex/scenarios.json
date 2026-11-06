@@ -11,7 +11,7 @@
     "image": "ubuntu:24.04",
     "features": {
       "codex": {
-        "version": "0.148.0"
+        "version": "0.166.0"
       }
     }
   },
