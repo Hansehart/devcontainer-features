@@ -54,7 +54,7 @@ release_tag() {
     fi
     tag="$(curl -fsSL "$api/repos/$repo/releases/latest" | grep -oP '"tag_name":\s*"\K[^"]+' || true)"
     [ -n "$tag" ] || die "could not resolve the latest version"
-    printf '%s' "$tag"
+    if [ "$bare" = --bare ]; then printf '%s' "${tag#v}"; else printf '%s' "$tag"; fi
   elif [ "$bare" = --bare ]; then
     printf '%s' "${version#v}"
   else
@@ -83,10 +83,17 @@ unpack() {
       [ "$#" -eq 0 ] || die "archive options apply to tarballs"
       command -v unzip >/dev/null || die "unpacking a zip needs unzip among the packages"
       unzip -q "$tmp/$asset" -d "$staging"
-      # Step into a single top folder, and keep any other layout as the archive has it.
-      entries=("$staging"/*)
-      if [ "${#entries[@]}" -eq 1 ] && [ -d "${entries[0]}" ]; then staging="${entries[0]}"; fi
-      find "$staging" -mindepth 1 -maxdepth 1 -exec mv -t "$dest" {} +
+      # Step into a single top folder, counting hidden entries too, and keep any other layout
+      # as the archive has it.
+      entries="$(find "$staging" -mindepth 1 -maxdepth 1)"
+      if [ -n "$entries" ] && [ "$(printf '%s\n' "$entries" | wc -l)" -eq 1 ] && [ -d "$entries" ]; then
+        staging="$entries"
+      fi
+      # Replace what an earlier unpack left under each name, so the tree matches the archive.
+      find "$staging" -mindepth 1 -maxdepth 1 -print0 | while IFS= read -r -d '' entry; do
+        rm -rf "${dest:?}/${entry##*/}"
+        mv "$entry" "$dest/"
+      done
       ;;
     *)
       tar -xf "$tmp/$asset" -C "$dest" --strip-components=1 --no-same-owner "$@"
@@ -152,7 +159,7 @@ check_digest() {
 
 # Download the release and verify it the one way the feature declared.
 download_release() {
-  local declared=0 kind
+  local declared=0 kind digest
   for kind in "$checksums" "$checksum" "$unverified" "$delegated"; do
     if [ -n "$kind" ]; then declared=$((declared + 1)); fi
   done
@@ -167,7 +174,9 @@ download_release() {
   if [ -n "$checksums" ]; then
     curl -fsSL "$checksums" -o "$tmp/checksums.txt"
     # Take the digest from the asset's line, matched by its exact name in either notation.
-    check_digest "$(awk -v a="$asset" '{ n = $2; sub(/^\*/, "", n) } n == a { print $1; exit }' "$tmp/checksums.txt")"
+    digest="$(awk -v a="$asset" '{ n = $2; sub(/^\*/, "", n) } n == a { print $1; exit }' "$tmp/checksums.txt")"
+    [ -n "$digest" ] || die "no checksum for $asset in the list"
+    check_digest "$digest"
   elif [ -n "$checksum" ]; then
     curl -fsSL "$checksum" -o "$tmp/$asset.sum"
     # Take the digest the file leads with, whether or not it names the asset too.

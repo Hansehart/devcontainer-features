@@ -7,9 +7,14 @@ LIB="$(cd "$(dirname "$0")" && pwd)/lib.sh"
 passed=0
 failed=0
 
+# Remove every sandbox when the run ends.
+SANDBOXES=()
+trap 'rm -rf "${SANDBOXES[@]}"' EXIT
+
 # Build a sandbox with a fake release, fake system tools and an empty install root.
 sandbox() {
   SANDBOX="$(mktemp -d)"
+  SANDBOXES+=("$SANDBOX")
   mkdir -p "$SANDBOX/bin" "$SANDBOX/feature" "$SANDBOX/root" "$SANDBOX/release/v1.2.3" \
     "$SANDBOX/api/repos/acme/tool/releases" "$SANDBOX/pkg/tool-v1.2.3"
   # Package manager and machine name, recorded and faked.
@@ -138,7 +143,7 @@ sandbox; feature <<<"$(standard)
 feature_main"
 sed -i 's/tool-v1.2.3-linux-amd64.tar.gz/tool-v1x2x3-linux-amd64xtarxgz/' "$SANDBOX/release/v1.2.3/checksums.txt"
 run
-check "a checksum list matches the asset name exactly" bash -c "! [ -e '$SANDBOX/root/usr/local/bin/tool' ] && grep -qF 'tool: checksum mismatch' '$SANDBOX/out'"
+check "a checksum list matches the asset name exactly" bash -c "! [ -e '$SANDBOX/root/usr/local/bin/tool' ] && grep -qF 'tool: no checksum for tool-v1.2.3-linux-amd64.tar.gz in the list' '$SANDBOX/out'"
 
 sandbox; feature <<<"$(standard | sed 's#checksums="\$REL/\$tag/checksums.txt"#checksum="\$url.sha256"#')
 feature_main"
