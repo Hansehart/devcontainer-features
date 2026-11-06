@@ -31,7 +31,7 @@ settings() {
 # the start and one script decides what may be replaced.
 post_install() {
   if [ -n "$STATE_DIR" ]; then
-    su - "$_REMOTE_USER" -c "/usr/local/libexec/tea/init.sh --build"
+    su - "$_REMOTE_USER" -c "$FEATURE_ROOT/usr/local/libexec/tea/init.sh --build"
   fi
 }
 
