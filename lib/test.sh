@@ -200,11 +200,14 @@ check "a profile is written only from printed lines" bash -c "! [ -e '$SANDBOX/r
 
 sandbox; printf '#!/bin/sh\necho "claimed $1 $2"\n' > "$SANDBOX/feature/state-dir.sh"
 printf '#!/bin/sh\n' > "$SANDBOX/feature/init.sh"; chmod +x "$SANDBOX/feature/state-dir.sh" "$SANDBOX/feature/init.sh"
+cp "$(dirname "$LIB")/hook.sh" "$SANDBOX/feature/hook.sh"
 feature <<<"$(standard)
 feature_main"
 run STATEDIR=/home/u/tool
 check "a set state dir is claimed first" has "claimed tool /home/u/tool"
 check "the hooks land in libexec" bash -c "[ -x '$SANDBOX/root/usr/local/libexec/tool/init.sh' ] && [ -x '$SANDBOX/root/usr/local/libexec/tool/state-dir.sh' ]"
+check "the shared hook lands beside them" bash -c "[ -f '$SANDBOX/root/usr/local/libexec/tool/hook.sh' ]"
+check "the state dir is recorded for the hook" bash -c "[ \"\$(cat '$SANDBOX/root/usr/local/etc/tool/state-dir')\" = /home/u/tool ]"
 
 sandbox; feature <<<"$(standard)
 feature_main"
@@ -394,6 +397,60 @@ sandbox; feature <<<"$(delegating | sed 's#^install_program.*#install_program() 
 feature_main"
 run
 check "unpacking after a delegated download names what's missing" has "tool: nothing was downloaded to unpack"
+
+# --- the shared hook --------------------------------------------------------------------
+
+# Write the feature's hook: the shared hook, the feature's own part, then init_main.
+hook() {
+  cp "$(dirname "$LIB")/hook.sh" "$SANDBOX/feature/hook.sh"
+  {
+    echo '#!/usr/bin/env bash'
+    echo 'set -euo pipefail'
+    echo '. "$(dirname "$0")/hook.sh"'
+    cat
+    echo 'init_main tool "$@"'
+  } > "$SANDBOX/feature/init.sh"
+  mkdir -p "$SANDBOX/root/usr/local/etc/tool" "$SANDBOX/root/etc/profile.d" "$SANDBOX/home"
+}
+
+# Run the hook the way a container create does.
+run_hook() {
+  env _FEATURE_TEST_ROOT="$SANDBOX/root" HOME="$SANDBOX/home" bash "$SANDBOX/feature/init.sh" "$@" > "$SANDBOX/out" 2>&1
+}
+
+sandbox; hook <<<''; printf '%s' "$SANDBOX/state" > "$SANDBOX/root/usr/local/etc/tool/state-dir"
+run_hook
+check "the hook creates the recorded state dir, private to the dev user" bash -c "[ \"\$(stat -c %a '$SANDBOX/state')\" = 700 ]"
+check "the hook warns about a state dir on the container filesystem" has "tool: $SANDBOX/state is on the container filesystem; mount a volume there to keep it across rebuilds"
+
+sandbox; hook <<<''; printf '%s' "$SANDBOX/state" > "$SANDBOX/root/usr/local/etc/tool/state-dir"
+run_hook --build
+check "the hook stays quiet about the volume at build" bash -c "[ -d '$SANDBOX/state' ] && ! grep -q 'container filesystem' '$SANDBOX/out'"
+
+sandbox; hook <<<'init_state() { echo "state=$STATE_DIR color=$TOOL_COLOR args=$*"; }'
+printf '%s' "$SANDBOX/state" > "$SANDBOX/root/usr/local/etc/tool/state-dir"
+echo 'export TOOL_COLOR=blue' > "$SANDBOX/root/etc/profile.d/tool.sh"
+run_hook --build
+check "init_state sees the state dir, the profile and the arguments" has "state=$SANDBOX/state color=blue args=--build"
+
+sandbox; hook <<<'init_state() { echo "state=[$STATE_DIR]"; }'
+run_hook
+check "a hook without a recorded state dir still runs its own part" bash -c "grep -qx 'state=\[\]' '$SANDBOX/out' && ! grep -q 'container filesystem' '$SANDBOX/out'"
+
+sandbox; hook <<<'init_state() { apply_config requested.toml "$HOME/conf/config.toml"; }'
+printf '%s' 'a = 1\nb = 2' > "$SANDBOX/root/usr/local/etc/tool/requested.toml"
+run_hook
+check "apply_config writes the request with its escaped line breaks expanded" bash -c "[ \"\$(wc -l < '$SANDBOX/home/conf/config.toml')\" -eq 2 ]"
+
+sandbox; hook <<<'init_state() { apply_config requested.json "$HOME/settings.json" "%s"; }'
+printf '%s' '{"a":"x\\ny"}' > "$SANDBOX/root/usr/local/etc/tool/requested.json"
+run_hook
+check "apply_config can keep the request verbatim" bash -c "grep -qF '{\"a\":\"x\\\\ny\"}' '$SANDBOX/home/settings.json'"
+
+sandbox; hook <<<'init_state() { apply_config requested.toml "$HOME/conf/config.toml"; }'
+: > "$SANDBOX/root/usr/local/etc/tool/requested.toml"
+run_hook
+check "apply_config leaves the target alone for an empty request" bash -c "! [ -e '$SANDBOX/home/conf/config.toml' ]"
 
 echo "$passed passed, $failed failed"
 [ "$failed" -eq 0 ]
