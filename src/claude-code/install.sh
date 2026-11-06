@@ -10,6 +10,7 @@ SETTINGS_JSON="$(option SETTINGSJSON "")"
 
 # Hand the requested version to the vendor installer, which fetches and checks the tool itself.
 resolve_version() {
+  require_version '^(latest|stable|[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?)$'
   tag="$VERSION"
   delegated="the vendor installer checks each download against its release manifest"
 }

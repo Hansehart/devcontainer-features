@@ -71,12 +71,16 @@ apt_install() {
 }
 
 # Unpack the release into the work dir.
-untar() { tar -xzf "$tmp/$asset" -C "$tmp" --strip-components=1; }
+untar() {
+  [ -n "$asset" ] || die "nothing was downloaded to unpack"
+  tar -xzf "$tmp/$asset" -C "$tmp" --strip-components=1
+}
 
 # Unpack the release into its own tree, without the archive's single top folder or its owners.
 unpack() {
   local dest="$FEATURE_ROOT$1" staging="$tmp/unpacked" entries
   shift
+  [ -n "$asset" ] || die "nothing was downloaded to unpack"
   install -d "$dest"
   case "$asset" in
     *.zip)
@@ -112,6 +116,11 @@ link_bin() {
   else
     for name in "$@"; do ln -sf "$dir/$name" "$bin/$name"; done
   fi
+}
+
+# Accept only a requested version in the feature's format, before it reaches any command.
+require_version() {
+  [[ "$VERSION" =~ $1 ]] || die "unsupported version '$VERSION'"
 }
 
 # Keep a setting for the feature's hooks, exactly as given.
@@ -221,7 +230,7 @@ feature_main() {
   done
   claim_state_dir
   apt_install "${PACKAGES[@]}"
-  tag="" url="" checksums="" checksum="" unverified="" delegated=""
+  tag="" url="" asset="" checksums="" checksum="" unverified="" delegated=""
   resolve_version
   # Name the requested version beside the release only when the two differ.
   if [ -n "$VERSION" ] && [ "$VERSION" != "$tag" ]; then
@@ -243,5 +252,6 @@ feature_main() {
 
 # Keep the shared steps the same for every feature.
 readonly -f option log die arch_name release_tag apt_install untar unpack link_bin write_file record as_user \
+  require_version \
   install_bin claim_state_dir check_digest \
   download_release write_profile install_hooks optional feature_main
