@@ -48,7 +48,7 @@ feature() {
 
 # Run the feature like the CLI does, with the sandbox's tools and paths.
 run() {
-  env PATH="$SANDBOX/bin:$PATH" FEATURE_ROOT="$SANDBOX/root" RELEASE_API="file://$SANDBOX/api" \
+  env PATH="$SANDBOX/bin:$PATH" _FEATURE_TEST_ROOT="$SANDBOX/root" _FEATURE_TEST_API="file://$SANDBOX/api" \
     REL="file://$SANDBOX/release" "$@" bash "$SANDBOX/feature/install.sh" > "$SANDBOX/out" 2>&1
 }
 
@@ -88,15 +88,20 @@ sandbox; feature <<<"$(standard); arch_name x86_64=amd64"
 run FAKE_ARCH=riscv64
 check "arch_name stops on an unknown machine" has "tool: unsupported architecture 'riscv64'"
 
-sandbox; feature <<<"$(standard); echo \"l=\$(release_tag github acme/tool latest) e=\$(release_tag github acme/tool 2.0.0) v=\$(release_tag github acme/tool v2.0.0) b=\$(release_tag github acme/tool 2.0.0 --bare)\"; exit 0"
+sandbox; feature <<<"$(standard); echo \"l=\$(release_tag github acme/tool latest) e=\$(release_tag github acme/tool 2.0.0) v=\$(release_tag github acme/tool v2.0.0) b=\$(release_tag github acme/tool 2.0.0 --bare) w=\$(release_tag github acme/tool v2.0.0 --bare)\"; exit 0"
 run
-check "release_tag resolves latest and prefixes exact versions" has "l=v1.2.3 e=v2.0.0 v=v2.0.0 b=2.0.0"
+check "release_tag resolves latest, prefixes exact versions and keeps bare ones bare" has "l=v1.2.3 e=v2.0.0 v=v2.0.0 b=2.0.0 w=2.0.0"
 
 sandbox; mkdir -p "$SANDBOX/api/api/v1/repos/acme/tool/releases"
 printf '{"tag_name": "v9.9.9"}\n' > "$SANDBOX/api/api/v1/repos/acme/tool/releases/latest"
 feature <<<"$(standard); echo \"g=\$(release_tag gitea.example acme/tool latest)\"; exit 0"
 run
 check "release_tag reads a Gitea host through its API path" has "g=v9.9.9"
+
+sandbox; mkdir -p "$SANDBOX/elsewhere"; feature <<<"$(standard)
+feature_main"
+run FEATURE_ROOT="$SANDBOX/elsewhere" RELEASE_API="file:///nowhere"
+check "the install root and release API come from the test settings alone" bash -c "[ -x '$SANDBOX/root/usr/local/bin/tool' ] && [ -z \"\$(ls -A '$SANDBOX/elsewhere')\" ]"
 
 # --- the sequence ----------------------------------------------------------------------
 
