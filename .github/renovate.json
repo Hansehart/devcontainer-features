@@ -92,6 +92,69 @@
     },
     {
       "customType": "regex",
+      "description": "Keep the pinned Docker engine release in its test on the newest release.",
+      "managerFilePatterns": [
+        "/^test/docker-in-docker/scenarios\\.json$/",
+        "/^test/docker-in-docker/pinned_version\\.sh$/"
+      ],
+      "matchStrings": [
+        "\"version\": \"(?<currentValue>\\d+\\.\\d+\\.\\d+)\"",
+        "ENGINE=\"(?<currentValue>\\d+\\.\\d+\\.\\d+)\""
+      ],
+      "datasourceTemplate": "deb",
+      "depNameTemplate": "docker-ce",
+      "registryUrlTemplate": "https://download.docker.com/linux/ubuntu?suite=noble&components=stable&binaryArch=amd64",
+      "extractVersionTemplate": "^(?:\\d+:)?(?<version>\\d+\\.\\d+\\.\\d+)-",
+      "versioningTemplate": "semver"
+    },
+    {
+      "customType": "regex",
+      "description": "Keep the pinned Docker buildx release in its test on the newest release.",
+      "managerFilePatterns": [
+        "/^test/docker-in-docker/scenarios\\.json$/",
+        "/^test/docker-in-docker/pinned_version\\.sh$/"
+      ],
+      "matchStrings": [
+        "\"buildxVersion\": \"(?<currentValue>\\d+\\.\\d+\\.\\d+)\"",
+        "BUILDX=\"(?<currentValue>\\d+\\.\\d+\\.\\d+)\""
+      ],
+      "datasourceTemplate": "deb",
+      "depNameTemplate": "docker-buildx-plugin",
+      "registryUrlTemplate": "https://download.docker.com/linux/ubuntu?suite=noble&components=stable&binaryArch=amd64",
+      "extractVersionTemplate": "^(?:\\d+:)?(?<version>\\d+\\.\\d+\\.\\d+)-",
+      "versioningTemplate": "semver"
+    },
+    {
+      "customType": "regex",
+      "description": "Keep the pinned Docker compose release in its test on the newest release.",
+      "managerFilePatterns": [
+        "/^test/docker-in-docker/scenarios\\.json$/",
+        "/^test/docker-in-docker/pinned_version\\.sh$/"
+      ],
+      "matchStrings": [
+        "\"composeVersion\": \"(?<currentValue>\\d+\\.\\d+\\.\\d+)\"",
+        "COMPOSE=\"(?<currentValue>\\d+\\.\\d+\\.\\d+)\""
+      ],
+      "datasourceTemplate": "deb",
+      "depNameTemplate": "docker-compose-plugin",
+      "registryUrlTemplate": "https://download.docker.com/linux/ubuntu?suite=noble&components=stable&binaryArch=amd64",
+      "extractVersionTemplate": "^(?:\\d+:)?(?<version>\\d+\\.\\d+\\.\\d+)-",
+      "versioningTemplate": "semver"
+    },
+    {
+      "customType": "regex",
+      "description": "Keep the pinned Chrome for Testing release in its test on the newest stable release.",
+      "managerFilePatterns": [
+        "/^test/headless-chrome/scenarios\\.json$/",
+        "/^test/headless-chrome/pinned_version\\.sh$/"
+      ],
+      "matchStrings": ["(?<currentValue>\\d+\\.\\d+\\.\\d+\\.\\d+)"],
+      "datasourceTemplate": "custom.chrome-for-testing",
+      "depNameTemplate": "chrome-headless-shell",
+      "versioningTemplate": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)\\.(?<build>\\d+)$"
+    },
+    {
+      "customType": "regex",
       "description": "Keep the pinned Node.js release in its test on the newest release.",
       "managerFilePatterns": [
         "/^test/node/scenarios\\.json$/",
@@ -137,5 +200,13 @@
       "datasourceTemplate": "github-releases",
       "depNameTemplate": "astral-sh/uv"
     }
-  ]
+  ],
+  "customDatasources": {
+    "chrome-for-testing": {
+      "description": "The newest stable Chrome for Testing release, from the file the feature resolves its channels from.",
+      "defaultRegistryUrlTemplate": "https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions.json",
+      "format": "json",
+      "transformTemplates": ["{\"releases\": [{\"version\": channels.Stable.version}]}"]
+    }
+  }
 }

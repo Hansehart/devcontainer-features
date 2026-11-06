@@ -3,7 +3,7 @@
     "image": "ubuntu:24.04",
     "features": {
       "headless-chrome": {
-        "version": "152.0.7977.42"
+        "version": "157.0.8103.38"
       }
     }
   }
