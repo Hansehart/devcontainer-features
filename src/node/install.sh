@@ -40,8 +40,9 @@ index="$(curl -fsSL "$base/index.json" | tr '}' '\n')"
 case "$VERSION" in
   v[0-9]*.[0-9]*.[0-9]*) tag="$VERSION" ;;
   [0-9]*.[0-9]*.[0-9]*)  tag="v$VERSION" ;;
+  # Follow the release pointer, which moves on releases alone.
+  latest) tag="$(curl -fsSL "$base/latest/SHASUMS256.txt" | grep -m1 -oP 'node-\Kv[0-9]+\.[0-9]+\.[0-9]+(?=-)' || true)" ;;
   # Search a here-string, so stopping at the first match ends the search cleanly.
-  latest) tag="$(grep -m1 -oP '"version":"\Kv[0-9]+\.[0-9]+\.[0-9]+(?=")' <<< "$index" || true)" ;;
   lts)    tag="$(grep -m1 '"lts":"' <<< "$index" | grep -oP '"version":"\Kv[^"]+' || true)" ;;
   *)      tag="$(grep -m1 -F "\"version\":\"v${VERSION#v}." <<< "$index" | grep -oP '"version":"\Kv[^"]+' || true)" ;;
 esac
