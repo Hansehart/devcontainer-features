@@ -37,7 +37,7 @@ profile() {
 post_install() {
   if [ -n "$PYTHON_VERSION" ]; then
     su - "$_REMOTE_USER" -c \
-      "env -u UV_PYTHON_INSTALL_DIR uv python install --default --preview-features python-install-default '$PYTHON_VERSION'"
+      "env -u UV_PYTHON_INSTALL_DIR $FEATURE_ROOT/usr/local/bin/uv python install --default --preview-features python-install-default '$PYTHON_VERSION'"
   fi
 }
 
