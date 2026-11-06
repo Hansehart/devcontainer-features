@@ -19,9 +19,17 @@ sandbox() {
   # A release tarball holding one tool, its checksum list and its per-file checksum.
   printf '#!/bin/sh\necho "tool 1.2.3"\n' > "$SANDBOX/pkg/tool-v1.2.3/tool"
   chmod +x "$SANDBOX/pkg/tool-v1.2.3/tool"
+  echo notes > "$SANDBOX/pkg/tool-v1.2.3/README.md"
   tar -czf "$SANDBOX/release/v1.2.3/tool-v1.2.3-linux-amd64.tar.gz" -C "$SANDBOX/pkg" tool-v1.2.3
   ( cd "$SANDBOX/release/v1.2.3" && sha256sum tool-v1.2.3-linux-amd64.tar.gz > checksums.txt \
-    && cp checksums.txt tool-v1.2.3-linux-amd64.tar.gz.sha256 )
+    && cp checksums.txt tool-v1.2.3-linux-amd64.tar.gz.sha256 \
+    && sha512sum tool-v1.2.3-linux-amd64.tar.gz > tool-v1.2.3-linux-amd64.tar.gz.sha512 )
+  # The same tool as a zip archive with its own top folder, as some vendors ship it.
+  python3 -I -c 'import sys, zipfile
+z = zipfile.ZipFile(sys.argv[1], "w")
+i = zipfile.ZipInfo("tool-linux64/tool"); i.external_attr = 0o755 << 16
+z.writestr(i, open(sys.argv[2]).read()); z.close()' \
+    "$SANDBOX/release/v1.2.3/tool-linux64.zip" "$SANDBOX/pkg/tool-v1.2.3/tool"
   printf '{"tag_name": "v1.2.3"}\n' > "$SANDBOX/api/repos/acme/tool/releases/latest"
   cp "$LIB" "$SANDBOX/feature/lib.sh"
 }
@@ -40,7 +48,7 @@ feature() {
 
 # Run the feature like the CLI does, with the sandbox's tools and paths.
 run() {
-  env PATH="$SANDBOX/bin:$PATH" FEATURE_ROOT="$SANDBOX/root" RELEASE_API="file://$SANDBOX/api" \
+  env PATH="$SANDBOX/bin:$PATH" _FEATURE_TEST_ROOT="$SANDBOX/root" _FEATURE_TEST_API="file://$SANDBOX/api" \
     REL="file://$SANDBOX/release" "$@" bash "$SANDBOX/feature/install.sh" > "$SANDBOX/out" 2>&1
 }
 
@@ -80,15 +88,20 @@ sandbox; feature <<<"$(standard); arch_name x86_64=amd64"
 run FAKE_ARCH=riscv64
 check "arch_name stops on an unknown machine" has "tool: unsupported architecture 'riscv64'"
 
-sandbox; feature <<<"$(standard); echo \"l=\$(release_tag github acme/tool latest) e=\$(release_tag github acme/tool 2.0.0) v=\$(release_tag github acme/tool v2.0.0) b=\$(release_tag github acme/tool 2.0.0 --bare)\"; exit 0"
+sandbox; feature <<<"$(standard); echo \"l=\$(release_tag github acme/tool latest) e=\$(release_tag github acme/tool 2.0.0) v=\$(release_tag github acme/tool v2.0.0) b=\$(release_tag github acme/tool 2.0.0 --bare) w=\$(release_tag github acme/tool v2.0.0 --bare)\"; exit 0"
 run
-check "release_tag resolves latest and prefixes exact versions" has "l=v1.2.3 e=v2.0.0 v=v2.0.0 b=2.0.0"
+check "release_tag resolves latest, prefixes exact versions and keeps bare ones bare" has "l=v1.2.3 e=v2.0.0 v=v2.0.0 b=2.0.0 w=2.0.0"
 
 sandbox; mkdir -p "$SANDBOX/api/api/v1/repos/acme/tool/releases"
 printf '{"tag_name": "v9.9.9"}\n' > "$SANDBOX/api/api/v1/repos/acme/tool/releases/latest"
 feature <<<"$(standard); echo \"g=\$(release_tag gitea.example acme/tool latest)\"; exit 0"
 run
 check "release_tag reads a Gitea host through its API path" has "g=v9.9.9"
+
+sandbox; mkdir -p "$SANDBOX/elsewhere"; feature <<<"$(standard)
+feature_main"
+run FEATURE_ROOT="$SANDBOX/elsewhere" RELEASE_API="file:///nowhere"
+check "the install root and release API come from the test settings alone" bash -c "[ -x '$SANDBOX/root/usr/local/bin/tool' ] && [ -z \"\$(ls -A '$SANDBOX/elsewhere')\" ]"
 
 # --- the sequence ----------------------------------------------------------------------
 
@@ -202,6 +215,88 @@ sandbox; feature <<<"$(standard)
 feature_main"
 run
 check "hooks are installed only for features that ship them" bash -c "! [ -e '$SANDBOX/root/usr/local/libexec/tool' ]"
+
+# --- program trees ---------------------------------------------------------------------
+
+sandbox; feature <<<"$(standard | sed 's#^install_program.*#install_program() { unpack /opt/tool --exclude=README.md; link_bin /opt/tool; }#')
+feature_main"
+run
+check "unpack places the release in its own tree" bash -c "[ -x '$SANDBOX/root/opt/tool/tool' ]"
+check "unpack passes extra archive options through" bash -c "! [ -e '$SANDBOX/root/opt/tool/README.md' ]"
+check "link_bin puts the tree's commands on the PATH" bash -c "[ -L '$SANDBOX/root/usr/local/bin/tool' ] && [ \"\$(readlink '$SANDBOX/root/usr/local/bin/tool')\" = '$SANDBOX/root/opt/tool/tool' ]"
+check "a linked command runs" has "tool 1.2.3"
+
+sandbox; feature <<<"$(standard | sed 's#url=.*#url="$REL/$tag/tool-linux64.zip"#; s#checksums=.*#unverified="zip fixture"#; s#^install_program.*#install_program() { unpack /opt/tool; link_bin /opt/tool tool; }#')
+feature_main"
+run
+check "unpack opens a zip archive into the tree" bash -c "[ -x '$SANDBOX/root/opt/tool/tool' ]"
+check "link_bin links the named command" bash -c "[ -L '$SANDBOX/root/usr/local/bin/tool' ]"
+
+sandbox; feature <<<"$(standard | sed 's#checksums="\$REL/\$tag/checksums.txt"#checksum="\$url.sha512"#')
+feature_main"
+run
+check "a sha512 checksum verifies the download" installed tool
+
+sandbox; feature <<<"$(standard | sed 's#checksums="\$REL/\$tag/checksums.txt"#checksum="\$url.sha512"#')
+feature_main"
+printf '%0128d  tool-v1.2.3-linux-amd64.tar.gz\n' 0 > "$SANDBOX/release/v1.2.3/tool-v1.2.3-linux-amd64.tar.gz.sha512"
+run
+check "a sha512 mismatch stops the install" has "tool: checksum mismatch for tool-v1.2.3-linux-amd64.tar.gz"
+
+sandbox; feature <<<"$(standard)
+settings() { write_file /etc/opt/tool/config 'key=value'; write_file /usr/local/etc/tool/empty ''; }
+feature_main"
+run
+check "write_file writes the content exactly" bash -c "[ \"\$(cat '$SANDBOX/root/etc/opt/tool/config')\" = 'key=value' ] && [ \"\$(stat -c %a '$SANDBOX/root/etc/opt/tool/config')\" = 644 ]"
+check "write_file keeps empty content empty" bash -c "[ -f '$SANDBOX/root/usr/local/etc/tool/empty' ] && ! [ -s '$SANDBOX/root/usr/local/etc/tool/empty' ]"
+
+# Build a zip in the release from name=content pairs, each entry executable.
+zipped() {
+  local zip="$1"; shift
+  python3 -I -c 'import sys, zipfile
+z = zipfile.ZipFile(sys.argv[1], "w")
+for pair in sys.argv[2:]:
+    name, content = pair.split("=", 1)
+    i = zipfile.ZipInfo(name); i.external_attr = 0o755 << 16
+    z.writestr(i, content)
+z.close()' "$SANDBOX/release/v1.2.3/$zip" "$@"
+}
+
+sandbox; zipped flat.zip "tool=#!/bin/sh
+echo tool 1.2.3" "NOTICE=notes"
+feature <<<"$(standard | sed 's#url=.*#url="$REL/$tag/flat.zip"#; s#checksums=.*#unverified="zip fixture"#; s#^install_program.*#install_program() { unpack /opt/tool; link_bin /opt/tool tool; }#')
+feature_main"
+run
+check "unpack keeps a zip's root files as they are" bash -c "[ -x '$SANDBOX/root/opt/tool/tool' ] && [ -f '$SANDBOX/root/opt/tool/NOTICE' ]"
+
+sandbox; zipped two.zip "a/tool=#!/bin/sh
+echo tool 1.2.3" "b/extra=x"
+feature <<<"$(standard | sed 's#url=.*#url="$REL/$tag/two.zip"#; s#checksums=.*#unverified="zip fixture"#; s#^install_program.*#install_program() { unpack /opt/tool; link_bin /opt/tool/a tool; }#')
+feature_main"
+run
+check "unpack keeps a zip's several top folders apart" bash -c "[ -x '$SANDBOX/root/opt/tool/a/tool' ] && [ -f '$SANDBOX/root/opt/tool/b/extra' ]"
+
+sandbox; feature <<<"$(standard | sed 's#url=.*#url="$REL/$tag/tool-linux64.zip"#; s#checksums=.*#unverified="zip fixture"#; s#^install_program.*#install_program() { unpack /opt/tool --exclude=README.md; }#')
+feature_main"
+run
+check "unpack names archive options a zip can't take" has "tool: archive options apply to tarballs"
+
+sandbox; ( cd "$SANDBOX/release/v1.2.3" && sha512sum tool-v1.2.3-linux-amd64.tar.gz > checksums512.txt )
+feature <<<"$(standard | sed 's#checksums="\$REL/\$tag/checksums.txt"#checksums="\$REL/\$tag/checksums512.txt"#')
+feature_main"
+run
+check "a checksum list of sha512 digests verifies the download" installed tool
+
+sandbox; feature <<<"$(standard | sed 's#^install_program.*#install_program() { untar; install -d "$FEATURE_ROOT/opt/empty"; link_bin /opt/empty; }#')
+feature_main"
+run
+check "link_bin names an empty tree and links nothing from it" bash -c "grep -qF 'tool: no commands in /opt/empty' '$SANDBOX/out' && [ -z \"\$(ls -A '$SANDBOX/root/usr/local/bin' 2>/dev/null)\" ]"
+
+sandbox; feature <<<"$(standard)
+settings() { write_file /usr/local/etc/tool/blank; }
+feature_main"
+run
+check "write_file without content writes an empty file" bash -c "[ -f '$SANDBOX/root/usr/local/etc/tool/blank' ] && ! [ -s '$SANDBOX/root/usr/local/etc/tool/blank' ]"
 
 echo "$passed passed, $failed failed"
 [ "$failed" -eq 0 ]

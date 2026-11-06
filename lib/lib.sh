@@ -5,9 +5,10 @@
 # Default the dev user the CLI provisions, for features that act as that user.
 _REMOTE_USER="${_REMOTE_USER:-root}"
 
-# Locate the feature's own files, and the root the system paths hang from.
+# Locate the feature's own files, and the root the system paths hang from, which only the
+# library's tests move.
 FEATURE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-FEATURE_ROOT="${FEATURE_ROOT:-}"
+FEATURE_ROOT="${_FEATURE_TEST_ROOT:-}"
 if [ -n "$FEATURE_ROOT" ]; then PATH="$FEATURE_ROOT/usr/local/bin:$PATH"; fi
 
 # Read the options features share, and the packages every feature needs.
@@ -47,15 +48,15 @@ release_tag() {
   local host="$1" repo="$2" version="$3" bare="${4:-}" api tag
   if [ "$version" = latest ]; then
     if [ "$host" = github ]; then
-      api="${RELEASE_API:-https://api.github.com}"
+      api="${_FEATURE_TEST_API:-https://api.github.com}"
     else
-      api="${RELEASE_API:-https://$host}/api/v1"
+      api="${_FEATURE_TEST_API:-https://$host}/api/v1"
     fi
     tag="$(curl -fsSL "$api/repos/$repo/releases/latest" | grep -oP '"tag_name":\s*"\K[^"]+' || true)"
     [ -n "$tag" ] || die "could not resolve the latest version"
     printf '%s' "$tag"
   elif [ "$bare" = --bare ]; then
-    printf '%s' "$version"
+    printf '%s' "${version#v}"
   else
     printf 'v%s' "${version#v}"
   fi
@@ -71,6 +72,48 @@ apt_install() {
 
 # Unpack the release into the work dir.
 untar() { tar -xzf "$tmp/$asset" -C "$tmp" --strip-components=1; }
+
+# Unpack the release into its own tree, without the archive's single top folder or its owners.
+unpack() {
+  local dest="$FEATURE_ROOT$1" staging="$tmp/unpacked" entries
+  shift
+  install -d "$dest"
+  case "$asset" in
+    *.zip)
+      [ "$#" -eq 0 ] || die "archive options apply to tarballs"
+      command -v unzip >/dev/null || die "unpacking a zip needs unzip among the packages"
+      unzip -q "$tmp/$asset" -d "$staging"
+      # Step into a single top folder, and keep any other layout as the archive has it.
+      entries=("$staging"/*)
+      if [ "${#entries[@]}" -eq 1 ] && [ -d "${entries[0]}" ]; then staging="${entries[0]}"; fi
+      find "$staging" -mindepth 1 -maxdepth 1 -exec mv -t "$dest" {} +
+      ;;
+    *)
+      tar -xf "$tmp/$asset" -C "$dest" --strip-components=1 --no-same-owner "$@"
+      ;;
+  esac
+}
+
+# Link a tree's commands onto the PATH: the named ones, or every one it holds.
+link_bin() {
+  local tree="$1" dir="$FEATURE_ROOT$1" bin="$FEATURE_ROOT/usr/local/bin" path name
+  shift
+  install -d "$bin"
+  if [ "$#" -eq 0 ]; then
+    [ -n "$(find "$dir" -mindepth 1 -maxdepth 1 2>/dev/null)" ] || die "no commands in $tree"
+    for path in "$dir"/*; do ln -sf "$path" "$bin/"; done
+  else
+    for name in "$@"; do ln -sf "$dir/$name" "$bin/$name"; done
+  fi
+}
+
+# Write a file with exactly the given content, readable by everyone.
+write_file() {
+  local path="$FEATURE_ROOT$1"
+  install -d "$(dirname "$path")"
+  printf '%s' "${2-}" > "$path"
+  chmod 0644 "$path"
+}
 
 # Install the program's commands, optionally under a chosen name.
 install_bin() {
@@ -90,6 +133,17 @@ claim_state_dir() {
   "$FEATURE_DIR/state-dir.sh" "$FEATURE" "$STATE_DIR"
 }
 
+# Check the download against a digest, by the algorithm its length shows.
+check_digest() {
+  local sum
+  case "${#1}" in
+    64) sum=sha256sum ;;
+    128) sum=sha512sum ;;
+    *) die "checksum mismatch for $asset" ;;
+  esac
+  ( cd "$tmp" && printf '%s  %s\n' "$1" "$asset" | "$sum" -c - ) || die "checksum mismatch for $asset"
+}
+
 # Download the release and verify it the one way the feature declared.
 download_release() {
   local declared=0 kind
@@ -101,14 +155,12 @@ download_release() {
   curl -fsSL "$url" -o "$tmp/$asset"
   if [ -n "$checksums" ]; then
     curl -fsSL "$checksums" -o "$tmp/checksums.txt"
-    # Match the asset's line by its exact name, in either notation.
-    ( cd "$tmp" && awk -v a="$asset" '{ n = $2; sub(/^\*/, "", n) } n == a { print $1 "  " a }' checksums.txt \
-      | sha256sum -c - ) || die "checksum mismatch for $asset"
+    # Take the digest from the asset's line, matched by its exact name in either notation.
+    check_digest "$(awk -v a="$asset" '{ n = $2; sub(/^\*/, "", n) } n == a { print $1; exit }' "$tmp/checksums.txt")"
   elif [ -n "$checksum" ]; then
-    curl -fsSL "$checksum" -o "$tmp/$asset.sha256"
-    # Check the hash the file leads with, whether or not it names the asset too.
-    ( cd "$tmp" && printf '%s  %s\n' "$(awk '{ print $1; exit }' "$asset.sha256")" "$asset" \
-      | sha256sum -c - ) || die "checksum mismatch for $asset"
+    curl -fsSL "$checksum" -o "$tmp/$asset.sum"
+    # Take the digest the file leads with, whether or not it names the asset too.
+    check_digest "$(awk '{ print $1; exit }' "$tmp/$asset.sum")"
   else
     log "trusting the download over HTTPS: $unverified"
   fi
@@ -165,5 +217,6 @@ feature_main() {
 }
 
 # Keep the shared steps the same for every feature.
-readonly -f option log die arch_name release_tag apt_install untar install_bin claim_state_dir \
+readonly -f option log die arch_name release_tag apt_install untar unpack link_bin write_file \
+  install_bin claim_state_dir check_digest \
   download_release write_profile install_hooks optional feature_main
