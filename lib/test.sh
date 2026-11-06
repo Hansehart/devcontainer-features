@@ -111,7 +111,7 @@ feature_main"
 echo "0000000000000000000000000000000000000000000000000000000000000000  tool-v1.2.3-linux-amd64.tar.gz" \
   > "$SANDBOX/release/v1.2.3/checksums.txt"
 run
-check "a checksum mismatch stops the install" bash -c "! [ -e '$SANDBOX/root/usr/local/bin/tool' ]"
+check "a checksum mismatch stops the install" bash -c "! [ -e '$SANDBOX/root/usr/local/bin/tool' ] && grep -qF 'tool: checksum mismatch for tool-v1.2.3-linux-amd64.tar.gz' '$SANDBOX/out'"
 
 sandbox; feature <<<"$(standard | sed 's#checksums="\$REL/\$tag/checksums.txt"#unverified="the vendor publishes none"#')
 feature_main"
