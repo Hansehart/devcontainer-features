@@ -13,9 +13,9 @@
     "remoteUser": "ubuntu",
     "features": {
       "docker-in-docker": {
-        "version": "28",
-        "buildxVersion": "0.17",
-        "composeVersion": "2.29"
+        "version": "29.9.3",
+        "buildxVersion": "0.38.1",
+        "composeVersion": "5.7.0"
       }
     }
   },

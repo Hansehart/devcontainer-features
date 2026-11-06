@@ -3,7 +3,7 @@
     "image": "ubuntu:24.04",
     "features": {
       "latex": {
-        "version": "2024",
+        "version": "2025",
         "scheme": "scheme-basic"
       }
     }
