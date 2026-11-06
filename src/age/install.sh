@@ -10,7 +10,7 @@ VERSION="$(option VERSION latest)"
 resolve_version() {
   tag="$(release_tag github FiloSottile/age "$VERSION")"
   url="https://github.com/FiloSottile/age/releases/download/$tag/age-$tag-linux-$(arch_name x86_64=amd64 aarch64=arm64).tar.gz"
-  unverified="the release publishes transparency proofs rather than checksums"
+  unverified="the release publishes transparency proofs alone"
 }
 
 # Install both tools on the PATH.

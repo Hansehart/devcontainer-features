@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Copy the shared scripts into the features that use them; with --check, report every copy
-# that differs from its source instead.
+# Keep each feature's copy of the shared scripts identical to its source, by syncing them or by
+# reporting the copies that drift.
 set -euo pipefail
 
 cd "$(dirname "$0")/.."

@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # The install sequence every feature shares, copied unchanged into each feature by lib/sync.sh.
-# A feature sets FEATURE, defines resolve_version and install_program, then calls feature_main.
+# A feature names itself, defines how its program is resolved and installed, then runs the sequence.
 
-# Install for the dev user the CLI provisions.
+# Default the dev user the CLI provisions, for features that act as that user.
 _REMOTE_USER="${_REMOTE_USER:-root}"
 
 # Locate the feature's own files, and the root the system paths hang from.
@@ -10,11 +10,12 @@ FEATURE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 FEATURE_ROOT="${FEATURE_ROOT:-}"
 if [ -n "$FEATURE_ROOT" ]; then PATH="$FEATURE_ROOT/usr/local/bin:$PATH"; fi
 
-# Read the state dir option every feature with one shares, and the default packages.
+# Read the options features share, and the packages every feature needs.
 STATE_DIR="${STATEDIR:-}"
+VERSION="${VERSION:-}"
 PACKAGES=(ca-certificates curl)
 
-# Read an option the CLI passes as an uppercased variable, or its default.
+# Read an option the user set, or its default.
 option() {
   local value="${!1:-}"
   printf '%s' "${value:-$2}"
@@ -24,7 +25,7 @@ option() {
 log() { echo "$FEATURE: $*"; }
 die() { echo "$FEATURE: $*" >&2; exit 1; }
 
-# Name the CPU architecture the way the release assets do, from pairs like x86_64=amd64.
+# Name the CPU architecture the way the release names it.
 arch_name() {
   local machine pair
   machine="$(uname -m)"
@@ -41,8 +42,7 @@ arch_name() {
   die "unsupported architecture '$machine'"
 }
 
-# Turn a requested version into a release tag: latest from the forge's release API, an exact
-# version as a v-prefixed tag, or as given with --bare.
+# Resolve the requested version to the exact release it names.
 release_tag() {
   local host="$1" repo="$2" version="$3" bare="${4:-}" api tag
   if [ "$version" = latest ]; then
@@ -69,10 +69,10 @@ apt_install() {
   rm -rf "$FEATURE_ROOT"/var/lib/apt/lists/*
 }
 
-# Unpack the downloaded tarball into the work dir, dropping its top folder.
+# Unpack the release into the work dir.
 untar() { tar -xzf "$tmp/$asset" -C "$tmp" --strip-components=1; }
 
-# Put binaries on the PATH, or one binary under a new name with "FILE as NAME".
+# Install the program's commands, optionally under a chosen name.
 install_bin() {
   local dir="$FEATURE_ROOT/usr/local/bin"
   install -d "$dir"
@@ -85,7 +85,9 @@ install_bin() {
 
 # Claim the state dir first, so a rejected path stops the build before it changes anything.
 claim_state_dir() {
-  if [ -n "$STATE_DIR" ]; then "$FEATURE_DIR/state-dir.sh" "$FEATURE" "$STATE_DIR"; fi
+  [ -n "$STATE_DIR" ] || return 0
+  [ -f "$FEATURE_DIR/state-dir.sh" ] || die "a state dir needs state-dir.sh in the feature"
+  "$FEATURE_DIR/state-dir.sh" "$FEATURE" "$STATE_DIR"
 }
 
 # Download the release and verify it the one way the feature declared.
@@ -99,10 +101,14 @@ download_release() {
   curl -fsSL "$url" -o "$tmp/$asset"
   if [ -n "$checksums" ]; then
     curl -fsSL "$checksums" -o "$tmp/checksums.txt"
-    ( cd "$tmp" && grep " $asset\$" checksums.txt | sha256sum -c - ) || die "checksum mismatch for $asset"
+    # Match the asset's line by its exact name, in either notation.
+    ( cd "$tmp" && awk -v a="$asset" '{ n = $2; sub(/^\*/, "", n) } n == a { print $1 "  " a }' checksums.txt \
+      | sha256sum -c - ) || die "checksum mismatch for $asset"
   elif [ -n "$checksum" ]; then
     curl -fsSL "$checksum" -o "$tmp/$asset.sha256"
-    ( cd "$tmp" && sha256sum -c "$asset.sha256" ) || die "checksum mismatch for $asset"
+    # Check the hash the file leads with, whether or not it names the asset too.
+    ( cd "$tmp" && printf '%s  %s\n' "$(awk '{ print $1; exit }' "$asset.sha256")" "$asset" \
+      | sha256sum -c - ) || die "checksum mismatch for $asset"
   else
     log "skipping verification: $unverified"
   fi
@@ -145,7 +151,7 @@ feature_main() {
   apt_install "${PACKAGES[@]}"
   tag="" url="" checksums="" checksum="" unverified=""
   resolve_version
-  log "installing $tag ($VERSION)"
+  log "installing $tag${VERSION:+ ($VERSION)}"
   tmp="$(mktemp -d)"
   trap 'rm -rf "$tmp"' EXIT
   download_release
