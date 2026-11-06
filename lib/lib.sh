@@ -72,6 +72,42 @@ apt_install() {
 # Unpack the release into the work dir.
 untar() { tar -xzf "$tmp/$asset" -C "$tmp" --strip-components=1; }
 
+# Unpack the release into its own tree, without the archive's top folder or its owners.
+unpack() {
+  local dest="$FEATURE_ROOT$1" staging="$tmp/unpacked"
+  shift
+  install -d "$dest"
+  case "$asset" in
+    *.zip)
+      unzip -q "$tmp/$asset" -d "$staging"
+      cp -R "$staging"/*/. "$dest"/
+      ;;
+    *)
+      tar -xf "$tmp/$asset" -C "$dest" --strip-components=1 --no-same-owner "$@"
+      ;;
+  esac
+}
+
+# Link a tree's commands onto the PATH: the named ones, or every one it holds.
+link_bin() {
+  local dir="$FEATURE_ROOT$1" bin="$FEATURE_ROOT/usr/local/bin" path name
+  shift
+  install -d "$bin"
+  if [ "$#" -eq 0 ]; then
+    for path in "$dir"/*; do ln -sf "$path" "$bin/"; done
+  else
+    for name in "$@"; do ln -sf "$dir/$name" "$bin/$name"; done
+  fi
+}
+
+# Write a file with exactly the given content, readable by everyone.
+write_file() {
+  local path="$FEATURE_ROOT$1"
+  install -d "$(dirname "$path")"
+  printf '%s' "$2" > "$path"
+  chmod 0644 "$path"
+}
+
 # Install the program's commands, optionally under a chosen name.
 install_bin() {
   local dir="$FEATURE_ROOT/usr/local/bin"
@@ -92,7 +128,7 @@ claim_state_dir() {
 
 # Download the release and verify it the one way the feature declared.
 download_release() {
-  local declared=0 kind
+  local declared=0 kind sum
   for kind in "$checksums" "$checksum" "$unverified"; do
     if [ -n "$kind" ]; then declared=$((declared + 1)); fi
   done
@@ -105,10 +141,14 @@ download_release() {
     ( cd "$tmp" && awk -v a="$asset" '{ n = $2; sub(/^\*/, "", n) } n == a { print $1 "  " a }' checksums.txt \
       | sha256sum -c - ) || die "checksum mismatch for $asset"
   elif [ -n "$checksum" ]; then
-    curl -fsSL "$checksum" -o "$tmp/$asset.sha256"
-    # Check the hash the file leads with, whether or not it names the asset too.
-    ( cd "$tmp" && printf '%s  %s\n' "$(awk '{ print $1; exit }' "$asset.sha256")" "$asset" \
-      | sha256sum -c - ) || die "checksum mismatch for $asset"
+    curl -fsSL "$checksum" -o "$tmp/$asset.sum"
+    # Check the hash the file leads with, by the algorithm its name states.
+    case "$checksum" in
+      *.sha512) sum=sha512sum ;;
+      *) sum=sha256sum ;;
+    esac
+    ( cd "$tmp" && printf '%s  %s\n' "$(awk '{ print $1; exit }' "$asset.sum")" "$asset" \
+      | "$sum" -c - ) || die "checksum mismatch for $asset"
   else
     log "trusting the download over HTTPS: $unverified"
   fi
@@ -165,5 +205,6 @@ feature_main() {
 }
 
 # Keep the shared steps the same for every feature.
-readonly -f option log die arch_name release_tag apt_install untar install_bin claim_state_dir \
+readonly -f option log die arch_name release_tag apt_install untar unpack link_bin write_file \
+  install_bin claim_state_dir \
   download_release write_profile install_hooks optional feature_main
