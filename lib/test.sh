@@ -113,6 +113,24 @@ echo "0000000000000000000000000000000000000000000000000000000000000000  tool-v1.
 run
 check "a checksum mismatch stops the install" bash -c "! [ -e '$SANDBOX/root/usr/local/bin/tool' ] && grep -qF 'tool: checksum mismatch for tool-v1.2.3-linux-amd64.tar.gz' '$SANDBOX/out'"
 
+sandbox; feature <<<"$(standard)
+feature_main"
+sed -i 's/  / */' "$SANDBOX/release/v1.2.3/checksums.txt"
+run
+check "a checksum list in binary-mode notation verifies the download" installed tool
+
+sandbox; feature <<<"$(standard)
+feature_main"
+sed -i 's/tool-v1.2.3-linux-amd64.tar.gz/tool-v1x2x3-linux-amd64xtarxgz/' "$SANDBOX/release/v1.2.3/checksums.txt"
+run
+check "a checksum list matches the asset name exactly" bash -c "! [ -e '$SANDBOX/root/usr/local/bin/tool' ] && grep -qF 'tool: checksum mismatch' '$SANDBOX/out'"
+
+sandbox; feature <<<"$(standard | sed 's#checksums="\$REL/\$tag/checksums.txt"#checksum="\$url.sha256"#')
+feature_main"
+cut -d' ' -f1 "$SANDBOX/release/v1.2.3/checksums.txt" > "$SANDBOX/release/v1.2.3/tool-v1.2.3-linux-amd64.tar.gz.sha256"
+run
+check "a per-file checksum holding the hash alone verifies the download" installed tool
+
 sandbox; feature <<<"$(standard | sed 's#checksums="\$REL/\$tag/checksums.txt"#unverified="the vendor publishes none"#')
 feature_main"
 run
@@ -138,7 +156,7 @@ sandbox; feature <<<"$(standard)
 log() { echo overridden; }
 feature_main"
 run
-check "a feature can't override a library function" bash -c "! [ -e '$SANDBOX/root/usr/local/bin/tool' ] && grep -q 'readonly function' '$SANDBOX/out'"
+check "the library functions stay fixed for every feature" bash -c "! [ -e '$SANDBOX/root/usr/local/bin/tool' ] && grep -q 'readonly function' '$SANDBOX/out'"
 
 # --- optional parts --------------------------------------------------------------------
 
@@ -158,7 +176,7 @@ sandbox; feature <<<"$(standard)
 profile() { :; }
 feature_main"
 run
-check "an empty profile writes no file" bash -c "! [ -e '$SANDBOX/root/etc/profile.d/tool.sh' ]"
+check "a profile is written only from printed lines" bash -c "! [ -e '$SANDBOX/root/etc/profile.d/tool.sh' ]"
 
 sandbox; printf '#!/bin/sh\necho "claimed $1 $2"\n' > "$SANDBOX/feature/state-dir.sh"
 printf '#!/bin/sh\n' > "$SANDBOX/feature/init.sh"; chmod +x "$SANDBOX/feature/state-dir.sh" "$SANDBOX/feature/init.sh"
@@ -170,8 +188,20 @@ check "the hooks land in libexec" bash -c "[ -x '$SANDBOX/root/usr/local/libexec
 
 sandbox; feature <<<"$(standard)
 feature_main"
+run STATEDIR=/home/u/tool
+check "a state dir names the guard the feature needs" has "tool: a state dir needs state-dir.sh in the feature"
+
+sandbox; feature <<<"$(standard)"
+sed -i '/^VERSION=/d; s/release_tag github acme\/tool "\$VERSION"/release_tag github acme\/tool 1.2.3/' "$SANDBOX/feature/install.sh"
+echo feature_main >> "$SANDBOX/feature/install.sh"
 run
-check "a feature without hooks installs none" bash -c "! [ -e '$SANDBOX/root/usr/local/libexec/tool' ]"
+check "a feature without a version option installs" installed tool
+check "a feature without a version option logs its release" has "tool: installing v1.2.3"
+
+sandbox; feature <<<"$(standard)
+feature_main"
+run
+check "hooks are installed only for features that ship them" bash -c "! [ -e '$SANDBOX/root/usr/local/libexec/tool' ]"
 
 echo "$passed passed, $failed failed"
 [ "$failed" -eq 0 ]
