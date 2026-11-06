@@ -336,5 +336,38 @@ feature_main"
 run
 check "record keeps a setting for the feature's hooks" bash -c "[ \"\$(cat '$SANDBOX/root/usr/local/etc/tool/requested.json')\" = '{\"a\": 1}' ] && [ -f '$SANDBOX/root/usr/local/etc/tool/empty' ] && ! [ -s '$SANDBOX/root/usr/local/etc/tool/empty' ]"
 
+# --- review follow-ups -------------------------------------------------------------------
+
+sandbox; feature <<<"$(standard); echo \"lb=\$(release_tag github acme/tool latest --bare)\"; exit 0"
+run
+check "a bare tag drops the v for latest as well" has "lb=1.2.3"
+
+sandbox; zipped hidden.zip ".hidden=x" "top/tool=#!/bin/sh
+echo tool 1.2.3"
+feature <<<"$(standard | sed 's#url=.*#url="$REL/$tag/hidden.zip"#; s#checksums=.*#unverified="zip fixture"#; s#^install_program.*#install_program() { unpack /opt/tool; }#')
+confirm() { :; }
+feature_main"
+run
+check "unpack keeps a zip's hidden root files beside its folder" bash -c "[ -f '$SANDBOX/root/opt/tool/.hidden' ] && [ -x '$SANDBOX/root/opt/tool/top/tool' ]"
+
+sandbox; zipped two.zip "a/tool=#!/bin/sh
+echo tool 1.2.3" "b/extra=x"
+feature <<<"$(standard | sed 's#url=.*#url="$REL/$tag/two.zip"#; s#checksums=.*#unverified="zip fixture"#; s#^install_program.*#install_program() { unpack /opt/tool; unpack /opt/tool; link_bin /opt/tool/a tool; }#')
+feature_main"
+run
+check "unpack replaces a tree from an earlier zip" bash -c "[ -x '$SANDBOX/root/opt/tool/a/tool' ] && grep -q 'tool 1.2.3' '$SANDBOX/out'"
+
+sandbox; feature <<<"$(standard)
+feature_main"
+sed -i 's/tool-v1.2.3-linux-amd64.tar.gz/tool-renamed.tar.gz/' "$SANDBOX/release/v1.2.3/checksums.txt"
+run
+check "a checksum list without the asset names what it lacks" has "tool: no checksum for tool-v1.2.3-linux-amd64.tar.gz in the list"
+
+sandbox; repo="$SANDBOX/repo"; mkdir -p "$repo/lib" "$repo/src/plain"
+cp "$(dirname "$LIB")/sync.sh" "$LIB" "$(dirname "$LIB")/state-dir.sh" "$repo/lib/"
+printf '#!/bin/sh\necho plain\n' > "$repo/src/plain/install.sh"; cp "$LIB" "$repo/src/plain/lib.sh"
+bash "$repo/lib/sync.sh" --check > "$SANDBOX/out" 2>&1
+check "the sync check reports a library copy its feature no longer sources" has "src/plain/lib.sh is a library copy its feature doesn't source"
+
 echo "$passed passed, $failed failed"
 [ "$failed" -eq 0 ]
