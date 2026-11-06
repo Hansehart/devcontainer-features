@@ -107,6 +107,12 @@ link_bin() {
   fi
 }
 
+# Keep a setting for the feature's hooks, exactly as given.
+record() { write_file "/usr/local/etc/$FEATURE/$1" "${2-}"; }
+
+# Run a command as the dev user, in a login shell.
+as_user() { su - "$_REMOTE_USER" -c "$1"; }
+
 # Write a file with exactly the given content, readable by everyone.
 write_file() {
   local path="$FEATURE_ROOT$1"
@@ -147,10 +153,15 @@ check_digest() {
 # Download the release and verify it the one way the feature declared.
 download_release() {
   local declared=0 kind
-  for kind in "$checksums" "$checksum" "$unverified"; do
+  for kind in "$checksums" "$checksum" "$unverified" "$delegated"; do
     if [ -n "$kind" ]; then declared=$((declared + 1)); fi
   done
-  [ "$declared" -eq 1 ] || die "declare one of checksums, checksum or unverified"
+  [ "$declared" -eq 1 ] || die "declare one of checksums, checksum, unverified or delegated"
+  # Leave the download to the vendor's installer, which fetches and checks the program itself.
+  if [ -n "$delegated" ]; then
+    log "delegating the download: $delegated"
+    return 0
+  fi
   asset="${url##*/}"
   curl -fsSL "$url" -o "$tmp/$asset"
   if [ -n "$checksums" ]; then
@@ -201,9 +212,14 @@ feature_main() {
   done
   claim_state_dir
   apt_install "${PACKAGES[@]}"
-  tag="" url="" checksums="" checksum="" unverified=""
+  tag="" url="" checksums="" checksum="" unverified="" delegated=""
   resolve_version
-  log "installing $tag${VERSION:+ ($VERSION)}"
+  # Name the requested version beside the release only when the two differ.
+  if [ -n "$VERSION" ] && [ "$VERSION" != "$tag" ]; then
+    log "installing $tag ($VERSION)"
+  else
+    log "installing $tag"
+  fi
   tmp="$(mktemp -d)"
   trap 'rm -rf "$tmp"' EXIT
   download_release
@@ -217,6 +233,6 @@ feature_main() {
 }
 
 # Keep the shared steps the same for every feature.
-readonly -f option log die arch_name release_tag apt_install untar unpack link_bin write_file \
+readonly -f option log die arch_name release_tag apt_install untar unpack link_bin write_file record as_user \
   install_bin claim_state_dir check_digest \
   download_release write_profile install_hooks optional feature_main
