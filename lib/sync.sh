@@ -18,6 +18,8 @@ for feature in src/*/; do
     echo "$feature/lib.sh is a library copy its feature doesn't source" >&2
     status=1
   fi
+  # The shared hook goes to every feature whose hook sources it.
+  if [ -f "$feature/init.sh" ] && grep -q '/hook.sh"' "$feature/init.sh"; then pairs+=("lib/hook.sh $feature/hook.sh"); fi
   # The state-dir guard goes to every feature that ships one.
   if [ -f "$feature/state-dir.sh" ]; then pairs+=("lib/state-dir.sh $feature/state-dir.sh"); fi
 done
