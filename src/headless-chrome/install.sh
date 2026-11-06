@@ -5,6 +5,8 @@ set -euo pipefail
 # Options (uppercased by the CLI): VERSION.
 FEATURE=headless-chrome
 VERSION="$(option VERSION latest)"
+# Name the build's platform first, so an unsupported machine stops before any package installs.
+PLATFORM="$(arch_name x86_64=linux64)"
 # Install the libraries the browser loads at run time.
 PACKAGES+=(
   fonts-liberation
@@ -48,9 +50,7 @@ resolve_version() {
   else
     tag="$VERSION"
   fi
-  local platform
-  platform="$(arch_name x86_64=linux64)"
-  url="https://storage.googleapis.com/chrome-for-testing-public/$tag/$platform/chrome-headless-shell-$platform.zip"
+  url="https://storage.googleapis.com/chrome-for-testing-public/$tag/$PLATFORM/chrome-headless-shell-$PLATFORM.zip"
   unverified="the vendor publishes no checksums for these builds"
 }
 
