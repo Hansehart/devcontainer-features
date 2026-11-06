@@ -239,7 +239,7 @@ check "a sha512 checksum verifies the download" installed tool
 
 sandbox; feature <<<"$(standard | sed 's#checksums="\$REL/\$tag/checksums.txt"#checksum="\$url.sha512"#')
 feature_main"
-echo "0000  tool-v1.2.3-linux-amd64.tar.gz" > "$SANDBOX/release/v1.2.3/tool-v1.2.3-linux-amd64.tar.gz.sha512"
+printf '%0128d  tool-v1.2.3-linux-amd64.tar.gz\n' 0 > "$SANDBOX/release/v1.2.3/tool-v1.2.3-linux-amd64.tar.gz.sha512"
 run
 check "a sha512 mismatch stops the install" has "tool: checksum mismatch for tool-v1.2.3-linux-amd64.tar.gz"
 
@@ -249,6 +249,54 @@ feature_main"
 run
 check "write_file writes the content exactly" bash -c "[ \"\$(cat '$SANDBOX/root/etc/opt/tool/config')\" = 'key=value' ] && [ \"\$(stat -c %a '$SANDBOX/root/etc/opt/tool/config')\" = 644 ]"
 check "write_file keeps empty content empty" bash -c "[ -f '$SANDBOX/root/usr/local/etc/tool/empty' ] && ! [ -s '$SANDBOX/root/usr/local/etc/tool/empty' ]"
+
+# Build a zip in the release from name=content pairs, each entry executable.
+zipped() {
+  local zip="$1"; shift
+  python3 -I -c 'import sys, zipfile
+z = zipfile.ZipFile(sys.argv[1], "w")
+for pair in sys.argv[2:]:
+    name, content = pair.split("=", 1)
+    i = zipfile.ZipInfo(name); i.external_attr = 0o755 << 16
+    z.writestr(i, content)
+z.close()' "$SANDBOX/release/v1.2.3/$zip" "$@"
+}
+
+sandbox; zipped flat.zip "tool=#!/bin/sh
+echo tool 1.2.3" "NOTICE=notes"
+feature <<<"$(standard | sed 's#url=.*#url="$REL/$tag/flat.zip"#; s#checksums=.*#unverified="zip fixture"#; s#^install_program.*#install_program() { unpack /opt/tool; link_bin /opt/tool tool; }#')
+feature_main"
+run
+check "unpack keeps a zip's root files as they are" bash -c "[ -x '$SANDBOX/root/opt/tool/tool' ] && [ -f '$SANDBOX/root/opt/tool/NOTICE' ]"
+
+sandbox; zipped two.zip "a/tool=#!/bin/sh
+echo tool 1.2.3" "b/extra=x"
+feature <<<"$(standard | sed 's#url=.*#url="$REL/$tag/two.zip"#; s#checksums=.*#unverified="zip fixture"#; s#^install_program.*#install_program() { unpack /opt/tool; link_bin /opt/tool/a tool; }#')
+feature_main"
+run
+check "unpack keeps a zip's several top folders apart" bash -c "[ -x '$SANDBOX/root/opt/tool/a/tool' ] && [ -f '$SANDBOX/root/opt/tool/b/extra' ]"
+
+sandbox; feature <<<"$(standard | sed 's#url=.*#url="$REL/$tag/tool-linux64.zip"#; s#checksums=.*#unverified="zip fixture"#; s#^install_program.*#install_program() { unpack /opt/tool --exclude=README.md; }#')
+feature_main"
+run
+check "unpack names archive options a zip can't take" has "tool: archive options apply to tarballs"
+
+sandbox; ( cd "$SANDBOX/release/v1.2.3" && sha512sum tool-v1.2.3-linux-amd64.tar.gz > checksums512.txt )
+feature <<<"$(standard | sed 's#checksums="\$REL/\$tag/checksums.txt"#checksums="\$REL/\$tag/checksums512.txt"#')
+feature_main"
+run
+check "a checksum list of sha512 digests verifies the download" installed tool
+
+sandbox; feature <<<"$(standard | sed 's#^install_program.*#install_program() { untar; install -d "$FEATURE_ROOT/opt/empty"; link_bin /opt/empty; }#')
+feature_main"
+run
+check "link_bin names an empty tree and links nothing from it" bash -c "grep -qF 'tool: no commands in /opt/empty' '$SANDBOX/out' && [ -z \"\$(ls -A '$SANDBOX/root/usr/local/bin' 2>/dev/null)\" ]"
+
+sandbox; feature <<<"$(standard)
+settings() { write_file /usr/local/etc/tool/blank; }
+feature_main"
+run
+check "write_file without content writes an empty file" bash -c "[ -f '$SANDBOX/root/usr/local/etc/tool/blank' ] && ! [ -s '$SANDBOX/root/usr/local/etc/tool/blank' ]"
 
 echo "$passed passed, $failed failed"
 [ "$failed" -eq 0 ]
