@@ -12,16 +12,20 @@ PACKAGES+=(libatomic1)
 # Resolve the channel or release line to a release and its checksum list.
 resolve_version() {
   local base="https://nodejs.org/dist" index
-  # Put one release per line, so the searches hold for any index layout.
-  index="$(curl -fsSL "$base/index.json" | tr '}' '\n')"
   case "$VERSION" in
     v[0-9]*.[0-9]*.[0-9]*) tag="$VERSION" ;;
     [0-9]*.[0-9]*.[0-9]*)  tag="v$VERSION" ;;
     # Follow the release pointer, which moves on releases alone.
     latest) tag="$(curl -fsSL "$base/latest/SHASUMS256.txt" | grep -m1 -oP 'node-\Kv[0-9]+\.[0-9]+\.[0-9]+(?=-)' || true)" ;;
-    # Search a here-string, so stopping at the first match ends the search cleanly.
-    lts)    tag="$(grep -m1 '"lts":"' <<< "$index" | grep -oP '"version":"\Kv[^"]+' || true)" ;;
-    *)      tag="$(grep -m1 -F "\"version\":\"v${VERSION#v}." <<< "$index" | grep -oP '"version":"\Kv[^"]+' || true)" ;;
+    *)
+      # Put one release per line, so the searches hold for any index layout.
+      index="$(curl -fsSL "$base/index.json" | tr '}' '\n')"
+      # Search a here-string, so stopping at the first match ends the search cleanly.
+      if [ "$VERSION" = lts ]; then
+        tag="$(grep -m1 '"lts":"' <<< "$index" | grep -oP '"version":"\Kv[^"]+' || true)"
+      else
+        tag="$(grep -m1 -F "\"version\":\"v${VERSION#v}." <<< "$index" | grep -oP '"version":"\Kv[^"]+' || true)"
+      fi ;;
   esac
   [ -n "$tag" ] || die "could not resolve version '$VERSION'"
   url="$base/$tag/node-$tag-linux-$(arch_name x86_64=x64 aarch64=arm64).tar.gz"
