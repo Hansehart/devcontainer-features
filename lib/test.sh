@@ -19,9 +19,17 @@ sandbox() {
   # A release tarball holding one tool, its checksum list and its per-file checksum.
   printf '#!/bin/sh\necho "tool 1.2.3"\n' > "$SANDBOX/pkg/tool-v1.2.3/tool"
   chmod +x "$SANDBOX/pkg/tool-v1.2.3/tool"
+  echo notes > "$SANDBOX/pkg/tool-v1.2.3/README.md"
   tar -czf "$SANDBOX/release/v1.2.3/tool-v1.2.3-linux-amd64.tar.gz" -C "$SANDBOX/pkg" tool-v1.2.3
   ( cd "$SANDBOX/release/v1.2.3" && sha256sum tool-v1.2.3-linux-amd64.tar.gz > checksums.txt \
-    && cp checksums.txt tool-v1.2.3-linux-amd64.tar.gz.sha256 )
+    && cp checksums.txt tool-v1.2.3-linux-amd64.tar.gz.sha256 \
+    && sha512sum tool-v1.2.3-linux-amd64.tar.gz > tool-v1.2.3-linux-amd64.tar.gz.sha512 )
+  # The same tool as a zip archive with its own top folder, as some vendors ship it.
+  python3 -I -c 'import sys, zipfile
+z = zipfile.ZipFile(sys.argv[1], "w")
+i = zipfile.ZipInfo("tool-linux64/tool"); i.external_attr = 0o755 << 16
+z.writestr(i, open(sys.argv[2]).read()); z.close()' \
+    "$SANDBOX/release/v1.2.3/tool-linux64.zip" "$SANDBOX/pkg/tool-v1.2.3/tool"
   printf '{"tag_name": "v1.2.3"}\n' > "$SANDBOX/api/repos/acme/tool/releases/latest"
   cp "$LIB" "$SANDBOX/feature/lib.sh"
 }
@@ -202,6 +210,40 @@ sandbox; feature <<<"$(standard)
 feature_main"
 run
 check "hooks are installed only for features that ship them" bash -c "! [ -e '$SANDBOX/root/usr/local/libexec/tool' ]"
+
+# --- program trees ---------------------------------------------------------------------
+
+sandbox; feature <<<"$(standard | sed 's#^install_program.*#install_program() { unpack /opt/tool --exclude=README.md; link_bin /opt/tool; }#')
+feature_main"
+run
+check "unpack places the release in its own tree" bash -c "[ -x '$SANDBOX/root/opt/tool/tool' ]"
+check "unpack passes extra archive options through" bash -c "! [ -e '$SANDBOX/root/opt/tool/README.md' ]"
+check "link_bin puts the tree's commands on the PATH" bash -c "[ -L '$SANDBOX/root/usr/local/bin/tool' ] && [ \"\$(readlink '$SANDBOX/root/usr/local/bin/tool')\" = '$SANDBOX/root/opt/tool/tool' ]"
+check "a linked command runs" has "tool 1.2.3"
+
+sandbox; feature <<<"$(standard | sed 's#url=.*#url="$REL/$tag/tool-linux64.zip"#; s#checksums=.*#unverified="zip fixture"#; s#^install_program.*#install_program() { unpack /opt/tool; link_bin /opt/tool tool; }#')
+feature_main"
+run
+check "unpack opens a zip archive into the tree" bash -c "[ -x '$SANDBOX/root/opt/tool/tool' ]"
+check "link_bin links the named command" bash -c "[ -L '$SANDBOX/root/usr/local/bin/tool' ]"
+
+sandbox; feature <<<"$(standard | sed 's#checksums="\$REL/\$tag/checksums.txt"#checksum="\$url.sha512"#')
+feature_main"
+run
+check "a sha512 checksum verifies the download" installed tool
+
+sandbox; feature <<<"$(standard | sed 's#checksums="\$REL/\$tag/checksums.txt"#checksum="\$url.sha512"#')
+feature_main"
+echo "0000  tool-v1.2.3-linux-amd64.tar.gz" > "$SANDBOX/release/v1.2.3/tool-v1.2.3-linux-amd64.tar.gz.sha512"
+run
+check "a sha512 mismatch stops the install" has "tool: checksum mismatch for tool-v1.2.3-linux-amd64.tar.gz"
+
+sandbox; feature <<<"$(standard)
+settings() { write_file /etc/opt/tool/config 'key=value'; write_file /usr/local/etc/tool/empty ''; }
+feature_main"
+run
+check "write_file writes the content exactly" bash -c "[ \"\$(cat '$SANDBOX/root/etc/opt/tool/config')\" = 'key=value' ] && [ \"\$(stat -c %a '$SANDBOX/root/etc/opt/tool/config')\" = 644 ]"
+check "write_file keeps empty content empty" bash -c "[ -f '$SANDBOX/root/usr/local/etc/tool/empty' ] && ! [ -s '$SANDBOX/root/usr/local/etc/tool/empty' ]"
 
 echo "$passed passed, $failed failed"
 [ "$failed" -eq 0 ]
