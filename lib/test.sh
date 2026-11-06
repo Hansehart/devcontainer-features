@@ -7,15 +7,22 @@ LIB="$(cd "$(dirname "$0")" && pwd)/lib.sh"
 passed=0
 failed=0
 
+# Remove every sandbox when the run ends.
+SANDBOXES=()
+trap 'rm -rf "${SANDBOXES[@]}"' EXIT
+
 # Build a sandbox with a fake release, fake system tools and an empty install root.
 sandbox() {
   SANDBOX="$(mktemp -d)"
+  SANDBOXES+=("$SANDBOX")
   mkdir -p "$SANDBOX/bin" "$SANDBOX/feature" "$SANDBOX/root" "$SANDBOX/release/v1.2.3" \
     "$SANDBOX/api/repos/acme/tool/releases" "$SANDBOX/pkg/tool-v1.2.3"
   # Package manager and machine name, recorded and faked.
   printf '#!/bin/sh\necho "$*" >> "%s/apt.log"\n' "$SANDBOX" > "$SANDBOX/bin/apt-get"
   printf '#!/bin/sh\necho "${FAKE_ARCH:-x86_64}"\n' > "$SANDBOX/bin/uname"
-  chmod +x "$SANDBOX/bin/apt-get" "$SANDBOX/bin/uname"
+  # Switching user, recorded and run as the current user.
+  printf '#!/bin/sh\necho "as $2: $4" >> "%s/su.log"\nexec bash -c "$4"\n' "$SANDBOX" > "$SANDBOX/bin/su"
+  chmod +x "$SANDBOX/bin/apt-get" "$SANDBOX/bin/uname" "$SANDBOX/bin/su"
   # A release tarball holding one tool, its checksum list and its per-file checksum.
   printf '#!/bin/sh\necho "tool 1.2.3"\n' > "$SANDBOX/pkg/tool-v1.2.3/tool"
   chmod +x "$SANDBOX/pkg/tool-v1.2.3/tool"
@@ -136,7 +143,7 @@ sandbox; feature <<<"$(standard)
 feature_main"
 sed -i 's/tool-v1.2.3-linux-amd64.tar.gz/tool-v1x2x3-linux-amd64xtarxgz/' "$SANDBOX/release/v1.2.3/checksums.txt"
 run
-check "a checksum list matches the asset name exactly" bash -c "! [ -e '$SANDBOX/root/usr/local/bin/tool' ] && grep -qF 'tool: checksum mismatch' '$SANDBOX/out'"
+check "a checksum list matches the asset name exactly" bash -c "! [ -e '$SANDBOX/root/usr/local/bin/tool' ] && grep -qF 'tool: no checksum for tool-v1.2.3-linux-amd64.tar.gz in the list' '$SANDBOX/out'"
 
 sandbox; feature <<<"$(standard | sed 's#checksums="\$REL/\$tag/checksums.txt"#checksum="\$url.sha256"#')
 feature_main"
@@ -153,12 +160,12 @@ check "an unverified download still installs" installed tool
 sandbox; feature <<<"$(standard | sed '/checksums=/d')
 feature_main"
 run
-check "a download without a verification declaration stops" has "tool: declare one of checksums, checksum or unverified"
+check "a download without a verification declaration stops" has "tool: declare one of checksums, checksum, unverified or delegated"
 
 sandbox; feature <<<"$(standard | sed 's#checksums="\$REL/\$tag/checksums.txt"#checksums="\$REL/\$tag/checksums.txt"; unverified="both"#')
 feature_main"
 run
-check "two verification declarations stop" has "tool: declare one of checksums, checksum or unverified"
+check "two verification declarations stop" has "tool: declare one of checksums, checksum, unverified or delegated"
 
 sandbox; feature <<<"$(standard | sed '/^install_program/d')
 feature_main"
@@ -297,6 +304,96 @@ settings() { write_file /usr/local/etc/tool/blank; }
 feature_main"
 run
 check "write_file without content writes an empty file" bash -c "[ -f '$SANDBOX/root/usr/local/etc/tool/blank' ] && ! [ -s '$SANDBOX/root/usr/local/etc/tool/blank' ]"
+
+# --- vendor installers ------------------------------------------------------------------
+
+# The body for a tool whose vendor installer fetches and checks it, run as the dev user.
+delegating() {
+  cat <<'EOF'
+resolve_version() { tag="$VERSION"; delegated="the vendor installer checks its own download"; }
+install_program() { as_user "echo installed by the vendor installer"; }
+EOF
+}
+
+sandbox; feature <<<"$(delegating)
+confirm() { :; }
+feature_main"
+run _REMOTE_USER=dev
+check "a delegated download needs no release file" has "installed by the vendor installer"
+check "a delegated download states its reason" has "tool: delegating the download: the vendor installer checks its own download"
+check "as_user runs the command as the dev user" grep -qxF "as dev: echo installed by the vendor installer" "$SANDBOX/su.log"
+
+sandbox; feature <<<"$(delegating | sed 's#delegated="the vendor installer checks its own download"#delegated="x"; checksums="y"#')
+feature_main"
+run
+check "a delegated download with a second declaration stops" has "tool: declare one of checksums, checksum, unverified or delegated"
+
+sandbox; feature <<<"$(delegating)
+confirm() { :; }
+feature_main"
+run
+check "a version that names itself is logged once" bash -c "grep -qx 'tool: installing latest' '$SANDBOX/out'"
+
+sandbox; feature <<<"$(delegating)
+confirm() { :; }
+settings() { record requested.json '{\"a\": 1}'; record empty ''; }
+feature_main"
+run
+check "record keeps a setting for the feature's hooks" bash -c "[ \"\$(cat '$SANDBOX/root/usr/local/etc/tool/requested.json')\" = '{\"a\": 1}' ] && [ -f '$SANDBOX/root/usr/local/etc/tool/empty' ] && ! [ -s '$SANDBOX/root/usr/local/etc/tool/empty' ]"
+
+# --- review follow-ups -------------------------------------------------------------------
+
+sandbox; feature <<<"$(standard); echo \"lb=\$(release_tag github acme/tool latest --bare)\"; exit 0"
+run
+check "a bare tag drops the v for latest as well" has "lb=1.2.3"
+
+sandbox; zipped hidden.zip ".hidden=x" "top/tool=#!/bin/sh
+echo tool 1.2.3"
+feature <<<"$(standard | sed 's#url=.*#url="$REL/$tag/hidden.zip"#; s#checksums=.*#unverified="zip fixture"#; s#^install_program.*#install_program() { unpack /opt/tool; }#')
+confirm() { :; }
+feature_main"
+run
+check "unpack keeps a zip's hidden root files beside its folder" bash -c "[ -f '$SANDBOX/root/opt/tool/.hidden' ] && [ -x '$SANDBOX/root/opt/tool/top/tool' ]"
+
+sandbox; zipped two.zip "a/tool=#!/bin/sh
+echo tool 1.2.3" "b/extra=x"
+feature <<<"$(standard | sed 's#url=.*#url="$REL/$tag/two.zip"#; s#checksums=.*#unverified="zip fixture"#; s#^install_program.*#install_program() { unpack /opt/tool; unpack /opt/tool; link_bin /opt/tool/a tool; }#')
+feature_main"
+run
+check "unpack replaces a tree from an earlier zip" bash -c "[ -x '$SANDBOX/root/opt/tool/a/tool' ] && grep -q 'tool 1.2.3' '$SANDBOX/out'"
+
+sandbox; feature <<<"$(standard)
+feature_main"
+sed -i 's/tool-v1.2.3-linux-amd64.tar.gz/tool-renamed.tar.gz/' "$SANDBOX/release/v1.2.3/checksums.txt"
+run
+check "a checksum list without the asset names what it lacks" has "tool: no checksum for tool-v1.2.3-linux-amd64.tar.gz in the list"
+
+sandbox; repo="$SANDBOX/repo"; mkdir -p "$repo/lib" "$repo/src/plain"
+cp "$(dirname "$LIB")/sync.sh" "$LIB" "$(dirname "$LIB")/state-dir.sh" "$repo/lib/"
+printf '#!/bin/sh\necho plain\n' > "$repo/src/plain/install.sh"; cp "$LIB" "$repo/src/plain/lib.sh"
+bash "$repo/lib/sync.sh" --check > "$SANDBOX/out" 2>&1
+check "the sync check reports a library copy its feature no longer sources" has "src/plain/lib.sh is a library copy its feature doesn't source"
+
+# --- version format and delegated unpacks ------------------------------------------------
+
+sandbox; feature <<<"$(delegating)
+confirm() { :; }
+feature_main"
+sed -i 's/^resolve_version() { tag=/resolve_version() { require_version "^(latest|[0-9]+\\\\.[0-9]+\\\\.[0-9]+)\\$"; tag=/' "$SANDBOX/feature/install.sh"
+run VERSION="latest'; touch $SANDBOX/pwned; echo '"
+check "a version outside the format stops before any command runs" bash -c "grep -qF \"tool: unsupported version 'latest'\" '$SANDBOX/out' && ! [ -e '$SANDBOX/pwned' ] && ! [ -e '$SANDBOX/su.log' ]"
+
+sandbox; feature <<<"$(delegating)
+confirm() { :; }
+feature_main"
+sed -i 's/^resolve_version() { tag=/resolve_version() { require_version "^(latest|[0-9]+\\\\.[0-9]+\\\\.[0-9]+)\\$"; tag=/' "$SANDBOX/feature/install.sh"
+run VERSION=2.1.0
+check "a version in the format installs" has "tool: installing 2.1.0"
+
+sandbox; feature <<<"$(delegating | sed 's#^install_program.*#install_program() { unpack /opt/tool; }#')
+feature_main"
+run
+check "unpacking after a delegated download names what's missing" has "tool: nothing was downloaded to unpack"
 
 echo "$passed passed, $failed failed"
 [ "$failed" -eq 0 ]

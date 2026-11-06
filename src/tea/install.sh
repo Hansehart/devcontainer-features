@@ -22,9 +22,7 @@ install_program() {
 
 # Record the state dir, for the hook to read at build and at create.
 settings() {
-  install -d "$FEATURE_ROOT/usr/local/etc/tea"
-  echo "STATE_DIR=\"$STATE_DIR\"" > "$FEATURE_ROOT/usr/local/etc/tea/config.env"
-  chmod 0644 "$FEATURE_ROOT/usr/local/etc/tea/config.env"
+  record config.env "STATE_DIR=\"$STATE_DIR\""$'\n'
 }
 
 # Link the config at build too, as the dev user, so the image carries the redirect from

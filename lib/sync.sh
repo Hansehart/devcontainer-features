@@ -13,6 +13,11 @@ for feature in src/*/; do
   feature="${feature%/}"
   # The library goes to every feature whose install script sources it.
   if grep -q '/lib.sh"' "$feature/install.sh"; then pairs+=("lib/lib.sh $feature/lib.sh"); fi
+  # A library copy belongs only to a feature whose install script sources it.
+  if [ "$mode" = --check ] && [ -f "$feature/lib.sh" ] && ! grep -q '/lib.sh"' "$feature/install.sh"; then
+    echo "$feature/lib.sh is a library copy its feature doesn't source" >&2
+    status=1
+  fi
   # The state-dir guard goes to every feature that ships one.
   if [ -f "$feature/state-dir.sh" ]; then pairs+=("lib/state-dir.sh $feature/state-dir.sh"); fi
 done

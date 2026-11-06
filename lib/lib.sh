@@ -54,7 +54,7 @@ release_tag() {
     fi
     tag="$(curl -fsSL "$api/repos/$repo/releases/latest" | grep -oP '"tag_name":\s*"\K[^"]+' || true)"
     [ -n "$tag" ] || die "could not resolve the latest version"
-    printf '%s' "$tag"
+    if [ "$bare" = --bare ]; then printf '%s' "${tag#v}"; else printf '%s' "$tag"; fi
   elif [ "$bare" = --bare ]; then
     printf '%s' "${version#v}"
   else
@@ -71,22 +71,33 @@ apt_install() {
 }
 
 # Unpack the release into the work dir.
-untar() { tar -xzf "$tmp/$asset" -C "$tmp" --strip-components=1; }
+untar() {
+  [ -n "$asset" ] || die "nothing was downloaded to unpack"
+  tar -xzf "$tmp/$asset" -C "$tmp" --strip-components=1
+}
 
 # Unpack the release into its own tree, without the archive's single top folder or its owners.
 unpack() {
   local dest="$FEATURE_ROOT$1" staging="$tmp/unpacked" entries
   shift
+  [ -n "$asset" ] || die "nothing was downloaded to unpack"
   install -d "$dest"
   case "$asset" in
     *.zip)
       [ "$#" -eq 0 ] || die "archive options apply to tarballs"
       command -v unzip >/dev/null || die "unpacking a zip needs unzip among the packages"
       unzip -q "$tmp/$asset" -d "$staging"
-      # Step into a single top folder, and keep any other layout as the archive has it.
-      entries=("$staging"/*)
-      if [ "${#entries[@]}" -eq 1 ] && [ -d "${entries[0]}" ]; then staging="${entries[0]}"; fi
-      find "$staging" -mindepth 1 -maxdepth 1 -exec mv -t "$dest" {} +
+      # Step into a single top folder, counting hidden entries too, and keep any other layout
+      # as the archive has it.
+      entries="$(find "$staging" -mindepth 1 -maxdepth 1)"
+      if [ -n "$entries" ] && [ "$(printf '%s\n' "$entries" | wc -l)" -eq 1 ] && [ -d "$entries" ]; then
+        staging="$entries"
+      fi
+      # Replace what an earlier unpack left under each name, so the tree matches the archive.
+      find "$staging" -mindepth 1 -maxdepth 1 -print0 | while IFS= read -r -d '' entry; do
+        rm -rf "${dest:?}/${entry##*/}"
+        mv "$entry" "$dest/"
+      done
       ;;
     *)
       tar -xf "$tmp/$asset" -C "$dest" --strip-components=1 --no-same-owner "$@"
@@ -106,6 +117,17 @@ link_bin() {
     for name in "$@"; do ln -sf "$dir/$name" "$bin/$name"; done
   fi
 }
+
+# Accept only a requested version in the feature's format, before it reaches any command.
+require_version() {
+  [[ "$VERSION" =~ $1 ]] || die "unsupported version '$VERSION'"
+}
+
+# Keep a setting for the feature's hooks, exactly as given.
+record() { write_file "/usr/local/etc/$FEATURE/$1" "${2-}"; }
+
+# Run a command as the dev user, in a login shell.
+as_user() { su - "$_REMOTE_USER" -c "$1"; }
 
 # Write a file with exactly the given content, readable by everyone.
 write_file() {
@@ -146,17 +168,24 @@ check_digest() {
 
 # Download the release and verify it the one way the feature declared.
 download_release() {
-  local declared=0 kind
-  for kind in "$checksums" "$checksum" "$unverified"; do
+  local declared=0 kind digest
+  for kind in "$checksums" "$checksum" "$unverified" "$delegated"; do
     if [ -n "$kind" ]; then declared=$((declared + 1)); fi
   done
-  [ "$declared" -eq 1 ] || die "declare one of checksums, checksum or unverified"
+  [ "$declared" -eq 1 ] || die "declare one of checksums, checksum, unverified or delegated"
+  # Leave the download to the vendor's installer, which fetches and checks the program itself.
+  if [ -n "$delegated" ]; then
+    log "delegating the download: $delegated"
+    return 0
+  fi
   asset="${url##*/}"
   curl -fsSL "$url" -o "$tmp/$asset"
   if [ -n "$checksums" ]; then
     curl -fsSL "$checksums" -o "$tmp/checksums.txt"
     # Take the digest from the asset's line, matched by its exact name in either notation.
-    check_digest "$(awk -v a="$asset" '{ n = $2; sub(/^\*/, "", n) } n == a { print $1; exit }' "$tmp/checksums.txt")"
+    digest="$(awk -v a="$asset" '{ n = $2; sub(/^\*/, "", n) } n == a { print $1; exit }' "$tmp/checksums.txt")"
+    [ -n "$digest" ] || die "no checksum for $asset in the list"
+    check_digest "$digest"
   elif [ -n "$checksum" ]; then
     curl -fsSL "$checksum" -o "$tmp/$asset.sum"
     # Take the digest the file leads with, whether or not it names the asset too.
@@ -201,9 +230,14 @@ feature_main() {
   done
   claim_state_dir
   apt_install "${PACKAGES[@]}"
-  tag="" url="" checksums="" checksum="" unverified=""
+  tag="" url="" asset="" checksums="" checksum="" unverified="" delegated=""
   resolve_version
-  log "installing $tag${VERSION:+ ($VERSION)}"
+  # Name the requested version beside the release only when the two differ.
+  if [ -n "$VERSION" ] && [ "$VERSION" != "$tag" ]; then
+    log "installing $tag ($VERSION)"
+  else
+    log "installing $tag"
+  fi
   tmp="$(mktemp -d)"
   trap 'rm -rf "$tmp"' EXIT
   download_release
@@ -217,6 +251,7 @@ feature_main() {
 }
 
 # Keep the shared steps the same for every feature.
-readonly -f option log die arch_name release_tag apt_install untar unpack link_bin write_file \
+readonly -f option log die arch_name release_tag apt_install untar unpack link_bin write_file record as_user \
+  require_version \
   install_bin claim_state_dir check_digest \
   download_release write_profile install_hooks optional feature_main
