@@ -143,6 +143,17 @@
     },
     {
       "customType": "regex",
+      "description": "Keep the pinned Go release in its test on the newest release.",
+      "managerFilePatterns": [
+        "/^test/go/scenarios\\.json$/",
+        "/^test/go/pinned_version\\.sh$/"
+      ],
+      "matchStrings": ["(?:^|[^\\d.])(?<currentValue>\\d+\\.\\d+\\.\\d+)(?:[^\\d.]|$)"],
+      "datasourceTemplate": "golang-version",
+      "depNameTemplate": "go"
+    },
+    {
+      "customType": "regex",
       "description": "Keep the pinned Chrome for Testing release in its test on the newest stable release.",
       "managerFilePatterns": [
         "/^test/headless-chrome/scenarios\\.json$/",
