@@ -7,7 +7,13 @@
   "options": {
     "version": {
       "type": "string",
-      "proposals": ["beta", "canary", "dev", "latest", "stable"],
+      "proposals": [
+        "beta",
+        "canary",
+        "dev",
+        "latest",
+        "stable"
+      ],
       "default": "latest",
       "description": "Channel (beta|canary|dev|latest|stable) or an exact version (major.minor.build.patch)."
     }
