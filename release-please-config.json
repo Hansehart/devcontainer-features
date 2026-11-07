@@ -1,0 +1,32 @@
+{
+  "$schema": "https://raw.githubusercontent.com/googleapis/release-please/v17.6.0/schemas/config.json",
+  "release-type": "simple",
+  "include-v-in-tag": false,
+  "extra-files": [{ "type": "json", "path": "devcontainer-feature.json", "jsonpath": "$.version" }],
+  "bootstrap-sha": "42dc701cb6a5767aa3d19d54749f30fa6e078dad",
+  "changelog-sections": [
+    { "type": "feat", "section": "Features" },
+    { "type": "fix", "section": "Bug Fixes" },
+    { "type": "perf", "section": "Performance Improvements" },
+    { "type": "revert", "section": "Reverts" },
+    { "type": "build", "section": "Build System", "hidden": true },
+    { "type": "chore", "section": "Miscellaneous Chores", "hidden": true },
+    { "type": "docs", "section": "Documentation", "hidden": true },
+    { "type": "style", "section": "Styles", "hidden": true },
+    { "type": "refactor", "section": "Code Refactoring", "hidden": true },
+    { "type": "test", "section": "Tests", "hidden": true },
+    { "type": "ci", "section": "Continuous Integration", "hidden": true }
+  ],
+  "packages": {
+    "src/age": { "component": "age" },
+    "src/claude-code": { "component": "claude-code" },
+    "src/codex": { "component": "codex" },
+    "src/docker-in-docker": { "component": "docker-in-docker" },
+    "src/headless-chrome": { "component": "headless-chrome" },
+    "src/latex": { "component": "latex" },
+    "src/node": { "component": "node" },
+    "src/sops": { "component": "sops" },
+    "src/tea": { "component": "tea" },
+    "src/uv": { "component": "uv" }
+  }
+}

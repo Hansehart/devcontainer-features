@@ -1,0 +1,12 @@
+{
+  "src/age": "1.0.6",
+  "src/claude-code": "2.1.3",
+  "src/codex": "2.1.1",
+  "src/docker-in-docker": "3.0.1",
+  "src/headless-chrome": "1.0.7",
+  "src/latex": "3.0.3",
+  "src/node": "3.0.7",
+  "src/sops": "2.0.6",
+  "src/tea": "1.0.7",
+  "src/uv": "2.0.6"
+}

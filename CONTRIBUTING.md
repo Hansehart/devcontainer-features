@@ -4,6 +4,7 @@
 
 - **Changes** ideally start as an issue, are made on their own branch, and land on main through a pull request as one squashed commit.
 - **Commits** start with the kind of change and the feature's name, followed by a short summary.
+- **Versions** are left to the release pull request, which raises a feature's first number for breaking changes, its second for new features, and its third for fixes.
 - **Descriptions** of pull requests and issues stay slim and minimal, about 2–3 sentences on average.
 
 ## Code
