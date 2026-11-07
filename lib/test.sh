@@ -474,20 +474,20 @@ check "apply_config outside init_main names where it belongs" has "apply_config 
 
 # --- the state-dir guard ----------------------------------------------------------------
 
-# Claim a nested state dir as the CLI does, with ownership changes recorded.
+# Claim a nested state dir as the CLI does, with the user switch and ownership changes recorded.
 claim() {
   printf '#!/bin/sh\necho "$*" >> "%s/chown.log"\n' "$SANDBOX" > "$SANDBOX/bin/chown"
-  chmod +x "$SANDBOX/bin/chown"
+  printf '#!/bin/sh\necho "$*" >> "%s/runuser.log"\nshift 3\nexec "$@"\n' "$SANDBOX" > "$SANDBOX/bin/runuser"
+  chmod +x "$SANDBOX/bin/chown" "$SANDBOX/bin/runuser"
   mkdir -p "$SANDBOX/home"
   env PATH="$SANDBOX/bin:$PATH" _REMOTE_USER=dev _REMOTE_USER_HOME="$SANDBOX/home" \
     bash "$(dirname "$LIB")/state-dir.sh" tool "$SANDBOX/home/$1" > "$SANDBOX/out" 2>&1
 }
 
 sandbox; mkdir -p "$SANDBOX/home/.local"; claim .local/state/tool
-check "a nested state dir gives the dev user the folders it creates" \
-  bash -c "grep -qx 'dev: $SANDBOX/home/.local/state' '$SANDBOX/chown.log' && grep -qx 'dev: $SANDBOX/home/.local/state/tool' '$SANDBOX/chown.log'"
-check "a nested state dir leaves existing folders as they are" \
-  bash -c "! grep -qx 'dev: $SANDBOX/home/.local' '$SANDBOX/chown.log' && ! grep -qx 'dev: $SANDBOX/home' '$SANDBOX/chown.log'"
+check "the dev user creates a nested state dir and the folders above it" \
+  grep -qx -- "-u dev -- mkdir -p $SANDBOX/home/.local/state/tool" "$SANDBOX/runuser.log"
+check "the state dir is handed to the dev user" grep -qx "dev: $SANDBOX/home/.local/state/tool" "$SANDBOX/chown.log"
 check "the folders above the state dir stay open to read" bash -c "[ \"\$(stat -c %a '$SANDBOX/home/.local/state')\" = 755 ]"
 check "the state dir stays private" bash -c "[ \"\$(stat -c %a '$SANDBOX/home/.local/state/tool')\" = 700 ]"
 
