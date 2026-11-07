@@ -14,7 +14,7 @@
         "24"
       ],
       "default": "lts",
-      "description": "Channel (lts|latest), a major line (24 or 24.19), or an exact version (major.minor.patch)."
+      "description": "Channel (lts|latest), a release line (major or major.minor), or an exact version (major.minor.patch)."
     },
     "stateDir": {
       "type": "string",
