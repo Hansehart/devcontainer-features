@@ -472,5 +472,24 @@ printf '#!/usr/bin/env bash\nset -euo pipefail\n. "$(dirname "$0")/hook.sh"\napp
 env HOME="$SANDBOX" bash "$SANDBOX/feature/init.sh" > "$SANDBOX/out" 2>&1
 check "apply_config outside init_main names where it belongs" has "apply_config runs inside init_main"
 
+# --- the state-dir guard ----------------------------------------------------------------
+
+# Claim a nested state dir as the CLI does, with ownership changes recorded.
+claim() {
+  printf '#!/bin/sh\necho "$*" >> "%s/chown.log"\n' "$SANDBOX" > "$SANDBOX/bin/chown"
+  chmod +x "$SANDBOX/bin/chown"
+  mkdir -p "$SANDBOX/home"
+  env PATH="$SANDBOX/bin:$PATH" _REMOTE_USER=dev _REMOTE_USER_HOME="$SANDBOX/home" \
+    bash "$(dirname "$LIB")/state-dir.sh" tool "$SANDBOX/home/$1" > "$SANDBOX/out" 2>&1
+}
+
+sandbox; mkdir -p "$SANDBOX/home/.local"; claim .local/state/tool
+check "a nested state dir gives the dev user the folders it creates" \
+  bash -c "grep -qx 'dev: $SANDBOX/home/.local/state' '$SANDBOX/chown.log' && grep -qx 'dev: $SANDBOX/home/.local/state/tool' '$SANDBOX/chown.log'"
+check "a nested state dir leaves existing folders as they are" \
+  bash -c "! grep -qx 'dev: $SANDBOX/home/.local' '$SANDBOX/chown.log' && ! grep -qx 'dev: $SANDBOX/home' '$SANDBOX/chown.log'"
+check "the folders above the state dir stay open to read" bash -c "[ \"\$(stat -c %a '$SANDBOX/home/.local/state')\" = 755 ]"
+check "the state dir stays private" bash -c "[ \"\$(stat -c %a '$SANDBOX/home/.local/state/tool')\" = 700 ]"
+
 echo "$passed passed, $failed failed"
 [ "$failed" -eq 0 ]
