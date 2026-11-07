@@ -1,28 +1,29 @@
-name: "Lint commit messages"
-on:
-  pull_request:
+name: Lint commits
+on: pull_request
 
 permissions:
   contents: read
 
 jobs:
-  # Checks that every commit a pull request adds follows the commit conventions.
   commitlint:
     runs-on: ubuntu-latest
     steps:
+      # check out history so the pull request's commit range resolves
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-          # Fetch the full history, so the pull request's commit range resolves.
           fetch-depth: 0
-      - name: "Set up Node"
-        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+
+      # provide the Node runtime the linter needs
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22
-      - name: "Install the commit linter"
-        run: npm install --no-save @commitlint/cli@21 @commitlint/config-conventional@21
-      - name: "Lint the pull request's commits"
-        run: >
+
+      # install the commit-message linter and its ruleset
+      - run: npm install --no-save @commitlint/cli@21 @commitlint/config-conventional@21
+
+      # lint only the commits this pull request adds
+      - run: >
           npx commitlint --config .commitlintrc.json --verbose
           --from ${{ github.event.pull_request.base.sha }}
           --to ${{ github.event.pull_request.head.sha }}

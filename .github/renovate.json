@@ -7,7 +7,7 @@
     "helpers:pinGitHubActionDigestsToSemver"
   ],
   "timezone": "Europe/Berlin",
-  "labels": ["renovate"],
+  "labels": ["dependencies"],
   "semanticCommits": "enabled",
   "semanticCommitScope": "deps",
   "pinDigests": true,
@@ -140,6 +140,17 @@
       "registryUrlTemplate": "https://download.docker.com/linux/ubuntu?suite=noble&components=stable&binaryArch=amd64",
       "extractVersionTemplate": "^(?:\\d+:)?(?<version>\\d+\\.\\d+\\.\\d+)-",
       "versioningTemplate": "semver"
+    },
+    {
+      "customType": "regex",
+      "description": "Keep the pinned Go release in its test on the newest release.",
+      "managerFilePatterns": [
+        "/^test/go/scenarios\\.json$/",
+        "/^test/go/pinned_version\\.sh$/"
+      ],
+      "matchStrings": ["(?:^|[^\\d.])(?<currentValue>\\d+\\.\\d+\\.\\d+)(?:[^\\d.]|$)"],
+      "datasourceTemplate": "golang-version",
+      "depNameTemplate": "go"
     },
     {
       "customType": "regex",
