@@ -20,7 +20,7 @@
     "remoteUser": "ubuntu",
     "features": {
       "go": {
-        "stateDir": "/home/ubuntu/go-state"
+        "stateDir": "/home/ubuntu/go"
       }
     }
   },
