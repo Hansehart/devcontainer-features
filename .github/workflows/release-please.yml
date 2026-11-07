@@ -1,18 +1,16 @@
-name: "Release please"
+name: Release
 on:
   push:
     branches:
       - main
 
 jobs:
-  # Keeps the release pull request current, and tags each feature's release once it merges.
   release-please:
     runs-on: ubuntu-latest
     permissions: {}
     steps:
-      # Act as the release app, so its pull requests start the usual checks.
-      - name: "Create the release app token"
-        id: app-token
+      # act as the release app, so its pull requests and tags start the usual workflows
+      - id: app-token
         uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
         with:
           client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
@@ -20,7 +18,8 @@ jobs:
           permission-contents: write
           permission-issues: write
           permission-pull-requests: write
-      - name: "Release please"
-        uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
+
+      # keep the release pull request current, and tag the release once it merges
+      - uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
         with:
           token: ${{ steps.app-token.outputs.token }}
