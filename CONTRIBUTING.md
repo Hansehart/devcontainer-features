@@ -13,6 +13,18 @@
 
 ## Features
 
+### Interface
+
+Every feature runs through the shared library in `lib/`, so features install and prepare their state the same way. `lib/sync.sh` copies the library into each feature, since a feature can only ship its own files, and CI checks that the copies match their source.
+
+- **Install:** `install.sh` names the feature, reads its options with `option`, adds its apt packages to `PACKAGES`, defines its own steps, then calls `feature_main`. The sequence claims the state dir, installs the packages, resolves and logs the release, downloads and verifies it, installs the program, then writes the profile, the settings and the hooks, and confirms the program runs.
+- **Required steps:** `resolve_version` sets the exact release and how its download is verified, and `install_program` puts the program in place.
+- **Optional steps:** `profile` prints the profile lines, `settings` records what the hooks apply, `post_install` covers what is unique to the feature, and `confirm` replaces the default version check.
+- **Verification:** each feature declares exactly one of `checksums`, `checksum`, `unverified` or `delegated`, the last two with the reason, which the build log shows.
+- **Versions:** `require_version` checks a requested version against the feature's format before any command sees it.
+- **Hook:** `init.sh` sources `hook.sh`, defines what it prepares in `init_state`, then calls `init_main <feature>`. The shared part reads the recorded state dir and the profile, creates the state dir, and warns when it sits on the container filesystem. `apply_config` writes a recorded user config to where the tool reads it.
+- **Library changes:** every feature that carries the changed file gets a patch bump, so the change is released with it.
+
 ### Layout
 
 Files go where the Filesystem Hierarchy Standard (FHS) puts them, so every feature lays out the same way.
