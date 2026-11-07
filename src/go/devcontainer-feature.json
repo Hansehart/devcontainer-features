@@ -8,7 +8,7 @@
     "version": {
       "type": "string",
       "default": "latest",
-      "description": "Channel (latest), a minor line (1.27), or an exact version (major.minor.patch)."
+      "description": "Channel (latest), a minor line (major.minor), or an exact version (major.minor.patch)."
     },
     "stateDir": {
       "type": "string",
