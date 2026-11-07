@@ -31,10 +31,10 @@ resolve() {
 
 # Resolve each component to an exact release from the vendor's own package repository.
 resolve_version() {
-  local want
-  for want in "$VERSION" "$BUILDX_VERSION" "$COMPOSE_VERSION"; do
-    require_version '^(latest|[0-9]+(\.[0-9]+){0,2})$' "$want"
-  done
+  local format='^(latest|[0-9]+(\.[0-9]+){0,2})$'
+  require_version "$format"
+  require_version "$format" "$BUILDX_VERSION" buildxVersion
+  require_version "$format" "$COMPOSE_VERSION" composeVersion
   install -m 0755 -d /etc/apt/keyrings
   curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
   chmod a+r /etc/apt/keyrings/docker.asc
