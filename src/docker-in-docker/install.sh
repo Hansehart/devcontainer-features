@@ -9,6 +9,12 @@ BUILDX_VERSION="$(option BUILDXVERSION latest)"
 COMPOSE_VERSION="$(option COMPOSEVERSION latest)"
 DAEMON_JSON="$(option DAEMONJSON "")"
 
+# Accept only options in the feature's format, before anything is installed.
+format='^(latest|[0-9]+(\.[0-9]+){0,2})$'
+require_version "$format"
+require_version "$format" "$BUILDX_VERSION" buildxVersion
+require_version "$format" "$COMPOSE_VERSION" composeVersion
+
 # Install the packages the engine needs at build and at run time.
 PACKAGES+=(erofs-utils iptables pigz)
 # Ship the entrypoint that starts the daemon with the container.
@@ -33,10 +39,6 @@ resolve() {
 
 # Resolve each component to an exact release from the vendor's own package repository.
 resolve_version() {
-  local format='^(latest|[0-9]+(\.[0-9]+){0,2})$'
-  require_version "$format"
-  require_version "$format" "$BUILDX_VERSION" buildxVersion
-  require_version "$format" "$COMPOSE_VERSION" composeVersion
   install -m 0755 -d /etc/apt/keyrings
   curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
   chmod a+r /etc/apt/keyrings/docker.asc

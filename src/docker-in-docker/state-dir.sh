@@ -6,6 +6,13 @@ set -euo pipefail
 feature="$1"
 state_dir="$2"
 
+# Keep the path plain, so the profiles and commands that carry it read it as written.
+case "$state_dir" in
+  *[!A-Za-z0-9._/@+-]*)
+    echo "$feature: stateDir may hold letters, digits and ._@+- alone (got $state_dir)" >&2
+    exit 1 ;;
+esac
+
 user="${_REMOTE_USER:-$(id -un)}"
 home="${_REMOTE_USER_HOME:-}"
 if [ -z "$home" ]; then
@@ -22,6 +29,8 @@ case "$resolved" in
   *) echo "$feature: stateDir must be inside $home (got $state_dir)" >&2; exit 1 ;;
 esac
 
-# Create the state dir as part of the claim, for the dev user alone.
-install -d -m 0700 "$state_dir"
-chown "$user:" "$state_dir"
+# Create the state dir as the dev user, so every folder made on the way is theirs too, then
+# keep the state dir for them alone.
+runuser -u "$user" -- mkdir -p "$resolved"
+chown "$user:" "$resolved"
+chmod 0700 "$resolved"
