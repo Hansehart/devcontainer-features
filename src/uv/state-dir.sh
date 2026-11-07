@@ -29,6 +29,8 @@ case "$resolved" in
   *) echo "$feature: stateDir must be inside $home (got $state_dir)" >&2; exit 1 ;;
 esac
 
-# Create the state dir as part of the claim, for the dev user alone.
-install -d -m 0700 "$state_dir"
-chown "$user:" "$state_dir"
+# Create the state dir as the dev user, so every folder made on the way is theirs too, then
+# keep the state dir for them alone.
+runuser -u "$user" -- mkdir -p "$resolved"
+chown "$user:" "$resolved"
+chmod 0700 "$resolved"
