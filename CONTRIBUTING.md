@@ -25,7 +25,7 @@ Every feature runs through the shared library in `lib/`, so features install and
 - **Verification:** each feature declares exactly one of `checksums`, `checksum`, `unverified` or `delegated`, the last two with the reason, which the build log shows.
 - **Versions:** `require_version` checks a requested version against the feature's format before any command sees it.
 - **Hook:** `init.sh` sources `hook.sh`, defines what it prepares in `init_state`, then calls `init_main <feature>`. The shared part reads the recorded state dir and the profile, creates the state dir, and warns when it sits on the container filesystem. `apply_config` writes a recorded user config to where the tool reads it.
-- **Library changes:** every feature that carries the changed file gets a patch bump, so the change is released with it.
+- **Library changes:** reach every feature that carries the changed file, which the release pull request then releases.
 
 ### Layout
 
