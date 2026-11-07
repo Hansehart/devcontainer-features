@@ -118,9 +118,11 @@ link_bin() {
   fi
 }
 
-# Accept only a requested version in the feature's format, before it reaches any command.
+# Accept only a requested version in the feature's format, before it reaches any command: the
+# feature's version, or the one given under its option's name.
 require_version() {
-  [[ "$VERSION" =~ $1 ]] || die "unsupported version '$VERSION'"
+  local value="${2-$VERSION}" name="${3:-version}"
+  [[ "$value" =~ $1 ]] || die "unsupported $name '$value'"
 }
 
 # Keep a setting for the feature's hooks, exactly as given.

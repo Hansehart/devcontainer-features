@@ -11,6 +11,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          persist-credentials: false
           # Fetch the full history, so the diff reaches the base commit.
           fetch-depth: 0
       - name: "Select the features to test"
@@ -57,6 +58,8 @@ jobs:
         feature: ${{ fromJSON(needs.detect.outputs.features) }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - name: Install the dev container CLI
         run: npm install -g @devcontainers/cli@0.90.0
       - name: "Test ${{ matrix.feature }}"
