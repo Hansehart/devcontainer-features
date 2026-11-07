@@ -1,4 +1,4 @@
-name: "Validate devcontainer-feature.json files"
+name: "Validate metadata"
 on:
   push:
     branches:

@@ -1,0 +1,35 @@
+{
+  "minor_line": {
+    "image": "ubuntu:24.04",
+    "features": {
+      "go": {
+        "version": "1.26"
+      }
+    }
+  },
+  "pinned_version": {
+    "image": "ubuntu:24.04",
+    "features": {
+      "go": {
+        "version": "1.27.3"
+      }
+    }
+  },
+  "state_dir": {
+    "image": "ubuntu:24.04",
+    "remoteUser": "ubuntu",
+    "features": {
+      "go": {
+        "stateDir": "/home/ubuntu/go"
+      }
+    }
+  },
+  "toolchain_auto": {
+    "image": "ubuntu:24.04",
+    "features": {
+      "go": {
+        "toolchain": "auto"
+      }
+    }
+  }
+}

@@ -23,6 +23,7 @@
     "src/claude-code": { "component": "claude-code" },
     "src/codex": { "component": "codex" },
     "src/docker-in-docker": { "component": "docker-in-docker" },
+    "src/go": { "component": "go" },
     "src/headless-chrome": { "component": "headless-chrome" },
     "src/latex": { "component": "latex" },
     "src/node": { "component": "node" },
