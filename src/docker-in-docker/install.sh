@@ -33,7 +33,7 @@ resolve() {
 resolve_version() {
   local want
   for want in "$VERSION" "$BUILDX_VERSION" "$COMPOSE_VERSION"; do
-    [[ "$want" =~ ^(latest|[0-9]+(\.[0-9]+){0,2})$ ]] || die "unsupported version '$want'"
+    require_version '^(latest|[0-9]+(\.[0-9]+){0,2})$' "$want"
   done
   install -m 0755 -d /etc/apt/keyrings
   curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
@@ -44,7 +44,6 @@ resolve_version() {
   engine="$(resolve docker-ce "$VERSION")"
   buildx="$(resolve docker-buildx-plugin "$BUILDX_VERSION")"
   compose="$(resolve docker-compose-plugin "$COMPOSE_VERSION")"
-  log "with buildx $buildx ($BUILDX_VERSION), compose $compose ($COMPOSE_VERSION)"
   tag="$engine"
   delegated="apt checks each package against the repository's signed index"
 }
@@ -52,6 +51,7 @@ resolve_version() {
 # Install the engine with its official plugins, plus the helpers a daemon run by the dev
 # user relies on. The engine's companion packages share its release, which they require.
 install_program() {
+  log "with buildx $buildx ($BUILDX_VERSION), compose $compose ($COMPOSE_VERSION)"
   apt_install \
     "docker-ce=$engine" \
     "docker-ce-cli=$engine" \
@@ -94,6 +94,7 @@ post_install() {
       grep -q "^${_REMOTE_USER}:" "$f" || echo "${_REMOTE_USER}:100000:65536" >> "$f"
     done
   fi
+  install -d "$FEATURE_ROOT/usr/local/libexec/$FEATURE"
   install -m 0755 "$FEATURE_DIR/docker-init.sh" "$FEATURE_ROOT/usr/local/libexec/$FEATURE/docker-init.sh"
   install -d "$FEATURE_ROOT/usr/local/share/$FEATURE"
   install -m 0644 "$FEATURE_DIR/seccomp.json" "$FEATURE_ROOT/usr/local/share/$FEATURE/seccomp.json"
