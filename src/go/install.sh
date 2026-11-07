@@ -7,18 +7,31 @@ FEATURE=go
 VERSION="$(option VERSION latest)"
 TOOLCHAIN="$(option TOOLCHAIN local)"
 
+# Find a release in the index: the newest of a line, or an exact one that exists.
+find_release() {
+  local pattern="$1" query="$2" index
+  index="$(curl -fsSL "https://go.dev/dl/?mode=json$query")" || return 0
+  # Search a here-string, so stopping at the first match ends the search cleanly.
+  grep -m1 -oP "\"version\":\s*\"\K$pattern(?=\")" <<< "$index" || true
+}
+
 # Resolve the channel or release line to a release and its checksum.
 resolve_version() {
+  local pattern
   require_version '^(latest|1\.[0-9]+(\.[0-9]+)?)$'
   require_version '^(local|path|auto)$' "$TOOLCHAIN" toolchain
-  case "$VERSION" in
+  if [ "$VERSION" = latest ]; then
     # Follow the release pointer, which names the newest release on its first line.
-    latest) tag="$(curl -fsSL "https://go.dev/VERSION?m=text" | head -n1 || true)" ;;
-    *.*.*) tag="go$VERSION" ;;
-    # Take the newest release in the line, whose patch number sets it apart from previews.
-    *) tag="$(curl -fsSL "https://go.dev/dl/?mode=json&include=all" \
-         | grep -m1 -oP "\"version\":\s*\"\Kgo${VERSION//./\\.}\.[0-9]+(?=\")" || true)" ;;
-  esac
+    tag="$(curl -fsSL "https://go.dev/VERSION?m=text" | head -n1 || true)"
+  else
+    # Match the exact release, or the newest in the line, whose patch number sets it apart
+    # from previews.
+    pattern="go${VERSION//./\\.}"
+    if [[ "$VERSION" != *.*.* ]]; then pattern="$pattern\\.[0-9]+"; fi
+    # Look among the supported releases first, then in the full history.
+    tag="$(find_release "$pattern" "")"
+    if [ -z "$tag" ]; then tag="$(find_release "$pattern" "&include=all")"; fi
+  fi
   [[ "$tag" =~ ^go1\.[0-9]+\.[0-9]+$ ]] || die "could not resolve version '$VERSION'"
   url="https://dl.google.com/go/$tag.linux-$(arch_name x86_64=amd64 aarch64=arm64).tar.gz"
   checksum="$url.sha256"
