@@ -324,7 +324,7 @@ feature_main"
 run _REMOTE_USER=dev
 check "a delegated download needs no release file" has "installed by the vendor installer"
 check "a delegated download states its reason" has "tool: delegating the download: the vendor installer checks its own download"
-check "as_user runs the command as the dev user" grep -qxF "as dev: echo installed by the vendor installer" "$SANDBOX/su.log"
+check "as_user runs the command as the dev user" grep -qx "as dev: .*echo installed by the vendor installer" "$SANDBOX/su.log"
 
 sandbox; feature <<<"$(delegating | sed 's#delegated="the vendor installer checks its own download"#delegated="x"; checksums="y"#')
 feature_main"

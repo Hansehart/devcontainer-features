@@ -11,6 +11,8 @@ DAEMON_JSON="$(option DAEMONJSON "")"
 
 # Install the packages the engine needs at build and at run time.
 PACKAGES+=(erofs-utils iptables pigz)
+# Ship the entrypoint that starts the daemon with the container.
+HOOKS+=(docker-init.sh)
 
 # Turn a requested version into the exact release the package manager installs, so a short version
 # picks the newest release in its line.
@@ -35,11 +37,11 @@ resolve_version() {
   require_version "$format"
   require_version "$format" "$BUILDX_VERSION" buildxVersion
   require_version "$format" "$COMPOSE_VERSION" composeVersion
-  install -m 0755 -d /etc/apt/keyrings
-  curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
-  chmod a+r /etc/apt/keyrings/docker.asc
+  install -m 0755 -d "$FEATURE_ROOT/etc/apt/keyrings" "$FEATURE_ROOT/etc/apt/sources.list.d"
+  curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o "$FEATURE_ROOT/etc/apt/keyrings/docker.asc"
+  chmod a+r "$FEATURE_ROOT/etc/apt/keyrings/docker.asc"
   echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu noble stable" \
-    > /etc/apt/sources.list.d/docker.list
+    > "$FEATURE_ROOT/etc/apt/sources.list.d/docker.list"
   apt-get update
   engine="$(resolve docker-ce "$VERSION")"
   buildx="$(resolve docker-buildx-plugin "$BUILDX_VERSION")"
@@ -52,7 +54,8 @@ resolve_version() {
 # user relies on. The engine's companion packages share its release, which they require.
 install_program() {
   log "with buildx $buildx ($BUILDX_VERSION), compose $compose ($COMPOSE_VERSION)"
-  apt_install \
+  # Install from the package lists the resolve step just read.
+  apt-get install -y --no-install-recommends \
     "docker-ce=$engine" \
     "docker-ce-cli=$engine" \
     "docker-ce-rootless-extras=$engine" \
@@ -64,6 +67,7 @@ install_program() {
     libcap2-bin \
     slirp4netns \
     uidmap
+  rm -rf "$FEATURE_ROOT"/var/lib/apt/lists/*
   # Hold the engine at this release, so it stays matched to the data it keeps.
   apt-mark hold docker-ce docker-ce-cli docker-ce-rootless-extras containerd.io
 }
@@ -81,8 +85,7 @@ settings() {
   record requested-daemon.json "$DAEMON_JSON"
 }
 
-# Set up the dev user who runs the daemon, the entrypoint that starts it, and the syscall
-# profile it needs.
+# Set up the dev user who runs the daemon, and ship the syscall profile it needs.
 post_install() {
   # Keep the docker group that tooling expects.
   groupadd -f docker
@@ -94,8 +97,6 @@ post_install() {
       grep -q "^${_REMOTE_USER}:" "$f" || echo "${_REMOTE_USER}:100000:65536" >> "$f"
     done
   fi
-  install -d "$FEATURE_ROOT/usr/local/libexec/$FEATURE"
-  install -m 0755 "$FEATURE_DIR/docker-init.sh" "$FEATURE_ROOT/usr/local/libexec/$FEATURE/docker-init.sh"
   install -d "$FEATURE_ROOT/usr/local/share/$FEATURE"
   install -m 0644 "$FEATURE_DIR/seccomp.json" "$FEATURE_ROOT/usr/local/share/$FEATURE/seccomp.json"
 }
