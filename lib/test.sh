@@ -393,6 +393,13 @@ sed -i 's/^resolve_version() { tag=/resolve_version() { require_version "^(lates
 run VERSION=2.1.0
 check "a version in the format installs" has "tool: installing 2.1.0"
 
+sandbox; feature <<<"$(delegating)
+confirm() { :; }
+feature_main"
+sed -i 's/^resolve_version() { tag=/resolve_version() { require_version "^(latest|[0-9]+)\\$" "$PLUGIN"; tag=/' "$SANDBOX/feature/install.sh"
+run VERSION=2.1.0 PLUGIN="1; touch $SANDBOX/pwned"
+check "a further version outside the format stops before any command runs" bash -c "grep -qF \"tool: unsupported version '1; touch\" '$SANDBOX/out' && ! [ -e '$SANDBOX/pwned' ] && ! [ -e '$SANDBOX/su.log' ]"
+
 sandbox; feature <<<"$(delegating | sed 's#^install_program.*#install_program() { unpack /opt/tool; }#')
 feature_main"
 run
