@@ -1,12 +1,13 @@
 {
-  "src/age": "1.0.7",
-  "src/claude-code": "2.1.4",
-  "src/codex": "2.1.2",
-  "src/docker-in-docker": "3.0.2",
-  "src/headless-chrome": "1.0.8",
-  "src/latex": "3.0.4",
-  "src/node": "3.0.8",
-  "src/sops": "2.0.7",
-  "src/tea": "1.0.8",
-  "src/uv": "2.0.7"
+  "src/age": "1.0.8",
+  "src/claude-code": "2.1.5",
+  "src/codex": "2.1.3",
+  "src/docker-in-docker": "3.0.3",
+  "src/headless-chrome": "1.0.9",
+  "src/latex": "3.0.5",
+  "src/node": "3.0.9",
+  "src/sops": "2.0.8",
+  "src/tea": "1.0.9",
+  "src/uv": "2.0.8",
+  "src/go": "1.0.0"
 }
