@@ -472,5 +472,34 @@ printf '#!/usr/bin/env bash\nset -euo pipefail\n. "$(dirname "$0")/hook.sh"\napp
 env HOME="$SANDBOX" bash "$SANDBOX/feature/init.sh" > "$SANDBOX/out" 2>&1
 check "apply_config outside init_main names where it belongs" has "apply_config runs inside init_main"
 
+# --- cleanup follow-ups -------------------------------------------------------------------
+
+sandbox; mkdir -p "$SANDBOX/root/opt/tool"; echo old > "$SANDBOX/root/opt/tool/stale"
+feature <<<"$(standard | sed 's#^install_program.*#install_program() { unpack /opt/tool; link_bin /opt/tool; }#')
+feature_main"
+run
+check "unpack replaces an earlier tree, so no old file stays behind" \
+  bash -c "[ -x '$SANDBOX/root/opt/tool/tool' ] && ! [ -e '$SANDBOX/root/opt/tool/stale' ]"
+
+sandbox; feature <<<"$(standard | sed 's#checksums="\$REL/\$tag/checksums.txt"#checksum="\$url.sha256"#')
+feature_main"
+echo "not a digest" > "$SANDBOX/release/v1.2.3/tool-v1.2.3-linux-amd64.tar.gz.sha256"
+run
+check "a malformed checksum file is named as such" has "tool: malformed checksum for tool-v1.2.3-linux-amd64.tar.gz"
+
+sandbox; feature <<<"$(standard)
+confirm() { as_user 'echo root=\$_FEATURE_TEST_ROOT'; }
+feature_main"
+printf '#!/bin/sh\necho "as $2: $4" >> "%s/su.log"\nexec env -i PATH="$PATH" bash -c "$4"\n' "$SANDBOX" > "$SANDBOX/bin/su"
+run
+check "as_user keeps the test root, which a login shell drops" has "root=$SANDBOX/root"
+
+sandbox; printf '#!/bin/sh\n' > "$SANDBOX/feature/init.sh"; printf '#!/bin/sh\n' > "$SANDBOX/feature/extra-init.sh"
+feature <<<"$(standard)
+HOOKS+=(extra-init.sh)
+feature_main"
+run
+check "a feature's extra hooks land beside its hook" bash -c "[ -x '$SANDBOX/root/usr/local/libexec/tool/extra-init.sh' ]"
+
 echo "$passed passed, $failed failed"
 [ "$failed" -eq 0 ]
