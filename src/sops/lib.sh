@@ -15,6 +15,8 @@ if [ -n "$FEATURE_ROOT" ]; then PATH="$FEATURE_ROOT/usr/local/bin:$PATH"; fi
 STATE_DIR="${STATEDIR:-}"
 VERSION="${VERSION:-}"
 PACKAGES=(ca-certificates curl)
+# Name the scripts a feature ships beside its hook, which the library installs with it.
+HOOKS=()
 
 # Read an option the user set, or its default.
 option() {
@@ -73,7 +75,7 @@ apt_install() {
 # Unpack the release into the work dir.
 untar() {
   [ -n "$asset" ] || die "nothing was downloaded to unpack"
-  tar -xzf "$tmp/$asset" -C "$tmp" --strip-components=1
+  tar -xf "$tmp/$asset" -C "$tmp" --strip-components=1 --no-same-owner
 }
 
 # Unpack the release into its own tree, without the archive's single top folder or its owners.
@@ -81,6 +83,8 @@ unpack() {
   local dest="$FEATURE_ROOT$1" staging="$tmp/unpacked" entries
   shift
   [ -n "$asset" ] || die "nothing was downloaded to unpack"
+  # Start from an empty tree, so it holds exactly what the archive holds.
+  rm -rf "${dest:?}"
   install -d "$dest"
   case "$asset" in
     *.zip)
@@ -93,11 +97,7 @@ unpack() {
       if [ -n "$entries" ] && [ "$(printf '%s\n' "$entries" | wc -l)" -eq 1 ] && [ -d "$entries" ]; then
         staging="$entries"
       fi
-      # Replace what an earlier unpack left under each name, so the tree matches the archive.
-      find "$staging" -mindepth 1 -maxdepth 1 -print0 | while IFS= read -r -d '' entry; do
-        rm -rf "${dest:?}/${entry##*/}"
-        mv "$entry" "$dest/"
-      done
+      find "$staging" -mindepth 1 -maxdepth 1 -exec mv -t "$dest" {} +
       ;;
     *)
       tar -xf "$tmp/$asset" -C "$dest" --strip-components=1 --no-same-owner "$@"
@@ -163,7 +163,7 @@ check_digest() {
   case "${#1}" in
     64) sum=sha256sum ;;
     128) sum=sha512sum ;;
-    *) die "checksum mismatch for $asset" ;;
+    *) die "malformed checksum for $asset" ;;
   esac
   ( cd "$tmp" && printf '%s  %s\n' "$1" "$asset" | "$sum" -c - ) || die "checksum mismatch for $asset"
 }
@@ -211,9 +211,12 @@ write_profile() {
 # Install the hooks the feature ships, which run when the container is created.
 install_hooks() {
   local dir="$FEATURE_ROOT/usr/local/libexec/$FEATURE"
+  local hook
   [ -f "$FEATURE_DIR/init.sh" ] || return 0
   install -d "$dir"
-  install -m 0755 "$FEATURE_DIR/init.sh" "$dir/init.sh"
+  for hook in init.sh "${HOOKS[@]}"; do
+    install -m 0755 "$FEATURE_DIR/$hook" "$dir/$hook"
+  done
   if [ -f "$FEATURE_DIR/state-dir.sh" ]; then
     install -m 0755 "$FEATURE_DIR/state-dir.sh" "$dir/state-dir.sh"
   fi

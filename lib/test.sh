@@ -506,5 +506,27 @@ env _REMOTE_USER="$(id -un)" _REMOTE_USER_HOME="$SANDBOX/home" \
 check "a state dir with shell syntax is refused" \
   bash -c "grep -qF 'tool: stateDir may hold letters, digits and ._@+- alone' '$SANDBOX/out' && ! [ -e '$SANDBOX/home/\$(touch $SANDBOX/pwned)' ]"
 
+# --- cleanup follow-ups -------------------------------------------------------------------
+
+sandbox; mkdir -p "$SANDBOX/root/opt/tool"; echo old > "$SANDBOX/root/opt/tool/stale"
+feature <<<"$(standard | sed 's#^install_program.*#install_program() { unpack /opt/tool; link_bin /opt/tool; }#')
+feature_main"
+run
+check "unpack replaces an earlier tree, so no old file stays behind" \
+  bash -c "[ -x '$SANDBOX/root/opt/tool/tool' ] && ! [ -e '$SANDBOX/root/opt/tool/stale' ]"
+
+sandbox; feature <<<"$(standard | sed 's#checksums="\$REL/\$tag/checksums.txt"#checksum="\$url.sha256"#')
+feature_main"
+echo "not a digest" > "$SANDBOX/release/v1.2.3/tool-v1.2.3-linux-amd64.tar.gz.sha256"
+run
+check "a malformed checksum file is named as such" has "tool: malformed checksum for tool-v1.2.3-linux-amd64.tar.gz"
+
+sandbox; printf '#!/bin/sh\n' > "$SANDBOX/feature/init.sh"; printf '#!/bin/sh\n' > "$SANDBOX/feature/extra-init.sh"
+feature <<<"$(standard)
+HOOKS+=(extra-init.sh)
+feature_main"
+run
+check "a feature's extra hooks land beside its hook" bash -c "[ -x '$SANDBOX/root/usr/local/libexec/tool/extra-init.sh' ]"
+
 echo "$passed passed, $failed failed"
 [ "$failed" -eq 0 ]
