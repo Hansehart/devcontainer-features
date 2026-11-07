@@ -128,8 +128,8 @@ require_version() {
 # Keep a setting for the feature's hooks, exactly as given.
 record() { write_file "/usr/local/etc/$FEATURE/$1" "${2-}"; }
 
-# Run a command as the dev user, in a login shell that keeps the install root.
-as_user() { su - "$_REMOTE_USER" -c "${FEATURE_ROOT:+export _FEATURE_TEST_ROOT='$FEATURE_ROOT'; }$1"; }
+# Run a command as the dev user, in a login shell.
+as_user() { su - "$_REMOTE_USER" -c "$1"; }
 
 # Write a file with exactly the given content, readable by everyone.
 write_file() {

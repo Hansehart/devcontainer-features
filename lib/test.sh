@@ -324,7 +324,7 @@ feature_main"
 run _REMOTE_USER=dev
 check "a delegated download needs no release file" has "installed by the vendor installer"
 check "a delegated download states its reason" has "tool: delegating the download: the vendor installer checks its own download"
-check "as_user runs the command as the dev user" grep -qx "as dev: .*echo installed by the vendor installer" "$SANDBOX/su.log"
+check "as_user runs the command as the dev user" grep -qxF "as dev: echo installed by the vendor installer" "$SANDBOX/su.log"
 
 sandbox; feature <<<"$(delegating | sed 's#delegated="the vendor installer checks its own download"#delegated="x"; checksums="y"#')
 feature_main"
@@ -486,13 +486,6 @@ feature_main"
 echo "not a digest" > "$SANDBOX/release/v1.2.3/tool-v1.2.3-linux-amd64.tar.gz.sha256"
 run
 check "a malformed checksum file is named as such" has "tool: malformed checksum for tool-v1.2.3-linux-amd64.tar.gz"
-
-sandbox; feature <<<"$(standard)
-confirm() { as_user 'echo root=\$_FEATURE_TEST_ROOT'; }
-feature_main"
-printf '#!/bin/sh\necho "as $2: $4" >> "%s/su.log"\nexec env -i PATH="$PATH" bash -c "$4"\n' "$SANDBOX" > "$SANDBOX/bin/su"
-run
-check "as_user keeps the test root, which a login shell drops" has "root=$SANDBOX/root"
 
 sandbox; printf '#!/bin/sh\n' > "$SANDBOX/feature/init.sh"; printf '#!/bin/sh\n' > "$SANDBOX/feature/extra-init.sh"
 feature <<<"$(standard)

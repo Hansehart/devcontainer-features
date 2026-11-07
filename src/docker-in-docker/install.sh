@@ -37,11 +37,11 @@ resolve_version() {
   require_version "$format"
   require_version "$format" "$BUILDX_VERSION" buildxVersion
   require_version "$format" "$COMPOSE_VERSION" composeVersion
-  install -m 0755 -d "$FEATURE_ROOT/etc/apt/keyrings" "$FEATURE_ROOT/etc/apt/sources.list.d"
-  curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o "$FEATURE_ROOT/etc/apt/keyrings/docker.asc"
-  chmod a+r "$FEATURE_ROOT/etc/apt/keyrings/docker.asc"
+  install -m 0755 -d /etc/apt/keyrings
+  curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+  chmod a+r /etc/apt/keyrings/docker.asc
   echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu noble stable" \
-    > "$FEATURE_ROOT/etc/apt/sources.list.d/docker.list"
+    > /etc/apt/sources.list.d/docker.list
   apt-get update
   engine="$(resolve docker-ce "$VERSION")"
   buildx="$(resolve docker-buildx-plugin "$BUILDX_VERSION")"
@@ -54,8 +54,7 @@ resolve_version() {
 # user relies on. The engine's companion packages share its release, which they require.
 install_program() {
   log "with buildx $buildx ($BUILDX_VERSION), compose $compose ($COMPOSE_VERSION)"
-  # Install from the package lists the resolve step just read.
-  apt-get install -y --no-install-recommends \
+  apt_install \
     "docker-ce=$engine" \
     "docker-ce-cli=$engine" \
     "docker-ce-rootless-extras=$engine" \
@@ -67,7 +66,6 @@ install_program() {
     libcap2-bin \
     slirp4netns \
     uidmap
-  rm -rf "$FEATURE_ROOT"/var/lib/apt/lists/*
   # Hold the engine at this release, so it stays matched to the data it keeps.
   apt-mark hold docker-ce docker-ce-cli docker-ce-rootless-extras containerd.io
 }
