@@ -472,5 +472,20 @@ printf '#!/usr/bin/env bash\nset -euo pipefail\n. "$(dirname "$0")/hook.sh"\napp
 env HOME="$SANDBOX" bash "$SANDBOX/feature/init.sh" > "$SANDBOX/out" 2>&1
 check "apply_config outside init_main names where it belongs" has "apply_config runs inside init_main"
 
+# --- options checked first ----------------------------------------------------------------
+
+sandbox; feature <<<"$(standard)
+check_options() { require_version '^(latest|[0-9]+\\.[0-9]+\\.[0-9]+)$'; }
+feature_main"
+run VERSION="1.2; id"
+check "check_options stops a bad option before any package is installed" \
+  bash -c "grep -qF \"tool: unsupported version '1.2; id'\" '$SANDBOX/out' && ! [ -e '$SANDBOX/apt.log' ]"
+
+sandbox; mkdir -p "$SANDBOX/home"
+env _REMOTE_USER="$(id -un)" _REMOTE_USER_HOME="$SANDBOX/home" \
+  bash "$(dirname "$LIB")/state-dir.sh" tool "$SANDBOX/home/\$(touch $SANDBOX/pwned)" > "$SANDBOX/out" 2>&1
+check "a state dir with shell syntax is refused" \
+  bash -c "grep -qF 'tool: stateDir may hold letters, digits and ._@+- alone' '$SANDBOX/out' && ! [ -e '$SANDBOX/home/\$(touch $SANDBOX/pwned)' ]"
+
 echo "$passed passed, $failed failed"
 [ "$failed" -eq 0 ]
