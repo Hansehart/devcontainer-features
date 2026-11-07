@@ -17,7 +17,10 @@
     },
     "python": {
       "type": "string",
-      "proposals": ["", "latest"],
+      "proposals": [
+        "",
+        "latest"
+      ],
       "default": "",
       "description": "Installs this CPython at build as the default (adds python/python3 to PATH). Empty installs no interpreter, leaving uv to use an available Python or download one on demand."
     }
