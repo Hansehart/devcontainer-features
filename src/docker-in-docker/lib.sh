@@ -235,6 +235,7 @@ feature_main() {
   for part in resolve_version install_program; do
     declare -F "$part" >/dev/null || die "missing $part"
   done
+  optional check_options
   claim_state_dir
   apt_install "${PACKAGES[@]}"
   tag="" url="" asset="" checksums="" checksum="" unverified="" delegated=""

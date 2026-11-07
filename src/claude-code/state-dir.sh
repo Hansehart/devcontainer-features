@@ -6,6 +6,13 @@ set -euo pipefail
 feature="$1"
 state_dir="$2"
 
+# Keep the path plain, so the profiles and commands that carry it read it as written.
+case "$state_dir" in
+  *[!A-Za-z0-9._/@+-]*)
+    echo "$feature: stateDir may hold letters, digits and ._@+- alone (got $state_dir)" >&2
+    exit 1 ;;
+esac
+
 user="${_REMOTE_USER:-$(id -un)}"
 home="${_REMOTE_USER_HOME:-}"
 if [ -z "$home" ]; then

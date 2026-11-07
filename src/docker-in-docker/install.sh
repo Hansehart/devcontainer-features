@@ -29,12 +29,16 @@ resolve() {
   echo "$ver"
 }
 
-# Resolve each component to an exact release from the vendor's own package repository.
-resolve_version() {
+# Accept only options in the feature's format, before anything is installed.
+check_options() {
   local format='^(latest|[0-9]+(\.[0-9]+){0,2})$'
   require_version "$format"
   require_version "$format" "$BUILDX_VERSION" buildxVersion
   require_version "$format" "$COMPOSE_VERSION" composeVersion
+}
+
+# Resolve each component to an exact release from the vendor's own package repository.
+resolve_version() {
   install -m 0755 -d /etc/apt/keyrings
   curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
   chmod a+r /etc/apt/keyrings/docker.asc

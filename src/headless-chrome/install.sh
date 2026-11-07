@@ -34,6 +34,11 @@ PACKAGES+=(
   unzip
 )
 
+# Accept only options in the feature's format, before anything is installed.
+check_options() {
+  require_version '^(latest|stable|beta|dev|canary|[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)$'
+}
+
 # Resolve a channel to its current version, keeping an exact version as given.
 resolve_version() {
   local key=""

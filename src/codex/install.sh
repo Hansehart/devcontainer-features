@@ -10,9 +10,13 @@ CONFIG_TOML="$(option CONFIGTOML "")"
 # The tool's searches rely on ripgrep.
 PACKAGES+=(ripgrep)
 
+# Accept only options in the feature's format, before anything is installed.
+check_options() {
+  require_version '^(latest|[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+)?)$'
+}
+
 # Hand the requested version to the vendor installer, which fetches and checks the tool itself.
 resolve_version() {
-  require_version '^(latest|[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+)?)$'
   tag="$VERSION"
   delegated="the vendor installer checks each archive against its release digest"
 }

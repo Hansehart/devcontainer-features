@@ -7,6 +7,12 @@ FEATURE=uv
 VERSION="$(option VERSION latest)"
 PYTHON_VERSION="$(option PYTHON "")"
 
+# Accept only options in the feature's format, before anything is installed.
+check_options() {
+  require_version '^(latest|v?[0-9]+\.[0-9]+\.[0-9]+)$'
+  require_version '^[A-Za-z0-9.@+_-]*$' "$PYTHON_VERSION" python
+}
+
 # Resolve the request to a release, its archive and its checksum.
 resolve_version() {
   tag="$(release_tag github astral-sh/uv "$VERSION" --bare)"
@@ -36,7 +42,7 @@ profile() {
 # Bake the chosen interpreter in as the default.
 post_install() {
   if [ -n "$PYTHON_VERSION" ]; then
-    su - "$_REMOTE_USER" -c \
+    as_user \
       "env -u UV_PYTHON_INSTALL_DIR $FEATURE_ROOT/usr/local/bin/uv python install --default --preview-features python-install-default '$PYTHON_VERSION'"
   fi
 }
