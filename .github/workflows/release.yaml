@@ -2,12 +2,17 @@ name: "Release dev container features"
 on:
   workflow_dispatch:
   push:
-    branches:
-      - main
+    tags:
+      - '*-[0-9]+.[0-9]+.[0-9]+'
+
+# Publish one release at a time; each run pushes every version not yet on the registry.
+concurrency:
+  group: publish-features
+  cancel-in-progress: false
 
 jobs:
+  # Publishes the features whose release a tag marks.
   deploy:
-    if: ${{ github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
     permissions:
       packages: write
@@ -21,5 +26,7 @@ jobs:
         with:
           publish-features: "true"
           base-path-to-features: "./src"
+          # Leave tagging to release-please.
+          disable-repo-tagging: "true"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

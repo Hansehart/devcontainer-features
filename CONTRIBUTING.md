@@ -6,6 +6,7 @@
 - **Commits** start with the kind of change and the feature's name, followed by a short summary.
 - **Descriptions** of pull requests and issues stay slim and minimal, about 2–3 sentences on average.
 - **Versions** are left to the release pull request, which raises a feature's first number for breaking changes, its second for new features, and its third for fixes.
+- **Releases** reach the registry when the release pull request merges, and a new feature joins them by adding itself to `release-please-config.json` and its name to the commit scopes in `.commitlintrc.json`.
 
 ## Code
 
