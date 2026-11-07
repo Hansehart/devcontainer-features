@@ -475,10 +475,10 @@ check "apply_config outside init_main names where it belongs" has "apply_config 
 # --- options checked first ----------------------------------------------------------------
 
 sandbox; feature <<<"$(standard)
-check_options() { require_version '^(latest|[0-9]+\\.[0-9]+\\.[0-9]+)$'; }
+require_version '^(latest|[0-9]+\\.[0-9]+\\.[0-9]+)$'
 feature_main"
 run VERSION="1.2; id"
-check "check_options stops a bad option before any package is installed" \
+check "a version checked where it is read stops before any package is installed" \
   bash -c "grep -qF \"tool: unsupported version '1.2; id'\" '$SANDBOX/out' && ! [ -e '$SANDBOX/apt.log' ]"
 
 sandbox; mkdir -p "$SANDBOX/home"

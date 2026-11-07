@@ -9,9 +9,7 @@ DISABLE_NONESSENTIAL_TRAFFIC="$(option DISABLENONESSENTIALTRAFFIC true)"
 SETTINGS_JSON="$(option SETTINGSJSON "")"
 
 # Accept only options in the feature's format, before anything is installed.
-check_options() {
-  require_version '^(latest|stable|[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?)$'
-}
+require_version '^(latest|stable|[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?)$'
 
 # Hand the requested version to the vendor installer, which fetches and checks the tool itself.
 resolve_version() {

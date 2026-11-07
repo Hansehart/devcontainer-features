@@ -8,10 +8,8 @@ VERSION="$(option VERSION latest)"
 PYTHON_VERSION="$(option PYTHON "")"
 
 # Accept only options in the feature's format, before anything is installed.
-check_options() {
-  require_version '^(latest|v?[0-9]+\.[0-9]+\.[0-9]+)$'
-  require_version '^[A-Za-z0-9.@+_-]*$' "$PYTHON_VERSION" python
-}
+require_version '^(latest|v?[0-9]+\.[0-9]+\.[0-9]+)$'
+require_version '^[A-Za-z0-9.@+_-]*$' "$PYTHON_VERSION" python
 
 # Resolve the request to a release, its archive and its checksum.
 resolve_version() {

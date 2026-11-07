@@ -7,9 +7,7 @@ FEATURE=sops
 VERSION="$(option VERSION latest)"
 
 # Accept only options in the feature's format, before anything is installed.
-check_options() {
-  require_version '^(latest|v?[0-9]+\.[0-9]+\.[0-9]+)$'
-}
+require_version '^(latest|v?[0-9]+\.[0-9]+\.[0-9]+)$'
 
 # Resolve the request to a release, its binary and its checksum list.
 resolve_version() {

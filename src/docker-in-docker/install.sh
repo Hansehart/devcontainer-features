@@ -9,6 +9,12 @@ BUILDX_VERSION="$(option BUILDXVERSION latest)"
 COMPOSE_VERSION="$(option COMPOSEVERSION latest)"
 DAEMON_JSON="$(option DAEMONJSON "")"
 
+# Accept only options in the feature's format, before anything is installed.
+format='^(latest|[0-9]+(\.[0-9]+){0,2})$'
+require_version "$format"
+require_version "$format" "$BUILDX_VERSION" buildxVersion
+require_version "$format" "$COMPOSE_VERSION" composeVersion
+
 # Install the packages the engine needs at build and at run time.
 PACKAGES+=(erofs-utils iptables pigz)
 
@@ -27,14 +33,6 @@ resolve() {
   fi
   [ -n "$ver" ] || die "$pkg version '$want' not found in apt"
   echo "$ver"
-}
-
-# Accept only options in the feature's format, before anything is installed.
-check_options() {
-  local format='^(latest|[0-9]+(\.[0-9]+){0,2})$'
-  require_version "$format"
-  require_version "$format" "$BUILDX_VERSION" buildxVersion
-  require_version "$format" "$COMPOSE_VERSION" composeVersion
 }
 
 # Resolve each component to an exact release from the vendor's own package repository.

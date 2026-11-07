@@ -6,12 +6,10 @@ set -euo pipefail
 FEATURE=latex
 VERSION="$(option VERSION 2025)"
 SCHEME="$(option SCHEME scheme-basic)"
-PACKAGES+=(fontconfig perl wget)
 
 # Accept only options in the feature's format, before anything is installed.
-check_options() {
-  require_version '^20[0-9]{2}$'
-}
+require_version '^20[0-9]{2}$'
+PACKAGES+=(fontconfig perl wget)
 
 # Resolve the year to its final snapshot and the installer it ships.
 resolve_version() {
