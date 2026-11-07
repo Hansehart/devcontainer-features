@@ -29,10 +29,10 @@ jobs:
           echo "Changed files:"
           echo "$changed"
 
-          # Test every feature when the CI setup itself changes.
-          if echo "$changed" | grep -qE '^\.github/'; then
+          # Test every feature when the way features are tested changes.
+          if echo "$changed" | grep -qxF '.github/workflows/test.yaml'; then
             echo "features=$all" >> "$GITHUB_OUTPUT"
-            echo "CI configuration changed, testing every feature: $all"
+            echo "Test workflow changed, testing every feature: $all"
             exit 0
           fi
 
