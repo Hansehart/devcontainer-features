@@ -491,5 +491,20 @@ check "the state dir is handed to the dev user" grep -qx "dev: $SANDBOX/home/.lo
 check "the folders above the state dir stay open to read" bash -c "[ \"\$(stat -c %a '$SANDBOX/home/.local/state')\" = 755 ]"
 check "the state dir stays private" bash -c "[ \"\$(stat -c %a '$SANDBOX/home/.local/state/tool')\" = 700 ]"
 
+# --- options checked first ----------------------------------------------------------------
+
+sandbox; feature <<<"$(standard)
+require_version '^(latest|[0-9]+\\.[0-9]+\\.[0-9]+)$'
+feature_main"
+run VERSION="1.2; id"
+check "a version checked where it is read stops before any package is installed" \
+  bash -c "grep -qF \"tool: unsupported version '1.2; id'\" '$SANDBOX/out' && ! [ -e '$SANDBOX/apt.log' ]"
+
+sandbox; mkdir -p "$SANDBOX/home"
+env _REMOTE_USER="$(id -un)" _REMOTE_USER_HOME="$SANDBOX/home" \
+  bash "$(dirname "$LIB")/state-dir.sh" tool "$SANDBOX/home/\$(touch $SANDBOX/pwned)" > "$SANDBOX/out" 2>&1
+check "a state dir with shell syntax is refused" \
+  bash -c "grep -qF 'tool: stateDir may hold letters, digits and ._@+- alone' '$SANDBOX/out' && ! [ -e '$SANDBOX/home/\$(touch $SANDBOX/pwned)' ]"
+
 echo "$passed passed, $failed failed"
 [ "$failed" -eq 0 ]

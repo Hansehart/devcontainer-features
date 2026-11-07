@@ -6,6 +6,9 @@ set -euo pipefail
 FEATURE=age
 VERSION="$(option VERSION latest)"
 
+# Accept only options in the feature's format, before anything is installed.
+require_version '^(latest|v?[0-9]+\.[0-9]+\.[0-9]+)$'
+
 # Resolve the request to a release and its asset.
 resolve_version() {
   tag="$(release_tag github FiloSottile/age "$VERSION")"

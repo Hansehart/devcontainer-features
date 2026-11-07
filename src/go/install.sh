@@ -7,6 +7,10 @@ FEATURE=go
 VERSION="$(option VERSION latest)"
 TOOLCHAIN="$(option TOOLCHAIN local)"
 
+# Accept only options in the feature's format, before anything is installed.
+require_version '^(latest|1\.[0-9]+(\.[0-9]+)?)$'
+require_version '^(local|path|auto)$' "$TOOLCHAIN" toolchain
+
 # Find a release in the index: the newest of a line, or an exact one that exists.
 find_release() {
   local pattern="$1" query="$2" index
@@ -18,8 +22,6 @@ find_release() {
 # Resolve the channel or release line to a release and its checksum.
 resolve_version() {
   local pattern
-  require_version '^(latest|1\.[0-9]+(\.[0-9]+)?)$'
-  require_version '^(local|path|auto)$' "$TOOLCHAIN" toolchain
   if [ "$VERSION" = latest ]; then
     # Follow the release pointer, which names the newest release on its first line.
     tag="$(curl -fsSL "https://go.dev/VERSION?m=text" | head -n1 || true)"

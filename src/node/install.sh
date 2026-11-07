@@ -7,6 +7,9 @@ FEATURE=node
 VERSION="$(option VERSION lts)"
 IGNORE_SCRIPTS="$(option IGNORESCRIPTS true)"
 NPMRC="$(option NPMRC "")"
+
+# Accept only options in the feature's format, before anything is installed.
+require_version '^(latest|lts|v?[0-9]+(\.[0-9]+){0,2})$'
 PACKAGES+=(libatomic1)
 
 # Resolve the channel or release line to a release and its checksum list.

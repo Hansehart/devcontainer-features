@@ -5,6 +5,9 @@ set -euo pipefail
 # Options (uppercased by the CLI): VERSION.
 FEATURE=headless-chrome
 VERSION="$(option VERSION latest)"
+
+# Accept only options in the feature's format, before anything is installed.
+require_version '^(latest|stable|beta|dev|canary|[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)$'
 # Name the build's platform first, so an unsupported machine stops before any package installs.
 PLATFORM="$(arch_name x86_64=linux64)"
 # Install the libraries the browser loads at run time.
