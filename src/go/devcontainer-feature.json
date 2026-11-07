@@ -19,7 +19,7 @@
       "type": "string",
       "enum": ["local", "path", "auto"],
       "default": "local",
-      "description": "Set GOTOOLCHAIN to this value: local runs only the installed Go, path also runs newer ones found on the PATH, and auto downloads what go.mod asks for."
+      "description": "Set GOTOOLCHAIN to this value to choose which Go runs: local only the installed one, path also newer ones on the PATH, auto whatever go.mod asks for, downloaded if needed."
     }
   },
   "customizations": {
